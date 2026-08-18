@@ -1,21 +1,46 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BsEnvelopeFill, BsLockFill } from 'react-icons/bs';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login submitted:', formData);
-    // Add actual login logic here
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      toast.success('Successfully logged in!');
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify({ name: data.name, email: data.email, _id: data._id }));
+      navigate('/chat');
+      
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,7 +64,7 @@ const Login = () => {
                   type="email" 
                   name="email"
                   placeholder="name@example.com" 
-                  className="input input-bordered w-full pl-10" 
+                  className="input input-bordered w-full pl-10 rounded-xl" 
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -59,7 +84,7 @@ const Login = () => {
                   type="password" 
                   name="password"
                   placeholder="••••••••" 
-                  className="input input-bordered w-full pl-10" 
+                  className="input input-bordered w-full pl-10 rounded-xl" 
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -71,8 +96,8 @@ const Login = () => {
             </div>
 
             <div className="form-control mt-6">
-              <button type="submit" className="btn btn-primary w-full shadow-lg shadow-primary/30">
-                Sign In
+              <button type="submit" disabled={loading} className="btn btn-primary w-full shadow-lg shadow-primary/30 rounded-xl">
+                {loading ? <span className="loading loading-spinner"></span> : 'Sign In'}
               </button>
             </div>
           </form>
@@ -81,7 +106,7 @@ const Login = () => {
 
           <p className="text-center text-base-content/70">
             Don't have an account?{' '}
-            <Link to="/signup" className="link link-primary font-semibold">
+            <Link to="/signup" className="link link-primary font-semibold hover:opacity-80">
               Sign up
             </Link>
           </p>
