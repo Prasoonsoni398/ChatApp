@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BsSearch, BsThreeDotsVertical, BsEmojiSmile, BsPaperclip, BsFillSendFill, BsArrowLeft } from 'react-icons/bs';
+import { BsSearch, BsThreeDotsVertical, BsEmojiSmile, BsPaperclip, BsFillSendFill, BsArrowLeft, BsCheck, BsCheckAll } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import EmojiPicker from 'emoji-picker-react';
 
@@ -19,7 +19,9 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const profileMenuRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, messageId: null });
@@ -52,6 +54,16 @@ const Chat = () => {
     document.addEventListener('click', closeContextMenu);
     return () => document.removeEventListener('click', closeContextMenu);
   }, [contextMenu.visible]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleDeleteMessage = async () => {
     const { messageId } = contextMenu;
@@ -94,7 +106,13 @@ const Chat = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
-        setMessages(data);
+        setMessages(prev => {
+          const prevMap = new Map(prev.map(m => [m._id, m.status]));
+          return data.map(m => ({
+            ...m,
+            status: prevMap.get(m._id) || 'read'
+          }));
+        });
       } catch (error) {
         console.error('Error fetching messages:', error);
       }
@@ -218,7 +236,8 @@ const Chat = () => {
       text: message,
       image: imagePreview,
       senderId: loggedInUser._id,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      status: 'sending'
     };
     
     setMessages(prev => [...prev, optimisticMessage]);
@@ -244,7 +263,16 @@ const Chat = () => {
       });
       const data = await res.json();
       
-      setMessages(prev => prev.map(m => m._id === tempId ? data : m));
+      setMessages(prev => prev.map(m => m._id === tempId ? { ...data, status: 'sent' } : m));
+      
+      // Simulate WhatsApp delivery & read receipts
+      setTimeout(() => {
+        setMessages(prev => prev.map(m => m._id === data._id ? { ...m, status: 'delivered' } : m));
+      }, 1500);
+
+      setTimeout(() => {
+        setMessages(prev => prev.map(m => m._id === data._id ? { ...m, status: 'read' } : m));
+      }, 3000);
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -271,12 +299,14 @@ const Chat = () => {
             </div>
           </div>
           <div className="flex gap-4 text-base-content/60">
-            <div className="dropdown dropdown-end">
-              <div tabIndex={0} role="button" className="hover:text-primary transition-colors cursor-pointer p-1"><BsThreeDotsVertical size={20} /></div>
-              <ul tabIndex={0} className="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-40 text-base-content border border-base-300 mt-2">
-                <li><a onClick={() => { setEditName(loggedInUser?.name || ''); setShowEditModal(true); }}>Edit Profile</a></li>
-                <li><a onClick={handleLogout} className="text-error">Logout</a></li>
-              </ul>
+            <div className="relative" ref={profileMenuRef}>
+              <div onClick={() => setShowProfileMenu(!showProfileMenu)} role="button" className="hover:text-primary transition-colors cursor-pointer p-1"><BsThreeDotsVertical size={20} /></div>
+              {showProfileMenu && (
+                <ul className="absolute right-0 z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-40 text-base-content border border-base-300 mt-2">
+                  <li><a onClick={() => { setEditName(loggedInUser?.name || ''); setShowEditModal(true); setShowProfileMenu(false); }}>Edit Profile</a></li>
+                  <li><a onClick={handleLogout} className="text-error">Logout</a></li>
+                </ul>
+              )}
             </div>
           </div>
         </div>
@@ -391,8 +421,15 @@ const Chat = () => {
                         )}
                         {msg.text && <span>{msg.text}</span>}
                       </div>
-                      <div className="chat-footer text-base-content/50">
-                        {isMe ? 'Delivered' : ''}
+                      <div className="chat-footer flex items-center mt-1">
+                        {isMe && (
+                          <div className="text-[1.2rem]">
+                            {msg.status === 'sending' && <BsCheck className="text-base-content/40" />}
+                            {msg.status === 'sent' && <BsCheck className="text-base-content/60" />}
+                            {msg.status === 'delivered' && <BsCheckAll className="text-base-content/60" />}
+                            {(!msg.status || msg.status === 'read') && <BsCheckAll className="text-success" />}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
