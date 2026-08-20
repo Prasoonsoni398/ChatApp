@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "motion/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BsRocketTakeoff, BsLightningChargeFill, BsShieldLockFill, BsStars, BsChatDotsFill } from "react-icons/bs";
+import heroImage from "../assets/heroSection.png";
 
 const Home = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/chat');
+    }
+  }, [navigate]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -35,56 +45,67 @@ const Home = () => {
       
       <div className="flex-grow flex flex-col items-center justify-center p-6 w-full">
         {/* Hero Section */}
-        <motion.div
-          className="text-center max-w-3xl mt-12 md:mt-24"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={itemVariants} className="inline-block mb-4" whileHover={{ scale: 1.1 }}>
-            <span className="badge badge-primary badge-outline badge-lg px-4 py-3 font-semibold cursor-pointer flex items-center gap-2">
-              <BsRocketTakeoff /> The Next Gen Chat App
-            </span>
-          </motion.div>
-
-          <motion.h1
-            variants={itemVariants}
-            className="text-5xl md:text-7xl font-extrabold text-base-content mb-6 tracking-tight leading-tight"
-          >
-            Connect with <span className="text-primary hover:text-secondary transition-colors duration-300">Anyone</span>, <br />
-            Anywhere.
-          </motion.h1>
-
-          <motion.p
-            variants={itemVariants}
-            className="text-lg md:text-xl text-base-content/80 mb-10 max-w-2xl mx-auto font-medium"
-          >
-            Experience seamless, real-time messaging with top-tier security and a
-            beautiful, intuitive design. Stay close to the people who matter most.
-          </motion.p>
-
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 mt-12  max-w-7xl w-full">
           <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="text-center lg:text-left lg:w-1/2"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                to="/signup"
-                className="btn btn-primary btn-lg rounded-full px-8 shadow-lg shadow-primary/30 w-full sm:w-auto"
-              >
-                Get Started Free
-              </Link>
+            <motion.div variants={itemVariants} className="inline-block mb-4" whileHover={{ scale: 1.1 }}>
+              <span className="badge badge-primary badge-outline badge-lg px-4 py-3 font-semibold cursor-pointer flex items-center gap-2">
+                <BsRocketTakeoff /> The Next Gen Chat App
+              </span>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                to="/login"
-                className="btn btn-outline btn-secondary btn-lg rounded-full px-8 w-full sm:w-auto"
-              >
-                Login
-              </Link>
+
+            <motion.h1
+              variants={itemVariants}
+              className="text-5xl md:text-7xl font-extrabold text-base-content mb-6 tracking-tight leading-tight"
+            >
+              Connect with <span className="text-primary hover:text-secondary transition-colors duration-300">Anyone</span> <br />
+              Anywhere.
+            </motion.h1>
+
+            <motion.p
+              variants={itemVariants}
+              className="text-lg md:text-xl text-base-content/80 mb-10 max-w-2xl mx-auto lg:mx-0 font-medium"
+            >
+              Experience seamless, real-time messaging with top-tier security and a
+              beautiful, intuitive design. Stay close to the people who matter most.
+            </motion.p>
+
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link
+                  to="/signup"
+                  className="btn btn-primary btn-lg rounded-full px-8 shadow-lg shadow-primary/30 w-full sm:w-auto"
+                >
+                  Get Started Free
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link
+                  to="/login"
+                  className="btn btn-outline btn-secondary btn-lg rounded-full px-8 w-full sm:w-auto"
+                >
+                  Login
+                </Link>
+              </motion.div>
             </motion.div>
           </motion.div>
-        </motion.div>
+          
+          <motion.div
+            className="lg:w-1/2 flex justify-center lg:justify-end"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          >
+            <img src={heroImage} alt="Hero illustration" className="max-w-full h-auto object-contain" />
+          </motion.div>
+        </div>
 
         {/* Features Section */}
         <motion.div

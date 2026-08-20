@@ -9,10 +9,10 @@ const Navbar = () => {
     }
   return (
     <>
-      <div className="flex justify-between px-6 py-2 bg-primary text-primary-content">
-        <div className=" text-xl font-bold">
-        Guftagu
-      </div>
+      <div className="flex justify-between px-6 py-2 bg-primary text-primary-content items-center">
+        <a href="/" className="text-xl font-bold">
+          Guftagu
+        </a>
       <select className="outline-none select max-w-32 rounded-full bg-primary-focus text-primary-focus" value={selectTheme} onChange={handleThemeChange}  name="theme" id="theme">
         <option value="" disabled selected>
           Select theme

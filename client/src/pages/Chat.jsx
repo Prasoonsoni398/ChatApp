@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { BsSearch, BsThreeDotsVertical, BsEmojiSmile, BsPaperclip, BsFillSendFill, BsArrowLeft, BsCheck, BsCheckAll } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import EmojiPicker from 'emoji-picker-react';
+import { use } from 'react';
+import socketAPI from '../config/webSocket.js';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ const Chat = () => {
   const [editName, setEditName] = useState(loggedInUser?.name || '');
   const [editAvatar, setEditAvatar] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [onlineUsersMap, setOnlineUsersMap] = useState({});
 
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -162,10 +165,24 @@ const Chat = () => {
     if (!token) {
       toast.error('Please login to access chat');
       navigate('/login');
-    } else {
-      fetchUsers();
+      return;
     }
-  }, [navigate]);
+    
+    fetchUsers();
+    
+    if (!loggedInUser) return;
+
+    socketAPI.emit("createPath", loggedInUser._id);
+    
+    socketAPI.on("onlineUsers", (onlineUsers) => {
+      console.log("Online Users currently connected:", onlineUsers);
+      setOnlineUsersMap(onlineUsers);
+    });
+
+    return () => {
+      socketAPI.off("onlineUsers");
+    };
+  }, [navigate, loggedInUser]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -290,13 +307,14 @@ const Chat = () => {
   return (
     <div className="flex h-screen bg-base-200 overflow-hidden text-base-content">
       {/* Sidebar */}
-      <div className={`w-full md:w-[350px] lg:w-[400px] flex-shrink-0 flex flex-col bg-base-100 border-r border-base-300 ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`w-full md:w-88.5 lg:w-90 flex-shrink-0 flex flex-col bg-base-100 border-r border-base-300 ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
         {/* Sidebar Header */}
         <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-base-300 relative z-50">
-          <div className="avatar">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/20 p-0.5 overflow-hidden">
               <img src={loggedInUser?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Me"} alt="User avatar" className="rounded-full object-cover w-full h-full" />
             </div>
+            <div className="text-base-content font-semibold">{loggedInUser.name}</div>
           </div>
           <div className="flex gap-4 text-base-content/60">
             <div className="relative" ref={profileMenuRef}>
@@ -378,7 +396,16 @@ const Chat = () => {
               </div>
               <div className="flex-1">
                 <h2 className="font-semibold">{selectedChat.name}</h2>
-                <p className="text-xs text-base-content/60">Online</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  {onlineUsersMap[selectedChat.id] ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-success"></span>
+                      <span className="text-xs text-success font-medium">Online</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-base-content/60 font-medium">Offline</span>
+                  )}
+                </div>
               </div>
               <div className="flex gap-4 text-base-content/60">
                 <button className="hover:text-primary"><BsSearch size={20} /></button>
