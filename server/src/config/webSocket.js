@@ -19,7 +19,7 @@ const WebSocket = (io) => {
         socket.on("typing", (data) => { 
             const receiverSocketId = OnlineUsers[data.receiverId];
             if(receiverSocketId){
-                io.to(receiverSocketId).emit("typing", data.userId)
+                io.to(receiverSocketId).emit("typing", data)
             }
         })
         
@@ -40,6 +40,16 @@ const WebSocket = (io) => {
             }
 
         })
+
+        // Built-in socket disconnect
+        socket.on("disconnect", () => {
+            const userId = Object.keys(OnlineUsers).find(key => OnlineUsers[key] === socket.id);
+            if (userId) {
+                delete OnlineUsers[userId];
+                console.log("Online User (after disconnect):", OnlineUsers);
+                io.emit("onlineUsers", OnlineUsers);
+            }
+        });
     })
 }
 

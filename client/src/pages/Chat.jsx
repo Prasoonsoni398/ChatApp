@@ -18,6 +18,9 @@ const Chat = () => {
   const [editAvatar, setEditAvatar] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [onlineUsersMap, setOnlineUsersMap] = useState({});
+  const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
 
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -99,8 +102,6 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    let intervalId;
-
     const fetchMessages = async () => {
       if (!selectedChat) return;
       try {
@@ -123,14 +124,35 @@ const Chat = () => {
 
     if (selectedChat) {
       fetchMessages();
-      // Poll every 3 seconds
-      intervalId = setInterval(fetchMessages, 3000);
     } else {
       setMessages([]);
     }
 
+    const handleReceive = (message) => {
+      if (selectedChat && (message.senderId === selectedChat.id || message.receiverId === selectedChat.id)) {
+        setMessages(prev => {
+          if (message.isEdit) {
+            return prev.map(m => m._id === message._id ? message : m);
+          }
+          if (prev.some(m => m._id === message._id)) return prev;
+          return [...prev, message];
+        });
+      }
+    };
+
+    const handleTyping = (data) => {
+      if (selectedChat && data.userId === selectedChat.id) {
+        setOtherUserTyping(data.isTyping);
+      }
+    };
+
+    socketAPI.on("receive", handleReceive);
+    socketAPI.on("typing", handleTyping);
+
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      socketAPI.off("receive", handleReceive);
+      socketAPI.off("typing", handleTyping);
+      setOtherUserTyping(false);
     };
   }, [selectedChat]);
 
@@ -181,6 +203,7 @@ const Chat = () => {
 
     return () => {
       socketAPI.off("onlineUsers");
+      socketAPI.emit("destroyPath", loggedInUser._id);
     };
   }, [navigate, loggedInUser]);
 
@@ -241,12 +264,58 @@ const Chat = () => {
     }
   };
 
+  const handleTypingEvent = (e) => {
+    setMessage(e.target.value);
+    
+    if (selectedChat && loggedInUser) {
+      socketAPI.emit("typing", {
+        receiverId: selectedChat.id,
+        userId: loggedInUser._id,
+        isTyping: true
+      });
+      
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        socketAPI.emit("typing", {
+          receiverId: selectedChat.id,
+          userId: loggedInUser._id,
+          isTyping: false
+        });
+      }, 2000);
+    }
+  };
+
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if ((!message.trim() && !selectedImage) || !selectedChat) return;
 
     const token = localStorage.getItem('token');
     
+    if (editingMessageId) {
+      try {
+        const res = await fetch(`/api/messages/${editingMessageId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ text: message }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setMessages(prev => prev.map(m => m._id === editingMessageId ? data : m));
+          socketAPI.emit("send", { ...data, receiverId: selectedChat.id, isEdit: true });
+          setEditingMessageId(null);
+          setMessage('');
+        } else {
+          toast.error("Failed to edit");
+        }
+      } catch (err) {
+        toast.error("Error editing message");
+      }
+      return;
+    }
+
     const tempId = Date.now().toString();
     const optimisticMessage = {
       _id: tempId,
@@ -281,6 +350,11 @@ const Chat = () => {
       const data = await res.json();
       
       setMessages(prev => prev.map(m => m._id === tempId ? { ...data, status: 'sent' } : m));
+      
+      socketAPI.emit("send", {
+        ...data,
+        receiverId: selectedChat.id
+      });
       
       // Simulate WhatsApp delivery & read receipts
       setTimeout(() => {
@@ -406,6 +480,9 @@ const Chat = () => {
                     <span className="text-xs text-base-content/60 font-medium">Offline</span>
                   )}
                 </div>
+                {otherUserTyping && (
+                  <p className="text-xs text-primary font-medium animate-pulse">Typing...</p>
+                )}
               </div>
               <div className="flex gap-4 text-base-content/60">
                 <button className="hover:text-primary"><BsSearch size={20} /></button>
@@ -447,6 +524,9 @@ const Chat = () => {
                           <img src={msg.image} alt="Attachment" className="max-w-xs rounded-xl mb-2 object-cover" />
                         )}
                         {msg.text && <span>{msg.text}</span>}
+                        {msg.isEdited && (
+                          <span className="text-[10px] opacity-70 ml-2 block text-right italic">(edited)</span>
+                        )}
                       </div>
                       <div className="chat-footer flex items-center mt-1">
                         {isMe && (
@@ -512,7 +592,7 @@ const Chat = () => {
                 <form onSubmit={handleSendMessage} className="flex-1 flex items-end gap-2">
                   <textarea
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={handleTypingEvent}
                     placeholder="Type a message"
                     className="textarea textarea-bordered w-full rounded-xl bg-base-200 min-h-[44px] max-h-32 focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none py-3"
                     rows={1}
@@ -602,6 +682,14 @@ const Chat = () => {
           className="menu bg-base-100 shadow-xl rounded-box absolute z-[100] border border-base-300 w-32 p-1"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
+          <li><a onClick={() => {
+            const msg = messages.find(m => m._id === contextMenu.messageId);
+            if (msg) {
+              setEditingMessageId(msg._id);
+              setMessage(msg.text);
+              closeContextMenu();
+            }
+          }} className="font-medium">Edit</a></li>
           <li><a onClick={handleDeleteMessage} className="text-error font-medium">Delete</a></li>
         </ul>
       )}
