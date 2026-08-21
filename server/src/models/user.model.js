@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
+import { StrictMode } from 'react';
 
 const userSchema = new mongoose.Schema(
     {
@@ -13,8 +14,14 @@ const userSchema = new mongoose.Schema(
             unique: true,
         },
         password: {
+            type: String,            
+        },
+        google_id:{
             type: String,
-            required: true,
+        },
+        loginType:{
+            type:String,
+            enum:["normal_user","google_user","hybrid_user"]
         },
         isVerified: {
             type: Boolean,
