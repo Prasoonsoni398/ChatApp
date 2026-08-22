@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BsEnvelopeFill, BsLockFill } from 'react-icons/bs';
 import toast from 'react-hot-toast';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -47,6 +48,29 @@ const Login = () => {
       toast.error(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || 'Google Login failed');
+      }
+
+      toast.success('Successfully logged in with Google!');
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify({ name: data.name, email: data.email, _id: data._id }));
+      navigate('/chat');
+      
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
@@ -110,6 +134,16 @@ const Login = () => {
           </form>
 
           <div className="divider text-base-content/50">OR</div>
+          
+          <div className="flex justify-center mb-4">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                toast.error('Google Login Failed');
+              }}
+              shape="pill"
+            />
+          </div>
 
           <p className="text-center text-base-content/70">
             Don't have an account?{' '}

@@ -497,16 +497,22 @@ const Chat = () => {
             <div
               key={chat.id}
               onClick={() => setSelectedChat(chat)}
-              className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-base-200/50 transition-colors border-b border-base-200/50 ${selectedChat?.id === chat.id ? "bg-base-200" : ""}`}
+              className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-base-200/50 transition-all border-b border-base-200/50 ${
+                selectedChat?.id === chat.id 
+                  ? "bg-primary/10 border-l-4 border-l-primary !border-b-primary/20" 
+                  : "border-l-4 border-l-transparent"
+              }`}
             >
               <div className="avatar">
-                <div className="w-12 rounded-full">
+                <div className={`w-12 rounded-full ${selectedChat?.id === chat.id ? "ring ring-primary ring-offset-base-100 ring-offset-2" : ""}`}>
                   <img src={chat.avatar} alt={chat.name} />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-baseline mb-0.5">
-                  <h3 className="font-semibold truncate">{chat.name}</h3>
+                  <h3 className={`font-semibold truncate ${selectedChat?.id === chat.id ? "text-primary" : ""}`}>
+                    {chat.name}
+                  </h3>
                   <span
                     className={`text-xs ${chat.unread ? "text-primary font-medium" : "text-base-content/50"}`}
                   >
@@ -514,7 +520,7 @@ const Chat = () => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-base-content/60 truncate">
+                  <p className={`text-sm truncate ${selectedChat?.id === chat.id ? "text-base-content/80 font-medium" : "text-base-content/60"}`}>
                     {chat.lastMessage}
                   </p>
                   {chat.unread > 0 && (
