@@ -1,6 +1,9 @@
 import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail.js';
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(process.env.VITE_GOOGLE_CLIENT_ID);
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -354,6 +357,50 @@ export const loginUser = async (req, res) => {
         } else {
             res.status(401).json({ message: 'Invalid email or password' });
         }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { credential } = req.body;
+        
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.VITE_GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name, sub, picture } = payload;
+
+        let user = await User.findOne({ email });
+
+        if (user) {
+            if (user.loginType === 'normal_user') {
+                user.loginType = 'hybrid_user';
+                user.google_id = sub;
+                if(!user.isVerified) user.isVerified = true;
+                await user.save();
+            }
+        } else {
+            user = await User.create({
+                name,
+                email,
+                google_id: sub,
+                loginType: 'google_user',
+                isVerified: true,
+                avatar: picture
+            });
+        }
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            token: generateToken(user._id),
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
