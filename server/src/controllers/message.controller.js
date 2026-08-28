@@ -179,3 +179,41 @@ export const addReaction = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const clearChat = async (req, res) => {
+    try {
+        const { id: chatId } = req.params;
+        const myId = req.user._id;
+
+        // Find messages that belong to this chat
+        const messages = await Message.find({
+            $or: [
+                { groupId: chatId },
+                { senderId: myId, receiverId: chatId },
+                { senderId: chatId, receiverId: myId },
+            ]
+        });
+
+        // Add myId to deletedFor array of all found messages if not already present
+        const bulkOps = messages.map(msg => {
+            if (!msg.deletedFor.includes(myId)) {
+                return {
+                    updateOne: {
+                        filter: { _id: msg._id },
+                        update: { $push: { deletedFor: myId } }
+                    }
+                };
+            }
+            return null;
+        }).filter(op => op !== null);
+
+        if (bulkOps.length > 0) {
+            await Message.bulkWrite(bulkOps);
+        }
+
+        res.status(200).json({ message: 'Chat cleared successfully' });
+    } catch (error) {
+        console.error('Error in clearChat:', error.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

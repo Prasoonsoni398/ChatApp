@@ -48,6 +48,9 @@ const Chat = () => {
 
   // Messages
   const [messages, setMessages] = useState([]);
+  const [clearedMessagesBackup, setClearedMessagesBackup] = useState(null);
+  const [showClearUndoBanner, setShowClearUndoBanner] = useState(false);
+  const clearUndoTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const profileMenuRef = useRef(null);
@@ -58,6 +61,8 @@ const Chat = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
+  const [showMentionPopup, setShowMentionPopup] = useState(false);
+  const [mentionFilter, setMentionFilter] = useState("");
 
   // Context menu
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, messageId: null, isMe: false, text: "", msg: null });
@@ -504,12 +509,65 @@ const Chat = () => {
   };
 
   const handleTypingEvent = (e) => {
-    setMessage(e.target.value);
+    const val = e.target.value || "";
+    setMessage(val);
+
+    // Mention logic for groups
+    if (selectedChat?.isGroup) {
+      const cursorPosition = e.target.selectionStart || val.length;
+      const textBeforeCursor = val.slice(0, cursorPosition);
+      const lastAtSymbolIdx = textBeforeCursor.lastIndexOf("@");
+      
+      if (lastAtSymbolIdx !== -1) {
+        const isPrecededBySpace = lastAtSymbolIdx === 0 || textBeforeCursor[lastAtSymbolIdx - 1] === " ";
+        if (isPrecededBySpace) {
+          const mentionQuery = textBeforeCursor.slice(lastAtSymbolIdx + 1);
+          if (!mentionQuery.includes(" ")) {
+            setMentionFilter(mentionQuery);
+            setShowMentionPopup(true);
+          } else {
+            setShowMentionPopup(false);
+          }
+        } else {
+          setShowMentionPopup(false);
+        }
+      } else {
+        setShowMentionPopup(false);
+      }
+    } else {
+      setShowMentionPopup(false);
+    }
+
     if (selectedChat && loggedInUser) {
-      socketAPI.emit("typing", { receiverId: selectedChat.id, userId: loggedInUser._id, isTyping: true });
+      socketAPI.emit("typing", { receiverId: selectedChat.id, userId: loggedInUser?._id, isTyping: true });
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() =>
-        socketAPI.emit("typing", { receiverId: selectedChat.id, userId: loggedInUser._id, isTyping: false }), 2000);
+        socketAPI.emit("typing", { receiverId: selectedChat.id, userId: loggedInUser?._id, isTyping: false }), 2000);
+    }
+  };
+
+  const handleInsertMention = (member) => {
+    const textarea = document.querySelector("textarea");
+    const safeMessage = message || "";
+    const cursorPosition = textarea ? textarea.selectionStart : safeMessage.length;
+    const textBeforeCursor = safeMessage.slice(0, cursorPosition);
+    const lastAtSymbolIdx = textBeforeCursor.lastIndexOf("@");
+    
+    if (lastAtSymbolIdx !== -1) {
+      const beforeAt = safeMessage.slice(0, lastAtSymbolIdx);
+      const afterCursor = safeMessage.slice(cursorPosition);
+      const newText = `${beforeAt}@${member.name} ${afterCursor}`;
+      setMessage(newText);
+      setShowMentionPopup(false);
+      setMentionFilter("");
+      
+      setTimeout(() => {
+        if (textarea) {
+            textarea.focus();
+            const newPos = beforeAt.length + member.name.length + 2;
+            textarea.setSelectionRange(newPos, newPos);
+        }
+      }, 0);
     }
   };
 
@@ -708,7 +766,27 @@ const Chat = () => {
                         <li><a onClick={() => { setShowPinnedBanner(true); setShowHeaderMenu(false); document.getElementById(`msg-${currentPinned._id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); }} className="py-2.5 active:scale-95 transition-transform">📌 Pinned Message</a></li>
                       )}
                       <div className="divider my-1"></div>
-                      <li><a onClick={() => { setMessages([]); setShowHeaderMenu(false); toast.success("Chat cleared"); }} className="text-error py-2.5 active:scale-95 transition-transform">🗑️ Clear Chat</a></li>
+                      <li>
+                        <a onClick={() => { 
+                          if (messages.length === 0) { setShowHeaderMenu(false); return; }
+                          setClearedMessagesBackup([...messages]); 
+                          setMessages([]); 
+                          setShowHeaderMenu(false); 
+                          setShowClearUndoBanner(true);
+                          if (clearUndoTimeoutRef.current) clearTimeout(clearUndoTimeoutRef.current);
+                          clearUndoTimeoutRef.current = setTimeout(async () => {
+                            setShowClearUndoBanner(false);
+                            setClearedMessagesBackup(null);
+                            try {
+                              const token = localStorage.getItem("token");
+                              await fetch(`/api/messages/clear/${selectedChat.id}`, { 
+                                method: 'DELETE',
+                                headers: { Authorization: `Bearer ${token}` }
+                              });
+                            } catch (e) { console.error("Error clearing chat from backend", e); }
+                          }, 4000);
+                        }} className="text-error py-2.5 active:scale-95 transition-transform">🗑️ Clear Chat</a>
+                      </li>
                     </ul>
                   )}
                 </div>
@@ -993,6 +1071,24 @@ const Chat = () => {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Clear Chat Undo Banner */}
+            {showClearUndoBanner && (
+              <div className="mx-4 my-2 p-3 bg-base-100 rounded-xl shadow-lg border border-base-300 flex items-center justify-between animate-fade-in relative z-10">
+                <span className="text-sm">Messages cleared from this device.</span>
+                <button 
+                  onClick={() => {
+                    setMessages(clearedMessagesBackup);
+                    setClearedMessagesBackup(null);
+                    setShowClearUndoBanner(false);
+                    if (clearUndoTimeoutRef.current) clearTimeout(clearUndoTimeoutRef.current);
+                  }} 
+                  className="btn btn-sm btn-primary px-4 rounded-lg shadow-sm"
+                >
+                  Undo
+                </button>
+              </div>
+            )}
+
             {/* ── Input Area ── */}
             <div className="bg-base-100 px-4 py-3 flex flex-col gap-2 border-t border-base-300">
               {/* Reply preview */}
@@ -1036,7 +1132,31 @@ const Chat = () => {
                 <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-base-content/50 hover:text-primary transition-colors">
                   <BsPaperclip size={22} />
                 </button>
-                <form onSubmit={handleSendMessage} className="flex-1 flex items-end gap-2">
+                <form onSubmit={handleSendMessage} className="flex-1 flex items-end gap-2 relative">
+                  {/* Mention Popup */}
+                  {showMentionPopup && selectedChat?.isGroup && (
+                    <div className="absolute bottom-[calc(100%+8px)] left-0 w-64 max-h-48 overflow-y-auto bg-base-100 border border-base-300 rounded-xl shadow-2xl z-[150] animate-fade-in py-1">
+                      {(selectedChat.members || [])
+                        .filter(m => m && m._id !== loggedInUser?._id && m.name)
+                        .filter(m => m.name.toLowerCase().includes((mentionFilter || "").toLowerCase()))
+                        .map(member => (
+                          <div
+                            key={member._id}
+                            className="flex items-center gap-3 px-3 py-2 hover:bg-base-200 cursor-pointer transition-colors"
+                            onClick={() => handleInsertMention(member)}
+                          >
+                            <img src={member.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.name}`} alt={member.name} className="w-8 h-8 rounded-full border border-base-300" />
+                            <span className="text-sm font-medium">{member.name}</span>
+                          </div>
+                      ))}
+                      {(selectedChat.members || [])
+                        .filter(m => m && m._id !== loggedInUser?._id && m.name)
+                        .filter(m => m.name.toLowerCase().includes((mentionFilter || "").toLowerCase())).length === 0 && (
+                          <div className="px-4 py-3 text-sm text-base-content/50 text-center">No members found</div>
+                        )}
+                    </div>
+                  )}
+                  
                   <textarea
                     value={message} onChange={handleTypingEvent}
                     placeholder={replyingTo ? `Reply to ${replyingTo.senderName}…` : "Type a message"}
