@@ -309,9 +309,25 @@ const Chat = () => {
           : `/api/messages/${selectedChat.id}`;
         const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
+        
+        // Mark unread messages from others as read
+        const unreadIds = data.filter(m => {
+          const senderIdStr = typeof m.senderId === 'object' ? m.senderId?._id : m.senderId;
+          return senderIdStr !== loggedInUser?._id && m.status !== "read";
+        }).map(m => m._id);
+
+        unreadIds.forEach(id => {
+          const msg = data.find(m => m._id === id);
+          const senderIdStr = typeof msg.senderId === 'object' ? msg.senderId?._id : msg.senderId;
+          socketAPI.emit("messageStatus", { messageId: id, status: "read", senderId: senderIdStr, receiverId: loggedInUser._id });
+        });
+
         setMessages((prev) => {
           const prevMap = new Map(prev.map((m) => [m._id, m.status]));
-          return data.map((m) => ({ ...m, status: prevMap.get(m._id) || "read" }));
+          return data.map((m) => ({ 
+            ...m, 
+            status: unreadIds.includes(m._id) ? "read" : (prevMap.get(m._id) || m.status) 
+          }));
         });
         const pinned = data.find((m) => m.isPinned);
         if (pinned) { setPinnedMessage(pinned); setShowPinnedBanner(true); } else setPinnedMessage(null);
@@ -326,6 +342,12 @@ const Chat = () => {
       const matchesDM = !selectedChat.isGroup && (msg.senderId === selectedChat.id || msg.receiverId === selectedChat.id);
       const matchesGroup = selectedChat.isGroup && msg.groupId === selectedChat.id;
       if (matchesDM || matchesGroup) {
+        const senderIdStr = typeof msg.senderId === 'object' ? msg.senderId?._id : msg.senderId;
+        if (senderIdStr !== loggedInUser?._id) {
+          socketAPI.emit("messageStatus", { messageId: msg._id, status: "read", senderId: senderIdStr, receiverId: loggedInUser._id });
+          msg.status = "read";
+        }
+        
         setMessages((prev) => {
           if (msg.isEdit) return prev.map((m) => m._id === msg._id ? msg : m);
           if (prev.some((m) => m._id === msg._id)) return prev;
@@ -344,13 +366,19 @@ const Chat = () => {
       }
     };
 
+    const handleMessageStatus = (payload) => {
+      setMessages((prev) => prev.map((m) => m._id === payload.messageId ? { ...m, status: payload.status } : m));
+    };
+
     socketAPI.on("receive", handleReceive);
     socketAPI.on("typing", handleTyping);
     socketAPI.on("deleteMessage", handleDelete);
+    socketAPI.on("messageStatus", handleMessageStatus);
     return () => {
       socketAPI.off("receive", handleReceive);
       socketAPI.off("typing", handleTyping);
       socketAPI.off("deleteMessage", handleDelete);
+      socketAPI.off("messageStatus", handleMessageStatus);
       setOtherUserTyping(false);
     };
   }, [selectedChat]);
@@ -399,7 +427,26 @@ const Chat = () => {
     if (!loggedInUser) return;
     socketAPI.emit("createPath", loggedInUser._id);
     socketAPI.on("onlineUsers", setOnlineUsersMap);
-    return () => { socketAPI.off("onlineUsers"); socketAPI.emit("destroyPath", loggedInUser._id); };
+
+    const handleNewGroup = (group) => {
+      setChats(prev => {
+        if (prev.some(c => c.id === group._id)) return prev;
+        const newGroupChat = {
+          id: group._id, name: group.name, isGroup: true,
+          members: group.members, admin: group.admin,
+          lastMessage: "Group chat", time: "", unread: 0,
+          avatar: group.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.name}`,
+        };
+        return [newGroupChat, ...prev];
+      });
+    };
+    socketAPI.on("newGroup", handleNewGroup);
+
+    return () => { 
+      socketAPI.off("onlineUsers"); 
+      socketAPI.off("newGroup", handleNewGroup);
+      socketAPI.emit("destroyPath", loggedInUser._id); 
+    };
   }, [navigate, loggedInUser, fetchChats]);
 
   /* ═════════════════════ CREATE GROUP ═════════════════════ */
@@ -419,6 +466,7 @@ const Chat = () => {
         toast.success(`Group "${data.name}" created!`);
         setShowCreateGroup(false);
         setGroupName(""); setGroupMemberIds([]); setGroupAvatarFile(null);
+        socketAPI.emit("newGroup", data);
         fetchChats();
       } else { toast.error(data.error || "Failed to create group"); }
     } catch { toast.error("Error creating group"); }
@@ -519,11 +567,6 @@ const Chat = () => {
       const data = await res.json();
       setMessages((prev) => prev.map((m) => m._id === tempId ? { ...data, status: "sent" } : m));
       socketAPI.emit("send", { ...data, receiverId: selectedChat.id, groupId: selectedChat.isGroup ? selectedChat.id : null });
-
-      if (!selectedChat.isGroup) {
-        setTimeout(() => setMessages((prev) => prev.map((m) => m._id === data._id ? { ...m, status: "delivered" } : m)), 1500);
-        setTimeout(() => setMessages((prev) => prev.map((m) => m._id === data._id ? { ...m, status: "read" } : m)), 3000);
-      }
     } catch (err) {
       toast.error("Failed to send message");
       setMessages((prev) => prev.filter((m) => m._id !== tempId));
@@ -566,9 +609,9 @@ const Chat = () => {
                 <BsThreeDotsVertical size={18} />
               </button>
               {showProfileMenu && (
-                <ul className="absolute right-0 z-50 menu p-2 shadow-lg bg-base-100 rounded-2xl w-40 border border-base-300 mt-2">
-                  <li><a onClick={() => { setEditName(loggedInUser?.name || ""); setShowEditModal(true); setShowProfileMenu(false); }}>Edit Profile</a></li>
-                  <li><a onClick={handleLogout} className="text-error">Logout</a></li>
+                <ul className="absolute right-0 z-50 menu p-2 shadow-lg bg-base-100 rounded-2xl w-40 border border-base-300 mt-2 animate-slide-up origin-top-right">
+                  <li><a onClick={() => { setEditName(loggedInUser?.name || ""); setShowEditModal(true); setShowProfileMenu(false); }} className="active:scale-95 transition-transform">Edit Profile</a></li>
+                  <li><a onClick={handleLogout} className="text-error active:scale-95 transition-transform">Logout</a></li>
                 </ul>
               )}
             </div>
@@ -658,14 +701,14 @@ const Chat = () => {
                     <BsThreeDotsVertical size={18} />
                   </button>
                   {showHeaderMenu && (
-                    <ul className="absolute right-0 top-full mt-1 z-[200] menu p-2 shadow-xl bg-base-100 rounded-2xl w-52 border border-base-300">
-                      <li><a onClick={() => { setShowMsgSearch(true); setShowHeaderMenu(false); }} className="py-2.5">🔍 Search Messages</a></li>
-                      <li><a onClick={() => { setSelectMode(true); setSelectedMessageIds([]); setShowHeaderMenu(false); }} className="py-2.5">☑️ Select Messages</a></li>
+                    <ul className="absolute right-0 top-full mt-1 z-[200] menu p-2 shadow-xl bg-base-100 rounded-2xl w-52 border border-base-300 animate-slide-up origin-top-right">
+                      <li><a onClick={() => { setShowMsgSearch(true); setShowHeaderMenu(false); }} className="py-2.5 active:scale-95 transition-transform">🔍 Search Messages</a></li>
+                      <li><a onClick={() => { setSelectMode(true); setSelectedMessageIds([]); setShowHeaderMenu(false); }} className="py-2.5 active:scale-95 transition-transform">☑️ Select Messages</a></li>
                       {currentPinned && (
-                        <li><a onClick={() => { setShowPinnedBanner(true); setShowHeaderMenu(false); document.getElementById(`msg-${currentPinned._id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); }} className="py-2.5">📌 Pinned Message</a></li>
+                        <li><a onClick={() => { setShowPinnedBanner(true); setShowHeaderMenu(false); document.getElementById(`msg-${currentPinned._id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); }} className="py-2.5 active:scale-95 transition-transform">📌 Pinned Message</a></li>
                       )}
                       <div className="divider my-1"></div>
-                      <li><a onClick={() => { setMessages([]); setShowHeaderMenu(false); toast.success("Chat cleared"); }} className="text-error py-2.5">🗑️ Clear Chat</a></li>
+                      <li><a onClick={() => { setMessages([]); setShowHeaderMenu(false); toast.success("Chat cleared"); }} className="text-error py-2.5 active:scale-95 transition-transform">🗑️ Clear Chat</a></li>
                     </ul>
                   )}
                 </div>
@@ -707,7 +750,7 @@ const Chat = () => {
 
             {/* Pinned Banner */}
             {currentPinned && showPinnedBanner && !currentPinned.isDeletedForEveryone && (
-              <div className="flex items-center gap-3 px-4 py-2 bg-base-100/90 border-b border-base-300 cursor-pointer hover:bg-base-200/50"
+              <div className="flex items-center gap-3 px-4 py-2 bg-base-100/90 border-b border-base-300 cursor-pointer hover:bg-base-200/50 animate-slide-up shadow-sm"
                 onClick={() => document.getElementById(`msg-${currentPinned._id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}>
                 <BsPinAngleFill className="text-primary" size={16} />
                 <div className="flex-1 min-w-0">
@@ -743,7 +786,9 @@ const Chat = () => {
                   <p className="text-sm">Say hello to {selectedChat.name}!</p>
                 </div>
               ) : (
-                messages.map((msg, idx) => {
+                messages
+                  .filter(msg => !msg.deletedFor?.includes(loggedInUser?._id))
+                  .map((msg, idx, filteredMessages) => {
                   // For group chats sender is a populated object; for DM it's just an ID string
                   const senderId = selectedChat.isGroup ? msg.senderId?._id : msg.senderId;
                   const isMe = senderId === loggedInUser?._id || (typeof msg.senderId === 'object' && msg.senderId?._id === loggedInUser?._id);
@@ -751,8 +796,7 @@ const Chat = () => {
                   const senderAvatar = selectedChat.isGroup ? (msg.senderId?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${senderName}`) : (isMe ? loggedInUser?.avatar : selectedChat.avatar);
 
                   const timeStr = new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                  const isDeletedForMe = msg.deletedFor?.includes(loggedInUser?._id);
-                  const isTombstone = msg.isDeletedForEveryone || isDeletedForMe;
+                  const isTombstone = msg.isDeletedForEveryone;
                   const isSelected = selectedMessageIds.includes(msg._id);
                   const isSearchMatch = msgSearchQuery.trim() && msg.text?.toLowerCase().includes(msgSearchQuery.toLowerCase());
 
@@ -765,7 +809,7 @@ const Chat = () => {
                   });
 
                   // Show separator if day changes
-                  const prevMsg = messages[idx - 1];
+                  const prevMsg = filteredMessages[idx - 1];
                   const showDateSep = idx === 0 || new Date(msg.createdAt).toDateString() !== new Date(prevMsg?.createdAt).toDateString();
 
                   return (
@@ -781,18 +825,18 @@ const Chat = () => {
                       <div
                         id={`msg-${msg._id}`}
                         className={`flex items-end gap-2 mb-1 ${isMe ? "flex-row-reverse" : "flex-row"} ${isSelected ? "opacity-75" : ""} ${isSearchMatch ? "ring-2 ring-primary/50 rounded-2xl" : ""} transition-all`}
-                        onContextMenu={(e) => { if (selectMode || isTombstone) { e.preventDefault(); return; } handleContextMenu(e, msg, isMe); }}
-                        onDoubleClick={(e) => { if (selectMode) { toggleSelectMessage(msg._id); return; } if (isTombstone) return; handleContextMenu(e, msg, isMe); }}
+                        onContextMenu={(e) => { if (selectMode) { e.preventDefault(); return; } handleContextMenu(e, msg, isMe); }}
+                        onDoubleClick={(e) => { if (selectMode) { toggleSelectMessage(msg._id); return; } handleContextMenu(e, msg, isMe); }}
                         onClick={() => { if (selectMode) toggleSelectMessage(msg._id); }}
                         onMouseEnter={() => { if (!isTombstone && !selectMode) { if (reactionTimeout.current) clearTimeout(reactionTimeout.current); setHoveredMsgId(msg._id); } }}
                         onMouseLeave={() => { reactionTimeout.current = setTimeout(() => setHoveredMsgId(null), 300); }}
                         onTouchStart={(e) => {
-                          if (isTombstone || selectMode) return;
+                          if (selectMode) return;
                           e.currentTarget.dataset.touchStartX = e.touches[0].clientX;
                           e.currentTarget.dataset.touchStartTime = Date.now();
                         }}
                         onTouchEnd={(e) => {
-                          if (isTombstone || selectMode) return;
+                          if (selectMode) return;
                           const startX = parseFloat(e.currentTarget.dataset.touchStartX);
                           const endX = e.changedTouches[0].clientX;
                           const elapsed = Date.now() - parseFloat(e.currentTarget.dataset.touchStartTime);
@@ -836,7 +880,7 @@ const Chat = () => {
                           <div
                             className={`px-3 py-2 rounded-2xl shadow-sm text-sm relative
                               ${isMe
-                                ? "bg-primary text-primary-content rounded-tr-sm"
+                                ? "bg-[#dcf8c6] text-black rounded-tr-sm"
                                 : "bg-base-100 text-base-content rounded-tl-sm"
                               }
                               ${isTombstone ? "opacity-70" : ""}
@@ -869,13 +913,13 @@ const Chat = () => {
                               {msg.isEdited && !isTombstone && (
                                 <span className="text-[10px] opacity-60 flex items-center gap-0.5"><BsPencil size={8} /> Edited</span>
                               )}
-                              <span className={`text-[10px] ${isMe ? "text-primary-content/60" : "text-base-content/50"}`}>{timeStr}</span>
+                              <span className={`text-[10px] ${isMe ? "text-black/60" : "text-base-content/50"}`}>{timeStr}</span>
                               {isMe && !isTombstone && (
                                 <span className="text-[1rem]">
-                                  {msg.status === "sending" && <BsCheck className="text-primary-content/40" />}
-                                  {msg.status === "sent" && <BsCheck className="text-primary-content/70" />}
-                                  {msg.status === "delivered" && <BsCheckAll className="text-primary-content/70" />}
-                                  {(!msg.status || msg.status === "read") && <BsCheckAll className="text-white" />}
+                                  {msg.status === "sending" && <BsCheck className="text-black/40" />}
+                                  {(!msg.status || msg.status === "sent") && <BsCheck className="text-black/40" />}
+                                  {msg.status === "delivered" && <BsCheckAll className="text-black/40" />}
+                                  {msg.status === "read" && <BsCheckAll className="text-[#53bdeb]" />}
                                 </span>
                               )}
                             </div>
@@ -900,7 +944,7 @@ const Chat = () => {
                           {/* Quick Emoji Picker on hover */}
                           {hoveredMsgId === msg._id && !isTombstone && (
                             <div
-                              className={`absolute -top-10 z-50 flex items-center gap-1 bg-base-100 border border-base-300 rounded-full px-2 py-1 shadow-xl ${isMe ? "right-0" : "left-0"}`}
+                              className={`absolute -top-10 z-50 flex items-center gap-1 bg-base-100 border border-base-300 rounded-full px-2 py-1 shadow-xl animate-slide-up origin-bottom ${isMe ? "right-0" : "left-0"}`}
                               onMouseEnter={() => { if (reactionTimeout.current) clearTimeout(reactionTimeout.current); setHoveredMsgId(msg._id); }}
                               onMouseLeave={() => { reactionTimeout.current = setTimeout(() => setHoveredMsgId(null), 300); }}
                             >
@@ -922,7 +966,7 @@ const Chat = () => {
 
                           {/* Full emoji picker */}
                           {showFullEmojiForMsg === msg._id && (
-                            <div className={`absolute z-[150] top-0 ${isMe ? "right-full mr-2" : "left-full ml-2"}`}>
+                            <div className={`absolute z-[150] top-0 animate-fade-in ${isMe ? "right-full mr-2" : "left-full ml-2"}`}>
                               <EmojiPicker height={350} width={280} onEmojiClick={(e) => { handleReact(msg._id, e.emoji); setShowFullEmojiForMsg(null); }} />
                             </div>
                           )}
@@ -979,7 +1023,7 @@ const Chat = () => {
               )}
               {/* Emoji picker */}
               {showEmojiPicker && (
-                <div className="absolute bottom-[100%] left-4 mb-2 z-50 shadow-xl">
+                <div className="absolute bottom-[100%] left-4 mb-2 z-50 shadow-xl animate-modal-pop origin-bottom-left">
                   <EmojiPicker onEmojiClick={(emoji) => setMessage(prev => prev + emoji.emoji)} />
                 </div>
               )}
@@ -1018,11 +1062,11 @@ const Chat = () => {
 
       {/* ══ CREATE GROUP MODAL ══ */}
       {showCreateGroup && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-base-100 w-full max-w-md rounded-2xl shadow-2xl border border-base-300 overflow-hidden">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-fade-in">
+          <div className="bg-base-100 w-full max-w-md rounded-2xl shadow-2xl border border-base-300 overflow-hidden animate-modal-pop">
             <div className="px-6 pt-6 pb-3 flex items-center justify-between">
               <h3 className="text-lg font-bold flex items-center gap-2"><BsPeopleFill className="text-primary" /> New Group</h3>
-              <button onClick={() => setShowCreateGroup(false)} className="btn btn-ghost btn-sm btn-circle"><BsX size={18} /></button>
+              <button onClick={() => setShowCreateGroup(false)} className="btn btn-ghost btn-sm btn-circle active:scale-90 transition-transform"><BsX size={18} /></button>
             </div>
             <div className="px-6 pb-6 space-y-4">
               {/* Group name */}
@@ -1055,8 +1099,8 @@ const Chat = () => {
                 {groupMemberIds.length > 0 && <p className="text-xs text-primary mt-1">{groupMemberIds.length} member{groupMemberIds.length > 1 ? "s" : ""} selected</p>}
               </div>
               <div className="flex gap-2 pt-2">
-                <button onClick={() => setShowCreateGroup(false)} className="btn btn-ghost flex-1">Cancel</button>
-                <button onClick={handleCreateGroup} disabled={isCreatingGroup} className="btn btn-primary flex-1">
+                <button onClick={() => setShowCreateGroup(false)} className="btn btn-ghost flex-1 active:scale-95 transition-transform">Cancel</button>
+                <button onClick={handleCreateGroup} disabled={isCreatingGroup} className="btn btn-primary flex-1 active:scale-95 transition-transform">
                   {isCreatingGroup ? "Creating…" : "Create Group"}
                 </button>
               </div>
@@ -1067,8 +1111,8 @@ const Chat = () => {
 
       {/* ══ EDIT PROFILE MODAL ══ */}
       {showEditModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-base-100 w-full max-w-md rounded-2xl p-6 shadow-xl border border-base-300">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fade-in">
+          <div className="bg-base-100 w-full max-w-md rounded-2xl p-6 shadow-xl border border-base-300 animate-modal-pop">
             <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
             <form onSubmit={handleUpdateProfile}>
               <div className="mb-4">
@@ -1080,8 +1124,8 @@ const Chat = () => {
                 <input type="file" accept="image/*" onChange={(e) => setEditAvatar(e.target.files[0])} className="file-input file-input-bordered file-input-primary w-full bg-base-200" />
               </div>
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setShowEditModal(false)} className="btn btn-ghost" disabled={isUpdating}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={isUpdating}>{isUpdating ? "Saving…" : "Save Changes"}</button>
+                <button type="button" onClick={() => setShowEditModal(false)} className="btn btn-ghost active:scale-95 transition-transform" disabled={isUpdating}>Cancel</button>
+                <button type="submit" className="btn btn-primary active:scale-95 transition-transform" disabled={isUpdating}>{isUpdating ? "Saving…" : "Save Changes"}</button>
               </div>
             </form>
           </div>
@@ -1091,24 +1135,28 @@ const Chat = () => {
       {/* ══ CONTEXT MENU ══ */}
       {contextMenu.visible && (
         <ul
-          className="menu bg-base-100 shadow-2xl rounded-2xl absolute z-[100] border border-base-300/50 w-56 p-2"
+          className="menu bg-base-100 shadow-2xl rounded-2xl absolute z-[100] border border-base-300/50 w-56 p-2 animate-modal-pop origin-top-left"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <li><a onClick={handleShowInfo} className="flex items-center gap-3 py-2.5 rounded-xl"><BsInfoCircle size={15} className="text-base-content/50" /> Message info</a></li>
-          <li><a onClick={handleReply} className="flex items-center gap-3 py-2.5 rounded-xl"><BsReply size={15} className="text-base-content/50" /> Reply</a></li>
-          <li><a onClick={handleCopy} className="flex items-center gap-3 py-2.5 rounded-xl"><BsCopy size={15} className="text-base-content/50" /> Copy</a></li>
-          <li><a onClick={handleForward} className="flex items-center gap-3 py-2.5 rounded-xl"><BsForward size={15} className="text-base-content/50" /> Forward</a></li>
-          <li><a onClick={handlePin} className="flex items-center gap-3 py-2.5 rounded-xl"><BsPin size={15} className="text-base-content/50" /> {contextMenu.msg?.isPinned ? "Unpin" : "Pin"}</a></li>
-          <div className="divider my-1"></div>
-          <li><a onClick={handleStartSelect} className="flex items-center gap-3 py-2.5 rounded-xl"><BsCheckSquare size={15} className="text-base-content/50" /> Select</a></li>
-          {contextMenu.isMe && (
-            <li>
-              <a onClick={() => { const msg = messages.find(m => m._id === contextMenu.messageId); if (msg && !msg.isDeletedForEveryone) { setEditingMessageId(msg._id); setMessage(msg.text); closeContextMenu(); } }}
-                className="flex items-center gap-3 py-2.5 rounded-xl">
-                <BsPencil size={15} className="text-base-content/50" /> Edit
-              </a>
-            </li>
+          {!(contextMenu.msg?.isDeletedForEveryone || contextMenu.msg?.deletedFor?.includes(loggedInUser?._id)) && (
+            <>
+              <li><a onClick={handleShowInfo} className="flex items-center gap-3 py-2.5 rounded-xl"><BsInfoCircle size={15} className="text-base-content/50" /> Message info</a></li>
+              <li><a onClick={handleReply} className="flex items-center gap-3 py-2.5 rounded-xl"><BsReply size={15} className="text-base-content/50" /> Reply</a></li>
+              <li><a onClick={handleCopy} className="flex items-center gap-3 py-2.5 rounded-xl"><BsCopy size={15} className="text-base-content/50" /> Copy</a></li>
+              <li><a onClick={handleForward} className="flex items-center gap-3 py-2.5 rounded-xl"><BsForward size={15} className="text-base-content/50" /> Forward</a></li>
+              <li><a onClick={handlePin} className="flex items-center gap-3 py-2.5 rounded-xl"><BsPin size={15} className="text-base-content/50" /> {contextMenu.msg?.isPinned ? "Unpin" : "Pin"}</a></li>
+              <div className="divider my-1"></div>
+              <li><a onClick={handleStartSelect} className="flex items-center gap-3 py-2.5 rounded-xl"><BsCheckSquare size={15} className="text-base-content/50" /> Select</a></li>
+              {contextMenu.isMe && (
+                <li>
+                  <a onClick={() => { const msg = messages.find(m => m._id === contextMenu.messageId); if (msg && !msg.isDeletedForEveryone) { setEditingMessageId(msg._id); setMessage(msg.text); closeContextMenu(); } }}
+                    className="flex items-center gap-3 py-2.5 rounded-xl">
+                    <BsPencil size={15} className="text-base-content/50" /> Edit
+                  </a>
+                </li>
+              )}
+            </>
           )}
           <li><a onClick={openDeleteModal} className="flex items-center gap-3 py-2.5 rounded-xl text-error hover:bg-error/10"><BsTrash size={15} /> Delete</a></li>
         </ul>
@@ -1116,11 +1164,11 @@ const Chat = () => {
 
       {/* ══ MESSAGE INFO MODAL ══ */}
       {showInfoModal && infoMessage && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={() => setShowInfoModal(false)}>
-          <div className="bg-base-100 w-full max-w-sm rounded-2xl p-6 shadow-xl border border-base-300" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fade-in" onClick={() => setShowInfoModal(false)}>
+          <div className="bg-base-100 w-full max-w-sm rounded-2xl p-6 shadow-xl border border-base-300 animate-modal-pop" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold">Message Info</h3>
-              <button onClick={() => setShowInfoModal(false)} className="btn btn-ghost btn-sm btn-circle"><BsX size={18} /></button>
+              <button onClick={() => setShowInfoModal(false)} className="btn btn-ghost btn-sm btn-circle active:scale-90 transition-transform"><BsX size={18} /></button>
             </div>
             <div className="bg-base-200 rounded-xl px-3 py-2 text-sm mb-4">{infoMessage.text || <em className="opacity-60">📷 Image</em>}</div>
             <div className="space-y-3 text-sm">
@@ -1145,11 +1193,11 @@ const Chat = () => {
 
       {/* ══ FORWARD MODAL ══ */}
       {showForwardModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={() => { setShowForwardModal(false); setForwardMessage(null); }}>
-          <div className="bg-base-100 w-full max-w-sm rounded-2xl p-6 shadow-xl border border-base-300" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fade-in" onClick={() => { setShowForwardModal(false); setForwardMessage(null); }}>
+          <div className="bg-base-100 w-full max-w-sm rounded-2xl p-6 shadow-xl border border-base-300 animate-modal-pop" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold">Forward to</h3>
-              <button onClick={() => { setShowForwardModal(false); setForwardMessage(null); }} className="btn btn-ghost btn-sm btn-circle"><BsX size={18} /></button>
+              <button onClick={() => { setShowForwardModal(false); setForwardMessage(null); }} className="btn btn-ghost btn-sm btn-circle active:scale-90 transition-transform"><BsX size={18} /></button>
             </div>
             <div className="space-y-1 max-h-80 overflow-y-auto">
               {chats.map(chat => (
@@ -1169,8 +1217,8 @@ const Chat = () => {
 
       {/* ══ DELETE MODAL ══ */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-base-100 w-full max-w-sm rounded-2xl shadow-2xl border border-base-300 overflow-hidden">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-fade-in">
+          <div className="bg-base-100 w-full max-w-sm rounded-2xl shadow-2xl border border-base-300 overflow-hidden animate-modal-pop">
             <div className="px-6 pt-6 pb-3">
               <h3 className="text-lg font-bold mb-1">Delete message?</h3>
               <p className="text-sm text-base-content/60">
@@ -1179,10 +1227,10 @@ const Chat = () => {
             </div>
             <div className="px-4 pb-5 flex flex-col gap-2">
               {(deleteIsMe || deleteMessageId === "__multi__") && (
-                <button onClick={() => confirmDeleteMessage("everyone")} className="btn btn-error w-full">🗑️ Delete for everyone</button>
+                <button onClick={() => confirmDeleteMessage("everyone")} className="btn btn-error w-full active:scale-95 transition-transform">🗑️ Delete for everyone</button>
               )}
-              <button onClick={() => confirmDeleteMessage("me")} className="btn btn-outline w-full">Delete for me</button>
-              <button onClick={() => { setShowDeleteModal(false); setDeleteMessageId(null); }} className="btn btn-ghost w-full">Cancel</button>
+              <button onClick={() => confirmDeleteMessage("me")} className="btn btn-outline w-full active:scale-95 transition-transform">Delete for me</button>
+              <button onClick={() => { setShowDeleteModal(false); setDeleteMessageId(null); }} className="btn btn-ghost w-full active:scale-95 transition-transform">Cancel</button>
             </div>
           </div>
         </div>

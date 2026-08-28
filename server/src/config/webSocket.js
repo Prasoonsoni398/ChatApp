@@ -1,5 +1,6 @@
 import { Socket } from "socket.io";
 import Group from "../models/group.model.js";
+import Message from "../models/message.model.js";
 
 const OnlineUsers = {}
 
@@ -67,9 +68,36 @@ const WebSocket = (io) => {
                 }
             } else {
                 const receiverSocketId = OnlineUsers[payload.receiverId];
+
                 if (receiverSocketId) {
                     io.to(receiverSocketId).emit("deleteMessage", payload);
                 }
+            }
+        });
+
+        socket.on("messageStatus", async (payload) => {
+            // payload: { messageId, status: 'delivered' | 'read', senderId, receiverId }
+            console.log("Message Status Update", payload);
+            try {
+                await Message.findByIdAndUpdate(payload.messageId, { status: payload.status });
+                // Notify the sender that their message was delivered/read
+                const senderSocketId = OnlineUsers[payload.senderId];
+                if (senderSocketId) {
+                    io.to(senderSocketId).emit("messageStatus", payload);
+                }
+            } catch (error) {
+                console.error("Error updating message status:", error);
+            }
+        });
+
+        socket.on("newGroup", (group) => {
+            console.log("New Group Created", group);
+            if (group && group.members) {
+                group.members.forEach(member => {
+                    const memberId = member._id || member;
+                    const receiverSocketId = OnlineUsers[memberId];
+                    if (receiverSocketId) io.to(receiverSocketId).emit("newGroup", group);
+                });
             }
         });
 

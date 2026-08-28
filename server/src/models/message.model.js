@@ -22,6 +22,11 @@ const messageSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        status: {
+            type: String,
+            enum: ['sent', 'delivered', 'read'],
+            default: 'sent',
+        },
         deletedFor: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
