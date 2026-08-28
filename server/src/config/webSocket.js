@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-// import Message from "../models/message.model";
+import Group from "../models/group.model.js";
 
 const OnlineUsers = {}
 
@@ -30,16 +30,48 @@ const WebSocket = (io) => {
             io.emit("onlineUsers", OnlineUsers)
         })
 
-        socket.on("send",async(payload)=>{
-            console.log("Message Pack",payload);
-            const receiverSocketId = OnlineUsers[payload.receiverId];
-            if(receiverSocketId){
-                io.to(receiverSocketId).emit("receive", payload)
-            }else{
-                console.log("User is not online");
+        socket.on("send", async (payload) => {
+            console.log("Message Pack", payload);
+            if (payload.groupId) {
+                // It's a group message, send to all members
+                const group = await Group.findById(payload.groupId);
+                if (group) {
+                    group.members.forEach(memberId => {
+                        // don't send back to the sender
+                        if (memberId.toString() !== payload.senderId?.toString() && memberId.toString() !== payload.senderId?._id?.toString()) {
+                            const receiverSocketId = OnlineUsers[memberId];
+                            if (receiverSocketId) io.to(receiverSocketId).emit("receive", payload);
+                        }
+                    });
+                }
+            } else {
+                // Direct message
+                const receiverSocketId = OnlineUsers[payload.receiverId];
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit("receive", payload);
+                } else {
+                    console.log("User is not online");
+                }
             }
+        });
 
-        })
+        socket.on("deleteMessage", async (payload) => {
+            console.log("Delete Pack", payload);
+            if (payload.groupId) {
+                const group = await Group.findById(payload.groupId);
+                if (group) {
+                    group.members.forEach(memberId => {
+                        const receiverSocketId = OnlineUsers[memberId];
+                        if (receiverSocketId) io.to(receiverSocketId).emit("deleteMessage", payload);
+                    });
+                }
+            } else {
+                const receiverSocketId = OnlineUsers[payload.receiverId];
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit("deleteMessage", payload);
+                }
+            }
+        });
 
         // Built-in socket disconnect
         socket.on("disconnect", () => {
