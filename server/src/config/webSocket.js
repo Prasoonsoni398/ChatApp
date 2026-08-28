@@ -10,10 +10,27 @@ const WebSocket = (io) => {
     io.on("connection", (socket) => {
 
         // Emit by Frontend when connected and remove when disconnected
-        socket.on("createPath", (userId) => {
+        socket.on("createPath", async (userId) => {
             OnlineUsers[userId] = socket.id
             console.log("Online User:", OnlineUsers);
             io.emit("onlineUsers", OnlineUsers)
+
+            // Mark all pending messages as delivered
+            try {
+                const pendingMessages = await Message.find({ receiverId: userId, status: "sent" });
+                if (pendingMessages.length > 0) {
+                    await Message.updateMany({ receiverId: userId, status: "sent" }, { status: "delivered" });
+                    // Notify senders
+                    pendingMessages.forEach(msg => {
+                        const senderSocketId = OnlineUsers[msg.senderId];
+                        if (senderSocketId) {
+                            io.to(senderSocketId).emit("messageStatus", { messageId: msg._id, status: "delivered" });
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error("Error marking pending messages as delivered:", err);
+            }
         })
         
         // Emit by Frontend for typing and passing receiver id
@@ -50,6 +67,13 @@ const WebSocket = (io) => {
                 const receiverSocketId = OnlineUsers[payload.receiverId];
                 if (receiverSocketId) {
                     io.to(receiverSocketId).emit("receive", payload);
+                    // Mark as delivered since the user is online
+                    try {
+                        await Message.findByIdAndUpdate(payload._id, { status: "delivered" });
+                        socket.emit("messageStatus", { messageId: payload._id, status: "delivered" });
+                    } catch (err) {
+                        console.error("Error setting delivered status:", err);
+                    }
                 } else {
                     console.log("User is not online");
                 }

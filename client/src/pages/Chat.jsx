@@ -319,7 +319,7 @@ const Chat = () => {
         unreadIds.forEach(id => {
           const msg = data.find(m => m._id === id);
           const senderIdStr = typeof msg.senderId === 'object' ? msg.senderId?._id : msg.senderId;
-          socketAPI.emit("messageStatus", { messageId: id, status: "read", senderId: senderIdStr, receiverId: loggedInUser._id });
+          socketAPI.emit("messageStatus", { messageId: id, status: "read", senderId: senderIdStr, receiverId: loggedInUser?._id });
         });
 
         setMessages((prev) => {
@@ -344,7 +344,7 @@ const Chat = () => {
       if (matchesDM || matchesGroup) {
         const senderIdStr = typeof msg.senderId === 'object' ? msg.senderId?._id : msg.senderId;
         if (senderIdStr !== loggedInUser?._id) {
-          socketAPI.emit("messageStatus", { messageId: msg._id, status: "read", senderId: senderIdStr, receiverId: loggedInUser._id });
+          socketAPI.emit("messageStatus", { messageId: msg._id, status: "read", senderId: senderIdStr, receiverId: loggedInUser?._id });
           msg.status = "read";
         }
         
@@ -425,7 +425,7 @@ const Chat = () => {
     if (!token) { toast.error("Please login"); navigate("/login"); return; }
     fetchChats();
     if (!loggedInUser) return;
-    socketAPI.emit("createPath", loggedInUser._id);
+    socketAPI.emit("createPath", loggedInUser?._id);
     socketAPI.on("onlineUsers", setOnlineUsersMap);
 
     const handleNewGroup = (group) => {
@@ -445,7 +445,7 @@ const Chat = () => {
     return () => { 
       socketAPI.off("onlineUsers"); 
       socketAPI.off("newGroup", handleNewGroup);
-      socketAPI.emit("destroyPath", loggedInUser._id); 
+      if (loggedInUser) socketAPI.emit("destroyPath", loggedInUser?._id); 
     };
   }, [navigate, loggedInUser, fetchChats]);
 
