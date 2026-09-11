@@ -1,18 +1,12 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { motion } from "motion/react";
-import { Link, useNavigate } from "react-router-dom";
-import { BsRocketTakeoff, BsLightningChargeFill, BsShieldLockFill, BsStars, BsChatDotsFill } from "react-icons/bs";
-import heroImage from "../assets/heroSection.png";
-
+import { Link } from "react-router-dom";
+import { BsRocketTakeoff, BsChatDotsFill } from "react-icons/bs";
+import HeroPhone from "../components/HeroPhone.jsx";
+import homeFeatures from "../mockData/homeFeatures.js";
+import useAuthRedirect from "../hooks/useAuthRedirect.js";
 const Home = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/chat');
-    }
-  }, [navigate]);
+  useAuthRedirect();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -103,7 +97,7 @@ const Home = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           >
-            <img src={heroImage} alt="Hero illustration" className="max-w-full h-auto object-contain" />
+            <HeroPhone />
           </motion.div>
         </div>
 
@@ -115,29 +109,7 @@ const Home = () => {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
         >
-          {[
-            {
-              title: "Real-Time Chat",
-              desc: "Lightning fast message delivery with instant read receipts.",
-              icon: <BsLightningChargeFill />,
-              iconBg: "bg-warning/20",
-              iconColor: "text-warning"
-            },
-            {
-              title: "End-to-End Secure",
-              desc: "Your conversations are private, encrypted, and safe from prying eyes.",
-              icon: <BsShieldLockFill />,
-              iconBg: "bg-success/20",
-              iconColor: "text-success"
-            },
-            {
-              title: "Beautiful UI",
-              desc: "A sleek, modern interface powered by FlyonUI that is a joy to use everyday.",
-              icon: <BsStars />,
-              iconBg: "bg-primary/20",
-              iconColor: "text-primary"
-            },
-          ].map((feature, idx) => (
+          {homeFeatures.map((feature, idx) => (
             <motion.div
               key={idx}
               variants={itemVariants}
