@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Chat from "./pages/Chat";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/" element={<><Navbar /><Home /></>} />
         <Route path="/login" element={<><Navbar /><Login /></>} />
         <Route path="/signup" element={<><Navbar /><Register /></>} />
+        <Route path="/forgot-password" element={<><Navbar /><ForgotPassword /></>} />
         {/* Chat page without the main Navbar to look like an app */}
         <Route path="/chat" element={<Chat />} />
       </Routes>
