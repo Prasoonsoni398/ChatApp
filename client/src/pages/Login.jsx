@@ -1,8 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BsEnvelopeFill, BsLockFill } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
+import useAuthRedirect from '../hooks/useAuthRedirect.js';
+import {
+  authPageWrapper,
+  authCard,
+  authCardTitle,
+  authFormControl,
+  authLabel,
+  authLabelText,
+  authInputGroup,
+  authInputIconSpan,
+  authInput,
+  primaryBtn,
+} from '../constants/styles.js';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,14 +23,7 @@ const Login = () => {
     password: ''
   });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/chat');
-    }
-  }, [navigate]);
+  useAuthRedirect();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -75,27 +81,27 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 flex items-center justify-center p-6">
-      <div className="card w-full max-w-md bg-base-100 shadow-xl border border-base-300 !rounded-3xl">
+    <div className={authPageWrapper}>
+      <div className={authCard}>
         <div className="card-body">
-          <h2 className="card-title text-3xl font-bold text-center justify-center mb-6 text-base-content">
+          <h2 className={authCardTitle}>
             Welcome Back
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-semibold">Email</span>
+            <div className={authFormControl}>
+              <label className={authLabel}>
+                <span className={authLabelText}>Email</span>
               </label>
-              <div className="input-group relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-base-content/50">
+              <div className={authInputGroup}>
+                <span className={authInputIconSpan}>
                   <BsEnvelopeFill />
                 </span>
                 <input 
                   type="email" 
                   name="email"
                   placeholder="name@example.com" 
-                  className="input input-bordered w-full pl-10 rounded-xl" 
+                  className={authInput} 
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -103,31 +109,31 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-semibold">Password</span>
+            <div className={authFormControl}>
+              <label className={authLabel}>
+                <span className={authLabelText}>Password</span>
               </label>
-              <div className="input-group relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-base-content/50">
+              <div className={authInputGroup}>
+                <span className={authInputIconSpan}>
                   <BsLockFill />
                 </span>
                 <input 
                   type="password" 
                   name="password"
                   placeholder="••••••••" 
-                  className="input input-bordered w-full pl-10 rounded-xl" 
+                  className={authInput} 
                   value={formData.password}
                   onChange={handleChange}
                   required
                 />
               </div>
-              <label className="label">
-                <a href="#" className="label-text-alt link link-hover text-primary">Forgot password?</a>
+              <label className={authLabel}>
+                <Link to="/forgot-password" className="label-text-alt link link-hover text-primary">Forgot password?</Link>
               </label>
             </div>
 
             <div className="form-control mt-6">
-              <button type="submit" disabled={loading} className="btn btn-primary w-full shadow-lg shadow-primary/30 rounded-xl">
+              <button type="submit" disabled={loading} className={primaryBtn}>
                 {loading ? <span className="loading loading-spinner"></span> : 'Sign In'}
               </button>
             </div>
