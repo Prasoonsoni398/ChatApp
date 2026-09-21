@@ -73,7 +73,7 @@ export const searchInput =
 
 /** Single row in the sidebar chat list */
 export const sidebarChat =
-  "flex items-center gap-3 p-3 cursor-pointer hover:bg-base-200/50 transition-all border-b border-base-200/50";
+  "flex items-center gap-3 p-3 cursor-pointer hover:bg-base-200/80 transition-all duration-300 hover:px-4 active:scale-[0.98] border-b border-base-200/50";
 
 // ─── HeroPhone floating icons ─────────────────────────────────────────────────
 
