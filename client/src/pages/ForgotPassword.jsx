@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BsEnvelopeFill, BsLockFill, BsShieldLockFill } from 'react-icons/bs';
 import toast from 'react-hot-toast';
+import { forgotPassword, resetPassword } from '../services/authService.js';
 import {
   authPageWrapper,
   authCard,
@@ -26,22 +27,10 @@ const ForgotPassword = () => {
   const handleRequestOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to request OTP');
-      }
-
+      await forgotPassword(email);
       toast.success('OTP sent to your email!');
       setStep(2);
-      
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -52,22 +41,10 @@ const ForgotPassword = () => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, newPassword })
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to reset password');
-      }
-
+      await resetPassword(email, otp, newPassword);
       toast.success('Password reset successfully!');
       navigate('/login');
-      
     } catch (error) {
       toast.error(error.message);
     } finally {

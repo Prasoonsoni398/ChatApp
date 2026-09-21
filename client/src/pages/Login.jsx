@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BsEnvelopeFill, BsLockFill } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
 import useAuthRedirect from '../hooks/useAuthRedirect.js';
+import { loginUser, googleLogin } from '../services/authService.js';
 import {
   authPageWrapper,
   authCard,
@@ -23,6 +24,7 @@ const Login = () => {
     password: ''
   });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   useAuthRedirect();
 
   const handleChange = (e) => {
@@ -32,24 +34,12 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
+      const data = await loginUser(formData.email, formData.password);
       toast.success('Successfully logged in!');
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({ name: data.name, email: data.email, _id: data._id }));
       navigate('/chat');
-      
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -59,22 +49,11 @@ const Login = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: credentialResponse.credential })
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || 'Google Login failed');
-      }
-
+      const data = await googleLogin(credentialResponse.credential);
       toast.success('Successfully logged in with Google!');
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({ name: data.name, email: data.email, _id: data._id }));
       navigate('/chat');
-      
     } catch (error) {
       toast.error(error.message);
     }

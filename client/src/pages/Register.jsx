@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { BsEnvelopeFill, BsLockFill, BsPersonFill, BsKeyFill } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import useAuthRedirect from '../hooks/useAuthRedirect.js';
+import { registerUser, verifyOtp } from '../services/authService.js';
 import {
   authPageWrapper,
   authCard,
@@ -36,17 +37,9 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Using fetch assuming a vite proxy is set up or full URL is needed if not.
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Registration failed');
-      
+      const data = await registerUser(formData.name, formData.email, formData.password);
       toast.success(data.message || 'OTP sent to your email!');
-      setStep(2); // Move to OTP verification
+      setStep(2);
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -58,16 +51,7 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, otp })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'OTP verification failed');
-      
-      // Store token (if any) and redirect
-      // localStorage.setItem('token', data.token);
+      const data = await verifyOtp(formData.email, otp);
       toast.success('User registered successfully! Please log in.');
       navigate('/login');
     } catch (err) {
