@@ -6,6 +6,7 @@ import authRouter from './src/routers/auth.router.js';
 import userRouter from './src/routers/user.router.js';
 import messageRouter from './src/routers/message.router.js';
 import groupRouter from './src/routers/group.router.js';
+import statusRouter from './src/routers/status.router.js';
 
 import http from 'http'
 import { Server } from 'socket.io';
@@ -20,6 +21,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
 app.use('/api/messages', messageRouter);
 app.use('/api/groups', groupRouter);
+app.use('/api/status', statusRouter);
 
 app.get("/", (req, res) => {
     res.send("Welcome to ChatApp Server");

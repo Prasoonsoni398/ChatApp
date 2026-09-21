@@ -99,6 +99,27 @@ const WebSocket = (io) => {
             }
         });
 
+        socket.on("reaction", async (payload) => {
+            console.log("Reaction Update", payload);
+            if (payload.groupId) {
+                const group = await Group.findById(payload.groupId);
+                if (group) {
+                    group.members.forEach(memberId => {
+                        const receiverSocketId = OnlineUsers[memberId];
+                        // Don't send the reaction event back to the sender since they handled it optimistically
+                        if (receiverSocketId && memberId.toString() !== payload.senderId?.toString()) {
+                            io.to(receiverSocketId).emit("reaction", payload);
+                        }
+                    });
+                }
+            } else {
+                const receiverSocketId = OnlineUsers[payload.receiverId];
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit("reaction", payload);
+                }
+            }
+        });
+
         socket.on("messageStatus", async (payload) => {
             // payload: { messageId, status: 'delivered' | 'read', senderId, receiverId }
             console.log("Message Status Update", payload);
