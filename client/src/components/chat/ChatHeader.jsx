@@ -7,6 +7,8 @@ import {
   BsCheckSquare,
   BsPinAngleFill,
   BsTrash,
+  BsCameraVideo,
+  BsTelephone
 } from "react-icons/bs";
 import * as messageService from "../../services/messageService.js";
 
@@ -36,6 +38,7 @@ const ChatHeader = ({
   clearUndoTimeoutRef,
   setClearedMessagesBackup,
   setShowClearUndoBanner,
+  startCall,
 }) => {
   return (
     <div className="h-16 px-4 flex items-center gap-3 bg-base-100 border-b border-base-300 shadow-sm z-20">
@@ -80,6 +83,22 @@ const ChatHeader = ({
 
       {/* Actions */}
       <div className="flex gap-2 text-base-content/60 items-center">
+        {/* Call Buttons */}
+        <button
+          onClick={() => startCall(selectedChat, 'voice')}
+          className="p-2 hover:text-primary rounded-lg transition-all duration-300 hover:bg-primary/10 hover:scale-110 active:scale-95 hidden sm:block"
+          title="Voice Call"
+        >
+          <BsTelephone size={18} />
+        </button>
+        <button
+          onClick={() => startCall(selectedChat, 'video')}
+          className="p-2 hover:text-primary rounded-lg transition-all duration-300 hover:bg-primary/10 hover:scale-110 active:scale-95 hidden sm:block"
+          title="Video Call"
+        >
+          <BsCameraVideo size={18} />
+        </button>
+
         {/* Search toggle */}
         <button
           onClick={() => {

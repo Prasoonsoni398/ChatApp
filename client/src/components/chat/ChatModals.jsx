@@ -1,6 +1,7 @@
-import React from "react";
-import { BsPeopleFill, BsX, BsCheck, BsCheckAll } from "react-icons/bs";
+import React, { useState } from "react";
+import { BsPeopleFill, BsX, BsCheck, BsCheckAll, BsCamera } from "react-icons/bs";
 import { modalOverlay, modalCard, modalCardMd } from "../../constants/styles.js";
+import ImageCropView from "./ImageCropModal.jsx";
 
 /**
  * ChatModals – groups together all modals used within Chat.
@@ -13,7 +14,7 @@ const ChatModals = ({
   
   // Create Group
   showCreateGroup, setShowCreateGroup, groupName, setGroupName, groupMemberIds,
-  setGroupMemberIds, setGroupAvatarFile, isCreatingGroup, handleCreateGroup, allUsers,
+  setGroupMemberIds, groupAvatarFile, setGroupAvatarFile, isCreatingGroup, handleCreateGroup, allUsers,
   
   // Delete
   showDeleteModal, setShowDeleteModal, deleteMessageId, setDeleteMessageId,
@@ -26,95 +27,147 @@ const ChatModals = ({
   showForwardModal, setShowForwardModal, forwardMessage, setForwardMessage,
   chats, forwardSelectedMessages, confirmForward
 }) => {
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [cropTarget, setCropTarget] = useState(null);
+
+  const handleFileSelect = (e, target) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setCropImageSrc(reader.result);
+        setCropTarget(target);
+      });
+      reader.readAsDataURL(file);
+      e.target.value = null;
+    }
+  };
+
   return (
     <>
       {/* ══ CREATE GROUP MODAL ══ */}
       {showCreateGroup && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-fade-in">
-          <div className={modalCardMd}>
-            <div className="px-6 pt-6 pb-3 flex items-center justify-between">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <BsPeopleFill className="text-primary" /> New Group
-              </h3>
-              <button
-                onClick={() => setShowCreateGroup(false)}
-                className="btn btn-ghost btn-sm btn-circle active:scale-90 transition-transform"
-              >
-                <BsX size={18} />
-              </button>
-            </div>
-            <div className="px-6 pb-6 space-y-4">
-              {/* Group name */}
-              <div>
-                <label className="text-sm font-medium text-base-content/70 mb-1 block">Group Name *</label>
-                <input
-                  type="text"
-                  value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="Enter group name"
-                  className="input input-bordered w-full bg-base-200"
-                />
-              </div>
-              {/* Group avatar */}
-              <div>
-                <label className="text-sm font-medium text-base-content/70 mb-1 block">Group Icon (optional)</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setGroupAvatarFile(e.target.files[0])}
-                  className="file-input file-input-bordered file-input-sm w-full bg-base-200"
-                />
-              </div>
-              {/* Member selection */}
-              <div>
-                <label className="text-sm font-medium text-base-content/70 mb-2 block">Add Members *</label>
-                <div className="max-h-48 overflow-y-auto space-y-1 border border-base-300 rounded-xl p-2">
-                  {allUsers.map((u) => (
-                    <label
-                      key={u._id}
-                      className="flex items-center gap-3 p-2 hover:bg-base-200 rounded-lg cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={groupMemberIds.includes(u._id)}
-                        onChange={(e) =>
-                          setGroupMemberIds((prev) =>
-                            e.target.checked ? [...prev, u._id] : prev.filter((id) => id !== u._id),
-                          )
-                        }
-                        className="checkbox checkbox-primary checkbox-sm"
-                      />
-                      <img
-                        src={u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`}
-                        alt={u.name}
-                        className="w-8 h-8 rounded-full"
-                      />
-                      <span className="font-medium text-sm">{u.name}</span>
-                    </label>
-                  ))}
+          <div className={`${modalCardMd} p-0 overflow-hidden`}>
+            {cropImageSrc && cropTarget === 'group' ? (
+              <ImageCropView
+                imageSrc={cropImageSrc}
+                onCropComplete={(croppedFile) => {
+                  setGroupAvatarFile(croppedFile);
+                  setCropImageSrc(null);
+                  setCropTarget(null);
+                }}
+                onCancel={() => {
+                  setCropImageSrc(null);
+                  setCropTarget(null);
+                }}
+              />
+            ) : (
+              <>
+                <div className="px-6 pt-6 pb-3 flex items-center justify-between">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <BsPeopleFill className="text-primary" /> New Group
+                  </h3>
+                  <button
+                    onClick={() => setShowCreateGroup(false)}
+                    className="btn btn-ghost btn-sm btn-circle active:scale-90 transition-transform"
+                  >
+                    <BsX size={18} />
+                  </button>
                 </div>
-                {groupMemberIds.length > 0 && (
-                  <p className="text-xs text-primary mt-1">
-                    {groupMemberIds.length} member{groupMemberIds.length > 1 ? "s" : ""} selected
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => setShowCreateGroup(false)}
-                  className="btn btn-ghost flex-1 active:scale-95 transition-transform"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateGroup}
-                  disabled={isCreatingGroup}
-                  className="btn btn-primary flex-1 active:scale-95 transition-transform"
-                >
-                  {isCreatingGroup ? "Creating…" : "Create Group"}
-                </button>
-              </div>
-            </div>
+                <div className="px-6 pb-6 space-y-4">
+                  {/* Group name */}
+                  <div>
+                    <label className="text-sm font-medium text-base-content/70 mb-1 block">Group Name *</label>
+                    <input
+                      type="text"
+                      value={groupName}
+                      onChange={(e) => setGroupName(e.target.value)}
+                      placeholder="Enter group name"
+                      className="input input-bordered w-full bg-base-200"
+                    />
+                  </div>
+                  {/* Group avatar */}
+                  <div className="flex flex-col items-center">
+                    <div className="relative group cursor-pointer w-24 h-24 rounded-full border-2 border-dashed border-base-300 hover:border-primary flex flex-col items-center justify-center bg-base-200 overflow-hidden transition-all">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileSelect(e, 'group')}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                      />
+                      {groupAvatarFile ? (
+                        <img
+                          src={URL.createObjectURL(groupAvatarFile)}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <BsCamera className="text-3xl text-base-content/50 group-hover:text-primary transition-colors" />
+                          <span className="text-xs text-base-content/50 mt-1 font-medium group-hover:text-primary">Upload</span>
+                        </>
+                      )}
+                      {groupAvatarFile && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <BsCamera className="text-white text-2xl" />
+                        </div>
+                      )}
+                    </div>
+                    <label className="text-sm font-medium text-base-content/70 mt-2 block">Group Icon (optional)</label>
+                  </div>
+                  {/* Member selection */}
+                  <div>
+                    <label className="text-sm font-medium text-base-content/70 mb-2 block">Add Members *</label>
+                    <div className="max-h-48 overflow-y-auto space-y-1 border border-base-300 rounded-xl p-2">
+                      {allUsers.map((u) => (
+                        <label
+                          key={u._id}
+                          className="flex items-center gap-3 p-2 hover:bg-base-200 rounded-lg cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={groupMemberIds.includes(u._id)}
+                            onChange={(e) =>
+                              setGroupMemberIds((prev) =>
+                                e.target.checked ? [...prev, u._id] : prev.filter((id) => id !== u._id),
+                              )
+                            }
+                            className="checkbox checkbox-primary checkbox-sm"
+                          />
+                          <img
+                            src={u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`}
+                            alt={u.name}
+                            className="w-8 h-8 rounded-full"
+                          />
+                          <span className="font-medium text-sm">{u.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {groupMemberIds.length > 0 && (
+                      <p className="text-xs text-primary mt-1">
+                        {groupMemberIds.length} member{groupMemberIds.length > 1 ? "s" : ""} selected
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => setShowCreateGroup(false)}
+                      className="btn btn-ghost flex-1 active:scale-95 transition-transform"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateGroup}
+                      disabled={isCreatingGroup}
+                      className="btn btn-primary flex-1 active:scale-95 transition-transform"
+                    >
+                      {isCreatingGroup ? "Creating…" : "Create Group"}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -122,46 +175,82 @@ const ChatModals = ({
       {/* ══ EDIT PROFILE MODAL ══ */}
       {showEditModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fade-in">
-          <div className={`bg-base-100 w-full max-w-md rounded-2xl p-6 shadow-xl border border-base-300 animate-modal-pop`}>
-            <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
-            <form onSubmit={handleUpdateProfile}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-base-content/70 mb-2">Name</label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="input input-bordered w-full bg-base-200"
-                  required
-                />
+          <div className={`bg-base-100 w-full max-w-md rounded-2xl p-0 shadow-xl border border-base-300 animate-modal-pop overflow-hidden`}>
+            {cropImageSrc && cropTarget === 'profile' ? (
+              <ImageCropView
+                imageSrc={cropImageSrc}
+                onCropComplete={(croppedFile) => {
+                  setEditAvatar(croppedFile);
+                  setCropImageSrc(null);
+                  setCropTarget(null);
+                }}
+                onCancel={() => {
+                  setCropImageSrc(null);
+                  setCropTarget(null);
+                }}
+              />
+            ) : (
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
+                <form onSubmit={handleUpdateProfile}>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-base-content/70 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="input input-bordered w-full bg-base-200"
+                      required
+                    />
+                  </div>
+                  <div className="mb-6 flex flex-col items-center">
+                    <div className="relative group cursor-pointer w-24 h-24 rounded-full border-2 border-dashed border-base-300 hover:border-primary flex flex-col items-center justify-center bg-base-200 overflow-hidden transition-all">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileSelect(e, 'profile')}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                      />
+                      {editAvatar ? (
+                        <img
+                          src={URL.createObjectURL(editAvatar)}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <BsCamera className="text-3xl text-base-content/50 group-hover:text-primary transition-colors" />
+                          <span className="text-xs text-base-content/50 mt-1 font-medium group-hover:text-primary">Upload</span>
+                        </>
+                      )}
+                      {editAvatar && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <BsCamera className="text-white text-2xl" />
+                        </div>
+                      )}
+                    </div>
+                    <label className="block text-sm font-medium text-base-content/70 mt-2">Profile Image (optional)</label>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowEditModal(false)}
+                      className="btn btn-ghost active:scale-95 transition-transform"
+                      disabled={isUpdating}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary active:scale-95 transition-transform"
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? "Saving…" : "Save Changes"}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-base-content/70 mb-2">Profile Image (optional)</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setEditAvatar(e.target.files[0])}
-                  className="file-input file-input-bordered file-input-primary w-full bg-base-200"
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="btn btn-ghost active:scale-95 transition-transform"
-                  disabled={isUpdating}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary active:scale-95 transition-transform"
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? "Saving…" : "Save Changes"}
-                </button>
-              </div>
-            </form>
+            )}
           </div>
         </div>
       )}

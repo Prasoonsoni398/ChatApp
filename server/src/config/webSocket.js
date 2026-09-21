@@ -146,6 +146,80 @@ const WebSocket = (io) => {
             }
         });
 
+        // --- WebRTC Signaling ---
+        
+        socket.on("ringUser", ({ userToCall, from, callType, name, roomId }) => {
+            const receiverSocketId = OnlineUsers[userToCall];
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit("incomingRing", { from, callType, name, roomId, isGroup: false });
+                socket.emit("ringStatus", { status: "ringing" });
+            } else {
+                socket.emit("ringStatus", { status: "calling" });
+            }
+        });
+
+        socket.on("ringGroup", async ({ groupId, from, callType, name, roomId }) => {
+            const group = await Group.findById(groupId);
+            let anyOnline = false;
+            if (group) {
+                group.members.forEach(memberId => {
+                    const receiverSocketId = OnlineUsers[memberId];
+                    if (receiverSocketId && memberId.toString() !== from.toString()) {
+                        io.to(receiverSocketId).emit("incomingRing", { from, callType, name, roomId, isGroup: true, groupName: group.name });
+                        anyOnline = true;
+                    }
+                });
+            }
+            if (anyOnline) {
+                socket.emit("ringStatus", { status: "ringing" });
+            } else {
+                socket.emit("ringStatus", { status: "calling" });
+            }
+        });
+
+        socket.on("joinCall", async ({ roomId, user }) => {
+            socket.join(roomId);
+            const clients = io.sockets.adapter.rooms.get(roomId);
+            const otherUsers = [];
+            if (clients) {
+                for (const clientId of clients) {
+                    if (clientId !== socket.id) {
+                        const userId = Object.keys(OnlineUsers).find(key => OnlineUsers[key] === clientId);
+                        if (userId) otherUsers.push(userId);
+                    }
+                }
+            }
+            socket.emit("allCallUsers", otherUsers);
+        });
+
+        socket.on("callUser", ({ userToCall, signalData, from }) => {
+            const receiverSocketId = OnlineUsers[userToCall];
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit("incomingCall", { signal: signalData, from });
+            }
+        });
+
+        socket.on("answerCall", (data) => {
+            const callerSocketId = OnlineUsers[data.to];
+            if (callerSocketId) {
+                io.to(callerSocketId).emit("callAccepted", { signal: data.signal, from: data.from });
+            }
+        });
+
+        socket.on("leaveCall", ({ roomId, userId }) => {
+            socket.leave(roomId);
+            socket.to(roomId).emit("userLeftCall", userId);
+        });
+
+        socket.on("rejectCall", ({ to }) => {
+            const callerSocketId = OnlineUsers[to];
+            if (callerSocketId) {
+                io.to(callerSocketId).emit("callRejected");
+            }
+        });
+        
+        // --- End WebRTC Signaling ---
+
         // Built-in socket disconnect
         socket.on("disconnect", () => {
             const userId = Object.keys(OnlineUsers).find(key => OnlineUsers[key] === socket.id);

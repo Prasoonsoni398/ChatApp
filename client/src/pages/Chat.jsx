@@ -9,6 +9,7 @@ import socketAPI from "../config/webSocket.js";
 import useOnlineStatus from "../hooks/useOnlineStatus.js";
 import useTypingIndicator from "../hooks/useTypingIndicator.js";
 import useChatState from "../hooks/useChatState.js";
+import useWebRTC from "../hooks/useWebRTC.js";
 
 // Services
 import * as authService from "../services/authService.js";
@@ -27,6 +28,7 @@ import MessageList from "../components/chat/MessageList.jsx";
 import ChatInputArea from "../components/chat/ChatInputArea.jsx";
 import ChatModals from "../components/chat/ChatModals.jsx";
 import ContextMenu from "../components/chat/ContextMenu.jsx";
+import CallOverlay from "../components/chat/CallOverlay.jsx";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -37,6 +39,8 @@ const Chat = () => {
     otherUserTyping, setOtherUserTyping,
     handleTypingEmit, handleTypingReceive,
   } = useTypingIndicator(state.selectedChat, state.loggedInUser);
+
+  const webRTC = useWebRTC(state.loggedInUser);
 
   const [activeTab, setActiveTab] = React.useState('chats');
   const [statuses, setStatuses] = React.useState([]);
@@ -753,6 +757,7 @@ const Chat = () => {
               clearUndoTimeoutRef={state.clearUndoTimeoutRef}
               setClearedMessagesBackup={state.setClearedMessagesBackup}
               setShowClearUndoBanner={state.setShowClearUndoBanner}
+              startCall={webRTC.startCall}
             />
 
             {/* In-chat Search Bar */}
@@ -1008,6 +1013,8 @@ const Chat = () => {
         setEditingMessageId={state.setEditingMessageId}
         setMessage={state.setMessage}
       />
+
+      <CallOverlay {...webRTC} />
     </div>
   );
 };
