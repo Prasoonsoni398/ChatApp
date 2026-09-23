@@ -1,12 +1,15 @@
 import React from "react";
 import EmojiPicker from "emoji-picker-react";
 import {
-  BsCheck, BsCheckAll, BsPencil, BsPinAngleFill,
-  BsCheckCircle, BsCheckCircleFill,
+  BsCheck,
+  BsCheckAll,
+  BsPencil,
+  BsPinAngleFill,
+  BsCheckCircle,
+  BsCheckCircleFill,
 } from "react-icons/bs";
 import quickEmojis from "../../mockData/quickEmojis.js";
 
-    
 const MessageBubble = ({
   msg,
   isMe,
@@ -18,7 +21,7 @@ const MessageBubble = ({
   isSearchMatch,
   msgSearchQuery,
   reactionMap,
-  loggedInUser,
+
   selectedChat,
   hoveredMsgId,
   setHoveredMsgId,
@@ -37,7 +40,10 @@ const MessageBubble = ({
   React.useEffect(() => {
     if (showFullEmojiForMsg !== msg._id) return;
     const handleClickOutside = (event) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target)
+      ) {
         setShowFullEmojiForMsg(null);
       }
     };
@@ -52,49 +58,74 @@ const MessageBubble = ({
         isSelected ? "opacity-75" : ""
       } ${isSearchMatch ? "ring-2 ring-primary/50 rounded-2xl" : ""} transition-all`}
       onContextMenu={(e) => {
-        if (selectMode) { e.preventDefault(); return; }
+        if (selectMode) {
+          e.preventDefault();
+          return;
+        }
         handleContextMenu(e, msg, isMe);
       }}
       onDoubleClick={(e) => {
-        if (selectMode) { toggleSelectMessage(msg._id); return; }
+        if (selectMode) {
+          toggleSelectMessage(msg._id);
+          return;
+        }
         handleContextMenu(e, msg, isMe);
       }}
-      onClick={() => { if (selectMode) toggleSelectMessage(msg._id); }}
+      onClick={() => {
+        if (selectMode) toggleSelectMessage(msg._id);
+      }}
       onTouchStart={(e) => {
         if (selectMode) return;
-        e.currentTarget.dataset.touchStartX    = e.touches[0].clientX;
+        e.currentTarget.dataset.touchStartX = e.touches[0].clientX;
         e.currentTarget.dataset.touchStartTime = Date.now();
       }}
       onTouchEnd={(e) => {
         if (selectMode) return;
-        const startX  = parseFloat(e.currentTarget.dataset.touchStartX);
-        const endX    = e.changedTouches[0].clientX;
-        const elapsed = Date.now() - parseFloat(e.currentTarget.dataset.touchStartTime);
+        const startX = parseFloat(e.currentTarget.dataset.touchStartX);
+        const endX = e.changedTouches[0].clientX;
+        const elapsed =
+          Date.now() - parseFloat(e.currentTarget.dataset.touchStartTime);
         if (elapsed > 500) {
           const t = e.changedTouches[0];
           handleContextMenu(
-            { pageX: t.pageX, pageY: t.pageY, preventDefault: () => {}, stopPropagation: () => {} },
+            {
+              pageX: t.pageX,
+              pageY: t.pageY,
+              preventDefault: () => {},
+              stopPropagation: () => {},
+            },
             msg,
             isMe,
           );
         } else if (endX - startX > 60) {
-          setReplyingTo({ _id: msg._id, text: msg.text, image: msg.image, senderName });
+          setReplyingTo({
+            _id: msg._id,
+            text: msg.text,
+            image: msg.image,
+            senderName,
+          });
         }
       }}
     >
       {/* Select checkbox */}
       {selectMode && (
         <div className="flex items-center self-center px-1">
-          {isSelected
-            ? <BsCheckCircleFill className="text-primary" size={20} />
-            : <BsCheckCircle className="text-base-content/40" size={20} />}
+          {isSelected ? (
+            <BsCheckCircleFill className="text-primary" size={20} />
+          ) : (
+            <BsCheckCircle className="text-base-content/40" size={20} />
+          )}
         </div>
       )}
 
       {/* Group sender avatar */}
       {selectedChat.isGroup && !isMe && (
         <div className="flex-shrink-0 mb-1">
-          <img src={senderAvatar} alt={senderName} className="w-8 h-8 rounded-full object-cover" />
+          <img
+            src={senderAvatar}
+            alt={senderName}
+            className="w-8 h-8 rounded-full object-cover"
+          />
         </div>
       )}
       {selectedChat.isGroup && isMe && <div className="w-8" />}
@@ -104,12 +135,16 @@ const MessageBubble = ({
         className={`relative flex flex-col max-w-xs md:max-w-sm lg:max-w-md ${isMe ? "items-end" : "items-start"}`}
         onMouseEnter={() => {
           if (!isTombstone && !selectMode) {
-            if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
+            if (reactionTimeoutRef.current)
+              clearTimeout(reactionTimeoutRef.current);
             setHoveredMsgId(msg._id);
           }
         }}
         onMouseLeave={() => {
-          reactionTimeoutRef.current = setTimeout(() => setHoveredMsgId(null), 300);
+          reactionTimeoutRef.current = setTimeout(
+            () => setHoveredMsgId(null),
+            300,
+          );
         }}
       >
         {/* Pin indicator */}
@@ -144,10 +179,14 @@ const MessageBubble = ({
               {msg.replyToText && (
                 <div
                   className={`border-l-4 rounded-lg px-2 py-1 mb-2 text-xs cursor-pointer ${
-                    isMe ? "border-white/60 bg-white/10" : "border-primary/60 bg-primary/10"
+                    isMe
+                      ? "border-white/60 bg-white/10"
+                      : "border-primary/60 bg-primary/10"
                   }`}
                 >
-                  <p className={`font-semibold text-[11px] ${isMe ? "text-white/80" : "text-primary"}`}>
+                  <p
+                    className={`font-semibold text-[11px] ${isMe ? "text-white/80" : "text-primary"}`}
+                  >
                     {msg.replyToSender}
                   </p>
                   <p className="truncate opacity-80">{msg.replyToText}</p>
@@ -190,15 +229,25 @@ const MessageBubble = ({
                 <BsPencil size={8} /> Edited
               </span>
             )}
-            <span className={`text-[10px] ${isMe ? "text-black/60" : "text-base-content/50"}`}>
+            <span
+              className={`text-[10px] ${isMe ? "text-black/60" : "text-base-content/50"}`}
+            >
               {timeStr}
             </span>
             {isMe && !isTombstone && (
               <span className="text-[1rem]">
-                {msg.status === "sending"   && <BsCheck    className="text-black/40" />}
-                {(!msg.status || msg.status === "sent") && <BsCheck className="text-black/40" />}
-                {msg.status === "delivered" && <BsCheckAll className="text-black/40" />}
-                {msg.status === "read"      && <BsCheckAll className="text-[#53bdeb]" />}
+                {msg.status === "sending" && (
+                  <BsCheck className="text-black/40" />
+                )}
+                {(!msg.status || msg.status === "sent") && (
+                  <BsCheck className="text-black/40" />
+                )}
+                {msg.status === "delivered" && (
+                  <BsCheckAll className="text-black/40" />
+                )}
+                {msg.status === "read" && (
+                  <BsCheckAll className="text-[#53bdeb]" />
+                )}
               </span>
             )}
           </div>
@@ -206,7 +255,9 @@ const MessageBubble = ({
 
         {/* Emoji reactions display */}
         {Object.keys(reactionMap).length > 0 && (
-          <div className={`flex flex-wrap gap-1 mt-1 ${isMe ? "justify-end" : "justify-start"}`}>
+          <div
+            className={`flex flex-wrap gap-1 mt-1 ${isMe ? "justify-end" : "justify-start"}`}
+          >
             {Object.entries(reactionMap).map(([emoji, { count, isMine }]) => (
               <button
                 key={emoji}
@@ -231,17 +282,24 @@ const MessageBubble = ({
               isMe ? "right-0" : "left-0"
             }`}
             onMouseEnter={() => {
-              if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
+              if (reactionTimeoutRef.current)
+                clearTimeout(reactionTimeoutRef.current);
               setHoveredMsgId(msg._id);
             }}
             onMouseLeave={() => {
-              reactionTimeoutRef.current = setTimeout(() => setHoveredMsgId(null), 300);
+              reactionTimeoutRef.current = setTimeout(
+                () => setHoveredMsgId(null),
+                300,
+              );
             }}
           >
             {quickEmojis.map((em) => (
               <button
                 key={em}
-                onClick={(e) => { e.stopPropagation(); handleReact(msg._id, em); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleReact(msg._id, em);
+                }}
                 className="text-lg hover:scale-125 transition-transform"
                 title={em}
               >

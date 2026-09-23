@@ -4,9 +4,9 @@
  * Auth token is read from localStorage internally.
  */
 
-const BASE = '/api/messages';
+const BASE = "/api/messages";
 
-const getToken = () => localStorage.getItem('token');
+const getToken = () => localStorage.getItem("token");
 
 const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
@@ -20,7 +20,7 @@ export async function getMessages(userId) {
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to fetch messages');
+  if (!res.ok) throw new Error(data.error || "Failed to fetch messages");
   return data;
 }
 
@@ -32,12 +32,12 @@ export async function getMessages(userId) {
  */
 export async function sendMessage(receiverId, formData) {
   const res = await fetch(`${BASE}/send/${receiverId}`, {
-    method: 'POST',
+    method: "POST",
     headers: authHeader(),
     body: formData,
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to send message');
+  if (!res.ok) throw new Error(data.error || "Failed to send message");
   return data;
 }
 
@@ -49,12 +49,12 @@ export async function sendMessage(receiverId, formData) {
  */
 export async function editMessage(messageId, text) {
   const res = await fetch(`${BASE}/${messageId}`, {
-    method: 'PUT',
-    headers: { ...authHeader(), 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { ...authHeader(), "Content-Type": "application/json" },
     body: JSON.stringify({ text }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to edit message');
+  if (!res.ok) throw new Error(data.error || "Failed to edit message");
   return data;
 }
 
@@ -66,11 +66,11 @@ export async function editMessage(messageId, text) {
  */
 export async function deleteMessage(messageId, type) {
   const res = await fetch(`${BASE}/${messageId}?type=${type}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to delete message');
+  if (!res.ok) throw new Error(data.error || "Failed to delete message");
   return data;
 }
 
@@ -81,11 +81,11 @@ export async function deleteMessage(messageId, type) {
  */
 export async function pinMessage(messageId) {
   const res = await fetch(`${BASE}/pin/${messageId}`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to pin message');
+  if (!res.ok) throw new Error(data.error || "Failed to pin message");
   return data;
 }
 
@@ -97,12 +97,12 @@ export async function pinMessage(messageId) {
  */
 export async function addReaction(messageId, emoji) {
   const res = await fetch(`${BASE}/react/${messageId}`, {
-    method: 'PATCH',
-    headers: { ...authHeader(), 'Content-Type': 'application/json' },
+    method: "PATCH",
+    headers: { ...authHeader(), "Content-Type": "application/json" },
     body: JSON.stringify({ emoji }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to add reaction');
+  if (!res.ok) throw new Error(data.error || "Failed to add reaction");
   return data;
 }
 
@@ -113,10 +113,10 @@ export async function addReaction(messageId, emoji) {
  */
 export async function clearChat(chatId) {
   const res = await fetch(`${BASE}/clear/${chatId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to clear chat');
+  if (!res.ok) throw new Error(data.error || "Failed to clear chat");
   return data;
 }

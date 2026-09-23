@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { BsPlus, BsRecordCircle } from "react-icons/bs";
 import toast from "react-hot-toast";
 
@@ -14,12 +14,12 @@ const StatusSidebar = ({
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast.error('Only image files are allowed for status');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files are allowed for status");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image too large (max 5MB)');
+      toast.error("Image too large (max 5MB)");
       return;
     }
     await onUploadStatus(file);
@@ -27,8 +27,10 @@ const StatusSidebar = ({
   };
 
   // Separate my statuses from others
-  const myStatusGroup = statuses.find(s => s.user._id === loggedInUser?._id);
-  const otherStatuses = statuses.filter(s => s.user._id !== loggedInUser?._id);
+  const myStatusGroup = statuses.find((s) => s.user._id === loggedInUser?._id);
+  const otherStatuses = statuses.filter(
+    (s) => s.user._id !== loggedInUser?._id,
+  );
 
   return (
     <div className="w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-base-300">
@@ -39,7 +41,7 @@ const StatusSidebar = ({
 
       <div className="flex-1 overflow-y-auto">
         {/* My Status */}
-        <div 
+        <div
           className="flex items-center gap-4 p-4 hover:bg-base-200 cursor-pointer transition-all duration-300 hover:px-5 active:scale-[0.98]"
           onClick={() => {
             if (myStatusGroup && myStatusGroup.statuses.length > 0) {
@@ -50,14 +52,19 @@ const StatusSidebar = ({
           }}
         >
           <div className="relative">
-            <div className={`w-12 h-12 rounded-full p-0.5 ${myStatusGroup && myStatusGroup.statuses.length > 0 ? 'ring-2 ring-primary ring-offset-2 ring-offset-base-100' : ''}`}>
+            <div
+              className={`w-12 h-12 rounded-full p-0.5 ${myStatusGroup && myStatusGroup.statuses.length > 0 ? "ring-2 ring-primary ring-offset-2 ring-offset-base-100" : ""}`}
+            >
               <img
-                src={loggedInUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=Me`}
+                src={
+                  loggedInUser?.avatar ||
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=Me`
+                }
                 alt="My Status"
                 className="w-full h-full rounded-full object-cover"
               />
             </div>
-            <button 
+            <button
               className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-0.5 shadow-sm border-2 border-base-100 hover:scale-110 transition-transform"
               onClick={(e) => {
                 e.stopPropagation();
@@ -78,14 +85,20 @@ const StatusSidebar = ({
           <div>
             <h3 className="font-semibold text-[15px]">My status</h3>
             <p className="text-sm text-base-content/60">
-              {isUploading ? "Uploading..." : (myStatusGroup ? "Tap to view or add" : "Click to add status update")}
+              {isUploading
+                ? "Uploading..."
+                : myStatusGroup
+                  ? "Tap to view or add"
+                  : "Click to add status update"}
             </p>
           </div>
         </div>
 
         {/* Divider */}
         <div className="px-4 py-2">
-          <h4 className="text-sm font-semibold text-base-content/50 uppercase tracking-wider">Recent updates</h4>
+          <h4 className="text-sm font-semibold text-base-content/50 uppercase tracking-wider">
+            Recent updates
+          </h4>
         </div>
 
         {/* Other Users' Statuses */}
@@ -104,16 +117,24 @@ const StatusSidebar = ({
               >
                 <div className="w-12 h-12 rounded-full p-0.5 ring-2 ring-primary ring-offset-2 ring-offset-base-100">
                   <img
-                    src={group.user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.user.name}`}
+                    src={
+                      group.user.avatar ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.user.name}`
+                    }
                     alt={group.user.name}
                     className="w-full h-full rounded-full object-cover"
                   />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[15px]">{group.user.name}</h3>
+                  <h3 className="font-semibold text-[15px]">
+                    {group.user.name}
+                  </h3>
                   <p className="text-sm text-base-content/60">
-                    {new Date(group.statuses[group.statuses.length - 1].createdAt).toLocaleTimeString([], {
-                      hour: '2-digit', minute: '2-digit'
+                    {new Date(
+                      group.statuses[group.statuses.length - 1].createdAt,
+                    ).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </p>
                 </div>

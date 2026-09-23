@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Redirects authenticated users away from public pages (login, register, home).
@@ -7,11 +7,11 @@ import { useNavigate } from 'react-router-dom';
  *
  * @param {string} redirectTo - Path to redirect to when already logged in (default '/chat').
  */
-function useAuthRedirect(redirectTo = '/chat') {
+function useAuthRedirect(redirectTo = "/chat") {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       navigate(redirectTo);
     }

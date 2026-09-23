@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import socketAPI from '../config/webSocket.js';
+import { useState, useRef } from "react";
+import socketAPI from "../config/webSocket.js";
 
 /**
  * Manages the "other user is typing" indicator for a selected chat.
@@ -24,7 +24,7 @@ function useTypingIndicator(selectedChat, loggedInUser) {
   const handleTypingEmit = () => {
     if (!selectedChat || !loggedInUser) return;
 
-    socketAPI.emit('typing', {
+    socketAPI.emit("typing", {
       receiverId: selectedChat.id,
       userId: loggedInUser._id,
       isTyping: true,
@@ -32,7 +32,7 @@ function useTypingIndicator(selectedChat, loggedInUser) {
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
-      socketAPI.emit('typing', {
+      socketAPI.emit("typing", {
         receiverId: selectedChat.id,
         userId: loggedInUser._id,
         isTyping: false,
@@ -50,7 +50,12 @@ function useTypingIndicator(selectedChat, loggedInUser) {
     }
   };
 
-  return { otherUserTyping, setOtherUserTyping, handleTypingEmit, handleTypingReceive };
+  return {
+    otherUserTyping,
+    setOtherUserTyping,
+    handleTypingEmit,
+    handleTypingReceive,
+  };
 }
 
 export default useTypingIndicator;

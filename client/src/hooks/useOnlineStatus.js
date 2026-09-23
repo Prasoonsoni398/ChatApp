@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import socketAPI from '../config/webSocket.js';
+import { useState, useEffect } from "react";
+import socketAPI from "../config/webSocket.js";
 
 /**
  * Subscribes to the Socket.IO `onlineUsers` event and maintains a map of
@@ -11,9 +11,9 @@ function useOnlineStatus() {
   const [onlineUsersMap, setOnlineUsersMap] = useState({});
 
   useEffect(() => {
-    socketAPI.on('onlineUsers', setOnlineUsersMap);
+    socketAPI.on("onlineUsers", setOnlineUsersMap);
     return () => {
-      socketAPI.off('onlineUsers', setOnlineUsersMap);
+      socketAPI.off("onlineUsers", setOnlineUsersMap);
     };
   }, []);
 

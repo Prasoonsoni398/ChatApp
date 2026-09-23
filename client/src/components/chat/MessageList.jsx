@@ -40,21 +40,24 @@ const MessageList = ({
         messages
           .filter((msg) => !msg.deletedFor?.includes(loggedInUser?._id))
           .map((msg, idx, filteredMessages) => {
-            const senderId = selectedChat.isGroup ? msg.senderId?._id : msg.senderId;
+            const senderId = selectedChat.isGroup
+              ? msg.senderId?._id
+              : msg.senderId;
             const isMe =
               senderId === loggedInUser?._id ||
-              (typeof msg.senderId === "object" && msg.senderId?._id === loggedInUser?._id);
+              (typeof msg.senderId === "object" &&
+                msg.senderId?._id === loggedInUser?._id);
             const senderName = selectedChat.isGroup
               ? msg.senderId?.name || "Member"
               : isMe
-              ? loggedInUser.name
-              : selectedChat.name;
+                ? loggedInUser.name
+                : selectedChat.name;
             const senderAvatar = selectedChat.isGroup
               ? msg.senderId?.avatar ||
                 `https://api.dicebear.com/7.x/avataaars/svg?seed=${senderName}`
               : isMe
-              ? loggedInUser?.avatar
-              : selectedChat.avatar;
+                ? loggedInUser?.avatar
+                : selectedChat.avatar;
 
             const timeStr = new Date(msg.createdAt).toLocaleTimeString([], {
               hour: "2-digit",

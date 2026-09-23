@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { 
-  BsTelephoneFill, 
-  BsTelephoneXFill, 
-  BsMicFill, 
-  BsMicMuteFill, 
-  BsCameraVideoFill, 
+import { useEffect, useRef, useState } from "react";
+import {
+  BsTelephoneFill,
+  BsTelephoneXFill,
+  BsMicFill,
+  BsMicMuteFill,
+  BsCameraVideoFill,
   BsCameraVideoOffFill,
-  BsDisplay
-} from 'react-icons/bs';
+  BsDisplay,
+} from "react-icons/bs";
 
 const VideoStream = ({ stream, isLocal, muted }) => {
   const videoRef = useRef();
@@ -23,14 +23,16 @@ const VideoStream = ({ stream, isLocal, muted }) => {
   const hasVideo = stream.getVideoTracks().length > 0;
 
   return (
-    <div className={`relative w-full h-full bg-black flex items-center justify-center overflow-hidden rounded-2xl shadow-xl ${isLocal ? 'border-2 border-primary' : ''}`}>
+    <div
+      className={`relative w-full h-full bg-black flex items-center justify-center overflow-hidden rounded-2xl shadow-xl ${isLocal ? "border-2 border-primary" : ""}`}
+    >
       {hasVideo ? (
-        <video 
-          ref={videoRef} 
-          autoPlay 
-          playsInline 
-          muted={muted || isLocal} 
-          className={`w-full h-full object-cover ${isLocal ? 'scale-x-[-1]' : ''}`}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={muted || isLocal}
+          className={`w-full h-full object-cover ${isLocal ? "scale-x-[-1]" : ""}`}
         />
       ) : (
         <div className="w-24 h-24 rounded-full bg-base-300 flex items-center justify-center">
@@ -39,44 +41,50 @@ const VideoStream = ({ stream, isLocal, muted }) => {
         </div>
       )}
       {isLocal && (
-        <span className="absolute bottom-4 left-4 badge badge-primary shadow-sm font-semibold">You</span>
+        <span className="absolute bottom-4 left-4 badge badge-primary shadow-sm font-semibold">
+          You
+        </span>
       )}
     </div>
   );
 };
 
-const CallOverlay = ({ 
-  callState, 
+const CallOverlay = ({
+  callState,
   incomingCall,
   outgoingCallStatus,
-  localStream, 
-  remoteStreams, 
-  isScreenSharing, 
-  callType, 
-  answerCall, 
-  rejectCall, 
-  endCall, 
-  toggleScreenShare 
+  localStream,
+  remoteStreams,
+  isScreenSharing,
+  callType,
+  answerCall,
+  rejectCall,
+  endCall,
+  toggleScreenShare,
 }) => {
   const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(callType === 'voice');
+  const [isVideoOff, setIsVideoOff] = useState(callType === "voice");
 
   useEffect(() => {
     if (localStream) {
-      localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+      localStream
+        .getAudioTracks()
+        .forEach((track) => (track.enabled = !isMuted));
     }
   }, [isMuted, localStream]);
 
   useEffect(() => {
     if (localStream) {
-      localStream.getVideoTracks().forEach(track => track.enabled = !isVideoOff);
+      localStream
+        .getVideoTracks()
+        .forEach((track) => (track.enabled = !isVideoOff));
     }
   }, [isVideoOff, localStream]);
 
-  if (callState === 'idle') return null;
+  if (callState === "idle") return null;
 
   // Render Incoming Call Screen
-  if (callState === 'ringing' && incomingCall) {
+  if (callState === "ringing" && incomingCall) {
     return (
       <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center text-white animate-fade-in">
         <div className="text-center mb-12">
@@ -90,13 +98,13 @@ const CallOverlay = ({
           </p>
         </div>
         <div className="flex gap-8">
-          <button 
+          <button
             onClick={rejectCall}
             className="w-16 h-16 rounded-full bg-error text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg"
           >
             <BsTelephoneXFill size={28} />
           </button>
-          <button 
+          <button
             onClick={answerCall}
             className="w-16 h-16 rounded-full bg-success text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg animate-bounce"
           >
@@ -108,20 +116,23 @@ const CallOverlay = ({
   }
 
   // Render Outgoing Call Screen
-  if (callState === 'outgoing') {
+  if (callState === "outgoing") {
     return (
       <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center text-white animate-fade-in">
         <div className="text-center mb-12">
           <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6">
-            <BsTelephoneFill size={40} className={`text-primary ${outgoingCallStatus === 'ringing' ? 'animate-pulse' : 'opacity-50'}`} />
+            <BsTelephoneFill
+              size={40}
+              className={`text-primary ${outgoingCallStatus === "ringing" ? "animate-pulse" : "opacity-50"}`}
+            />
           </div>
           <h2 className="text-3xl font-bold mb-2">Outgoing {callType} call</h2>
           <p className="text-white/60 capitalize font-medium text-lg">
-            {outgoingCallStatus === 'ringing' ? 'Ringing...' : 'Calling...'}
+            {outgoingCallStatus === "ringing" ? "Ringing..." : "Calling..."}
           </p>
         </div>
         <div className="flex gap-8 mt-4">
-          <button 
+          <button
             onClick={endCall}
             className="w-16 h-16 rounded-full bg-error text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg"
           >
@@ -135,10 +146,11 @@ const CallOverlay = ({
   // Render Active Call Screen
   const peers = Object.entries(remoteStreams);
   const totalParticipants = peers.length + 1; // +1 for local
-  
+
   let gridClass = "grid-cols-1";
   if (totalParticipants === 2) gridClass = "grid-cols-1 md:grid-cols-2";
-  else if (totalParticipants === 3 || totalParticipants === 4) gridClass = "grid-cols-2";
+  else if (totalParticipants === 3 || totalParticipants === 4)
+    gridClass = "grid-cols-2";
   else if (totalParticipants > 4) gridClass = "grid-cols-2 md:grid-cols-3";
 
   return (
@@ -147,17 +159,19 @@ const CallOverlay = ({
         <div className={`grid gap-4 w-full h-full ${gridClass}`}>
           {/* Local Stream */}
           <VideoStream stream={localStream} isLocal={true} />
-          
+
           {/* Remote Streams */}
           {peers.map(([userId, stream]) => (
             <VideoStream key={userId} stream={stream} isLocal={false} />
           ))}
-          
+
           {/* Waiting state if no peers connected yet */}
           {peers.length === 0 && (
             <div className="w-full h-full bg-base-200 rounded-2xl flex flex-col items-center justify-center shadow-inner">
               <span className="loading loading-ring loading-lg text-primary mb-4"></span>
-              <p className="text-base-content/60 font-medium">Connecting to peers...</p>
+              <p className="text-base-content/60 font-medium">
+                Connecting to peers...
+              </p>
             </div>
           )}
         </div>
@@ -165,33 +179,37 @@ const CallOverlay = ({
 
       {/* Controls Bar */}
       <div className="h-24 bg-base-100 border-t border-base-300 flex items-center justify-center gap-4 px-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <button 
+        <button
           onClick={() => setIsMuted(!isMuted)}
-          className={`btn btn-circle btn-lg ${isMuted ? 'btn-error' : 'btn-ghost bg-base-200'} active:scale-95`}
+          className={`btn btn-circle btn-lg ${isMuted ? "btn-error" : "btn-ghost bg-base-200"} active:scale-95`}
         >
           {isMuted ? <BsMicMuteFill size={24} /> : <BsMicFill size={24} />}
         </button>
-        
-        {callType === 'video' && (
-          <button 
+
+        {callType === "video" && (
+          <button
             onClick={() => setIsVideoOff(!isVideoOff)}
-            className={`btn btn-circle btn-lg ${isVideoOff ? 'btn-error' : 'btn-ghost bg-base-200'} active:scale-95`}
+            className={`btn btn-circle btn-lg ${isVideoOff ? "btn-error" : "btn-ghost bg-base-200"} active:scale-95`}
           >
-            {isVideoOff ? <BsCameraVideoOffFill size={24} /> : <BsCameraVideoFill size={24} />}
+            {isVideoOff ? (
+              <BsCameraVideoOffFill size={24} />
+            ) : (
+              <BsCameraVideoFill size={24} />
+            )}
           </button>
         )}
 
-        {callType === 'video' && (
-          <button 
+        {callType === "video" && (
+          <button
             onClick={toggleScreenShare}
-            className={`btn btn-circle btn-lg ${isScreenSharing ? 'btn-primary' : 'btn-ghost bg-base-200'} active:scale-95`}
+            className={`btn btn-circle btn-lg ${isScreenSharing ? "btn-primary" : "btn-ghost bg-base-200"} active:scale-95`}
             title="Screen Share"
           >
             <BsDisplay size={24} />
           </button>
         )}
 
-        <button 
+        <button
           onClick={endCall}
           className="btn btn-circle btn-lg btn-error active:scale-95 shadow-lg ml-4"
         >

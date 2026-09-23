@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 import {
   BsLightningChargeFill,
   BsShieldLockFill,
   BsStars,
-} from 'react-icons/bs';
+} from "react-icons/bs";
 
 /**
  * Feature cards shown on the Home landing page.

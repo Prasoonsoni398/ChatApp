@@ -1,4 +1,3 @@
-import React from "react";
 import {
   BsSearch,
   BsThreeDotsVertical,
@@ -8,7 +7,7 @@ import {
   BsPinAngleFill,
   BsTrash,
   BsCameraVideo,
-  BsTelephone
+  BsTelephone,
 } from "react-icons/bs";
 import * as messageService from "../../services/messageService.js";
 
@@ -33,7 +32,6 @@ const ChatHeader = ({
   currentPinned,
   messages,
   setMessages,
-  showPinnedBanner,
   setShowPinnedBanner,
   clearUndoTimeoutRef,
   setClearedMessagesBackup,
@@ -85,14 +83,14 @@ const ChatHeader = ({
       <div className="flex gap-2 text-base-content/60 items-center">
         {/* Call Buttons */}
         <button
-          onClick={() => startCall(selectedChat, 'voice')}
+          onClick={() => startCall(selectedChat, "voice")}
           className="p-2 hover:text-primary rounded-lg transition-all duration-300 hover:bg-primary/10 hover:scale-110 active:scale-95 hidden sm:block"
           title="Voice Call"
         >
           <BsTelephone size={18} />
         </button>
         <button
-          onClick={() => startCall(selectedChat, 'video')}
+          onClick={() => startCall(selectedChat, "video")}
           className="p-2 hover:text-primary rounded-lg transition-all duration-300 hover:bg-primary/10 hover:scale-110 active:scale-95 hidden sm:block"
           title="Video Call"
         >
@@ -157,7 +155,10 @@ const ChatHeader = ({
                       setShowHeaderMenu(false);
                       document
                         .getElementById(`msg-${currentPinned._id}`)
-                        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        ?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
                     }}
                     className="py-2.5 active:scale-95 transition-transform flex items-center gap-2"
                   >

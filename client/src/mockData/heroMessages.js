@@ -5,22 +5,22 @@
 const heroMessages = [
   {
     id: 1,
-    from: 'them',
-    seed: 'Alex',
+    from: "them",
+    seed: "Alex",
     delay: 800,
     text: "The landing page looks incredible! Animations are super smooth. ✨",
   },
   {
     id: 2,
-    from: 'me',
+    from: "me",
     seed: null,
     delay: 2800,
     text: "Thanks! Premium feel and rounded aesthetics were key. 🚀",
   },
   {
     id: 3,
-    from: 'them',
-    seed: 'Sarah',
+    from: "them",
+    seed: "Sarah",
     delay: 5200,
     text: "Love the #05A63F green. Feels so native to Guftagu!",
   },

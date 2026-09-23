@@ -4,9 +4,9 @@
  * Auth token is read from localStorage internally.
  */
 
-const BASE = '/api/groups';
+const BASE = "/api/groups";
 
-const getToken = () => localStorage.getItem('token');
+const getToken = () => localStorage.getItem("token");
 
 const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
@@ -19,7 +19,7 @@ export async function getGroups() {
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to fetch groups');
+  if (!res.ok) throw new Error(data.error || "Failed to fetch groups");
   return data;
 }
 
@@ -30,12 +30,12 @@ export async function getGroups() {
  */
 export async function createGroup(formData) {
   const res = await fetch(BASE, {
-    method: 'POST',
+    method: "POST",
     headers: authHeader(),
     body: formData,
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to create group');
+  if (!res.ok) throw new Error(data.error || "Failed to create group");
   return data;
 }
 
@@ -49,7 +49,7 @@ export async function getGroupMessages(groupId) {
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to fetch group messages');
+  if (!res.ok) throw new Error(data.error || "Failed to fetch group messages");
   return data;
 }
 
@@ -61,11 +61,11 @@ export async function getGroupMessages(groupId) {
  */
 export async function sendGroupMessage(groupId, formData) {
   const res = await fetch(`${BASE}/${groupId}/messages`, {
-    method: 'POST',
+    method: "POST",
     headers: authHeader(),
     body: formData,
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to send group message');
+  if (!res.ok) throw new Error(data.error || "Failed to send group message");
   return data;
 }

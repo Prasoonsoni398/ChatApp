@@ -1,7 +1,12 @@
-import React from "react";
 import {
-  BsInfoCircle, BsReply, BsCopy, BsForward, BsPin,
-  BsCheckSquare, BsTrash, BsPencil,
+  BsInfoCircle,
+  BsReply,
+  BsCopy,
+  BsForward,
+  BsPin,
+  BsCheckSquare,
+  BsTrash,
+  BsPencil,
 } from "react-icons/bs";
 import { contextMenuAction } from "../../constants/styles.js";
 
@@ -39,7 +44,8 @@ const ContextMenu = ({
         <>
           <li>
             <a onClick={handleShowInfo} className={contextMenuAction}>
-              <BsInfoCircle size={15} className="text-base-content/50" /> Message info
+              <BsInfoCircle size={15} className="text-base-content/50" />{" "}
+              Message info
             </a>
           </li>
           <li>
@@ -66,14 +72,17 @@ const ContextMenu = ({
           <div className="divider my-1"></div>
           <li>
             <a onClick={handleStartSelect} className={contextMenuAction}>
-              <BsCheckSquare size={15} className="text-base-content/50" /> Select
+              <BsCheckSquare size={15} className="text-base-content/50" />{" "}
+              Select
             </a>
           </li>
           {contextMenu.isMe && (
             <li>
               <a
                 onClick={() => {
-                  const msg = messages.find((m) => m._id === contextMenu.messageId);
+                  const msg = messages.find(
+                    (m) => m._id === contextMenu.messageId,
+                  );
                   if (msg && !msg.isDeletedForEveryone) {
                     setEditingMessageId(msg._id);
                     setMessage(msg.text);

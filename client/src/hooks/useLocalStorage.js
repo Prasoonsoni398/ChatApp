@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 /**
  * Reads and writes a value to localStorage, keeping React state in sync.

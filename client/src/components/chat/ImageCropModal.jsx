@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import Cropper from 'react-easy-crop';
-import { BsX } from 'react-icons/bs';
-import getCroppedImg from '../../utils/cropImage.js';
-import { modalCardMd } from '../../constants/styles.js';
+import { useState, useCallback } from "react";
+import Cropper from "react-easy-crop";
+import { BsX } from "react-icons/bs";
+import getCroppedImg from "../../utils/cropImage.js";
+import {} from "../../constants/styles.js";
 
 const ImageCropView = ({ imageSrc, onCropComplete, onCancel }) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -10,16 +10,21 @@ const ImageCropView = ({ imageSrc, onCropComplete, onCancel }) => {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isCropping, setIsCropping] = useState(false);
 
-  const onCropCompleteCallback = useCallback((croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const onCropCompleteCallback = useCallback(
+    (croppedArea, croppedAreaPixels) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    [],
+  );
 
   const handleSave = async () => {
     try {
       setIsCropping(true);
       const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       // Create a File object from the blob
-      const croppedFile = new File([croppedImageBlob], 'avatar.jpg', { type: 'image/jpeg' });
+      const croppedFile = new File([croppedImageBlob], "avatar.jpg", {
+        type: "image/jpeg",
+      });
       onCropComplete(croppedFile);
     } catch (e) {
       console.error(e);
@@ -41,7 +46,7 @@ const ImageCropView = ({ imageSrc, onCropComplete, onCancel }) => {
           <BsX size={20} />
         </button>
       </div>
-      
+
       <div className="relative w-full h-[400px] bg-base-300">
         <Cropper
           image={imageSrc}
@@ -55,7 +60,7 @@ const ImageCropView = ({ imageSrc, onCropComplete, onCancel }) => {
           onZoomChange={setZoom}
         />
       </div>
-      
+
       <div className="p-4 bg-base-100 flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium text-base-content/70">Zoom</span>
@@ -85,7 +90,7 @@ const ImageCropView = ({ imageSrc, onCropComplete, onCancel }) => {
             className="btn btn-primary flex-1 active:scale-95 transition-transform"
             disabled={isCropping}
           >
-            {isCropping ? 'Saving...' : 'Apply'}
+            {isCropping ? "Saving..." : "Apply"}
           </button>
         </div>
       </div>

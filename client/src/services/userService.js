@@ -4,9 +4,9 @@
  * Auth token is read from localStorage internally.
  */
 
-const BASE = '/api/users';
+const BASE = "/api/users";
 
-const getToken = () => localStorage.getItem('token');
+const getToken = () => localStorage.getItem("token");
 
 const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
@@ -17,7 +17,7 @@ const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 export async function getAllUsers() {
   const res = await fetch(BASE);
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to fetch users');
+  if (!res.ok) throw new Error(data.error || "Failed to fetch users");
   return data;
 }
 
@@ -28,11 +28,11 @@ export async function getAllUsers() {
  */
 export async function updateProfile(formData) {
   const res = await fetch(`${BASE}/profile`, {
-    method: 'PUT',
+    method: "PUT",
     headers: authHeader(),
     body: formData,
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Failed to update profile');
+  if (!res.ok) throw new Error(data.message || "Failed to update profile");
   return data;
 }

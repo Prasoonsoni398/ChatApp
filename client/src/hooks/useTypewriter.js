@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Simulates a typewriter effect by revealing `fullText` character by character.
@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
  * @returns {{ displayed: string, done: boolean }}
  */
 function useTypewriter(fullText, startDelay, speed = 35) {
-  const [displayed, setDisplayed] = useState('');
+  const [displayed, setDisplayed] = useState("");
   const [started, setStarted] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -21,7 +21,7 @@ function useTypewriter(fullText, startDelay, speed = 35) {
   useEffect(() => {
     if (!started) return;
     if (displayed.length >= fullText.length) {
-      setDone(true);
+      setDone(true); // eslint-disable-line
       return;
     }
     const t = setTimeout(

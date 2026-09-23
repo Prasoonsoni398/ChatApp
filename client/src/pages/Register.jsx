@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { BsEnvelopeFill, BsLockFill, BsPersonFill, BsKeyFill } from 'react-icons/bs';
-import toast from 'react-hot-toast';
-import useAuthRedirect from '../hooks/useAuthRedirect.js';
-import { registerUser, verifyOtp } from '../services/authService.js';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  BsEnvelopeFill,
+  BsLockFill,
+  BsPersonFill,
+  BsKeyFill,
+} from "react-icons/bs";
+import toast from "react-hot-toast";
+import useAuthRedirect from "../hooks/useAuthRedirect.js";
+import { registerUser, verifyOtp } from "../services/authService.js";
 import {
   authPageWrapper,
   authCard,
@@ -15,16 +20,16 @@ import {
   authInputIconSpan,
   authInput,
   primaryBtn,
-} from '../constants/styles.js';
+} from "../constants/styles.js";
 
 const Register = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: ''
+    name: "",
+    email: "",
+    password: "",
   });
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   useAuthRedirect();
@@ -37,8 +42,12 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const data = await registerUser(formData.name, formData.email, formData.password);
-      toast.success(data.message || 'OTP sent to your email!');
+      const data = await registerUser(
+        formData.name,
+        formData.email,
+        formData.password,
+      );
+      toast.success(data.message || "OTP sent to your email!");
       setStep(2);
     } catch (err) {
       toast.error(err.message);
@@ -51,9 +60,9 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const data = await verifyOtp(formData.email, otp);
-      toast.success('User registered successfully! Please log in.');
-      navigate('/login');
+      await verifyOtp(formData.email, otp);
+      toast.success("User registered successfully! Please log in.");
+      navigate("/login");
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -66,7 +75,7 @@ const Register = () => {
       <div className={authCard}>
         <div className="card-body">
           <h2 className={authCardTitle}>
-            {step === 1 ? 'Create an Account' : 'Verify Email'}
+            {step === 1 ? "Create an Account" : "Verify Email"}
           </h2>
 
           {step === 1 ? (
@@ -79,11 +88,11 @@ const Register = () => {
                   <span className={authInputIconSpan}>
                     <BsPersonFill />
                   </span>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     name="name"
-                    placeholder="John Doe" 
-                    className={authInput} 
+                    placeholder="John Doe"
+                    className={authInput}
                     value={formData.name}
                     onChange={handleChange}
                     required
@@ -99,11 +108,11 @@ const Register = () => {
                   <span className={authInputIconSpan}>
                     <BsEnvelopeFill />
                   </span>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     name="email"
-                    placeholder="name@example.com" 
-                    className={authInput} 
+                    placeholder="name@example.com"
+                    className={authInput}
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -119,11 +128,11 @@ const Register = () => {
                   <span className={authInputIconSpan}>
                     <BsLockFill />
                   </span>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     name="password"
-                    placeholder="••••••••" 
-                    className={authInput} 
+                    placeholder="••••••••"
+                    className={authInput}
                     value={formData.password}
                     onChange={handleChange}
                     required
@@ -133,17 +142,21 @@ const Register = () => {
 
               <div className="form-control mt-6">
                 <button type="submit" disabled={loading} className={primaryBtn}>
-                  {loading ? <span className="loading loading-spinner"></span> : 'Sign Up'}
+                  {loading ? (
+                    <span className="loading loading-spinner"></span>
+                  ) : (
+                    "Sign Up"
+                  )}
                 </button>
               </div>
             </form>
           ) : (
             <form onSubmit={handleVerifySubmit} className="space-y-4">
               <p className="text-center text-base-content/70 mb-4 text-sm">
-                We've sent a 6-digit verification code to <br/>
+                We've sent a 6-digit verification code to <br />
                 <strong className="text-base-content">{formData.email}</strong>
               </p>
-              
+
               <div className={authFormControl}>
                 <label className={authLabel}>
                   <span className={authLabelText}>Verification Code</span>
@@ -152,11 +165,11 @@ const Register = () => {
                   <span className={authInputIconSpan}>
                     <BsKeyFill />
                   </span>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     name="otp"
-                    placeholder="Enter 6-digit OTP" 
-                  className="input input-bordered w-full pl-10 tracking-widest text-center font-mono text-lg rounded-xl" 
+                    placeholder="Enter 6-digit OTP"
+                    className="input input-bordered w-full pl-10 tracking-widest text-center font-mono text-lg rounded-xl"
                     maxLength={6}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
@@ -166,14 +179,22 @@ const Register = () => {
               </div>
 
               <div className="form-control mt-6">
-                <button type="submit" disabled={loading || otp.length < 6} className={primaryBtn}>
-                  {loading ? <span className="loading loading-spinner"></span> : 'Verify Code'}
+                <button
+                  type="submit"
+                  disabled={loading || otp.length < 6}
+                  className={primaryBtn}
+                >
+                  {loading ? (
+                    <span className="loading loading-spinner"></span>
+                  ) : (
+                    "Verify Code"
+                  )}
                 </button>
               </div>
-              
+
               <div className="text-center mt-4">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-link btn-sm text-base-content/60 no-underline hover:text-primary transition-colors"
                   onClick={() => setStep(1)}
                   disabled={loading}
@@ -188,8 +209,11 @@ const Register = () => {
             <>
               <div className="divider text-base-content/50">OR</div>
               <p className="text-center text-base-content/70">
-                Already have an account?{' '}
-                <Link to="/login" className="link link-primary font-semibold hover:opacity-80 transition-opacity">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="link link-primary font-semibold hover:opacity-80 transition-opacity"
+                >
                   Log in
                 </Link>
               </p>

@@ -1,6 +1,16 @@
-import React, { useState } from "react";
-import { BsPeopleFill, BsX, BsCheck, BsCheckAll, BsCamera } from "react-icons/bs";
-import { modalOverlay, modalCard, modalCardMd } from "../../constants/styles.js";
+import { useState } from "react";
+import {
+  BsPeopleFill,
+  BsX,
+  BsCheck,
+  BsCheckAll,
+  BsCamera,
+} from "react-icons/bs";
+import {
+  modalOverlay,
+  modalCard,
+  modalCardMd,
+} from "../../constants/styles.js";
 import ImageCropView from "./ImageCropModal.jsx";
 
 /**
@@ -9,23 +19,50 @@ import ImageCropView from "./ImageCropModal.jsx";
  */
 const ChatModals = ({
   // Edit Profile
-  showEditModal, setShowEditModal, editName, setEditName, editAvatar, setEditAvatar,
-  isUpdating, handleUpdateProfile,
-  
+  showEditModal,
+  setShowEditModal,
+  editName,
+  setEditName,
+  editAvatar,
+  setEditAvatar,
+  isUpdating,
+  handleUpdateProfile,
+
   // Create Group
-  showCreateGroup, setShowCreateGroup, groupName, setGroupName, groupMemberIds,
-  setGroupMemberIds, groupAvatarFile, setGroupAvatarFile, isCreatingGroup, handleCreateGroup, allUsers,
-  
+  showCreateGroup,
+  setShowCreateGroup,
+  groupName,
+  setGroupName,
+  groupMemberIds,
+  setGroupMemberIds,
+  groupAvatarFile,
+  setGroupAvatarFile,
+  isCreatingGroup,
+  handleCreateGroup,
+  allUsers,
+
   // Delete
-  showDeleteModal, setShowDeleteModal, deleteMessageId, setDeleteMessageId,
-  deleteIsMe, confirmDeleteMessage, selectedMessageIds,
-  
+  showDeleteModal,
+  setShowDeleteModal,
+  deleteMessageId,
+  setDeleteMessageId,
+  deleteIsMe,
+  confirmDeleteMessage,
+  selectedMessageIds,
+
   // Info
-  showInfoModal, setShowInfoModal, infoMessage,
-  
+  showInfoModal,
+  setShowInfoModal,
+  infoMessage,
+
   // Forward
-  showForwardModal, setShowForwardModal, forwardMessage, setForwardMessage,
-  chats, forwardSelectedMessages, confirmForward
+  showForwardModal,
+  setShowForwardModal,
+  forwardMessage,
+  setForwardMessage,
+  chats,
+  forwardSelectedMessages,
+  confirmForward,
 }) => {
   const [cropImageSrc, setCropImageSrc] = useState(null);
   const [cropTarget, setCropTarget] = useState(null);
@@ -34,7 +71,7 @@ const ChatModals = ({
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      reader.addEventListener('load', () => {
+      reader.addEventListener("load", () => {
         setCropImageSrc(reader.result);
         setCropTarget(target);
       });
@@ -49,7 +86,7 @@ const ChatModals = ({
       {showCreateGroup && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-fade-in">
           <div className={`${modalCardMd} p-0 overflow-hidden`}>
-            {cropImageSrc && cropTarget === 'group' ? (
+            {cropImageSrc && cropTarget === "group" ? (
               <ImageCropView
                 imageSrc={cropImageSrc}
                 onCropComplete={(croppedFile) => {
@@ -78,7 +115,9 @@ const ChatModals = ({
                 <div className="px-6 pb-6 space-y-4">
                   {/* Group name */}
                   <div>
-                    <label className="text-sm font-medium text-base-content/70 mb-1 block">Group Name *</label>
+                    <label className="text-sm font-medium text-base-content/70 mb-1 block">
+                      Group Name *
+                    </label>
                     <input
                       type="text"
                       value={groupName}
@@ -93,7 +132,7 @@ const ChatModals = ({
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => handleFileSelect(e, 'group')}
+                        onChange={(e) => handleFileSelect(e, "group")}
                         className="absolute inset-0 opacity-0 cursor-pointer z-10"
                       />
                       {groupAvatarFile ? (
@@ -105,7 +144,9 @@ const ChatModals = ({
                       ) : (
                         <>
                           <BsCamera className="text-3xl text-base-content/50 group-hover:text-primary transition-colors" />
-                          <span className="text-xs text-base-content/50 mt-1 font-medium group-hover:text-primary">Upload</span>
+                          <span className="text-xs text-base-content/50 mt-1 font-medium group-hover:text-primary">
+                            Upload
+                          </span>
                         </>
                       )}
                       {groupAvatarFile && (
@@ -114,11 +155,15 @@ const ChatModals = ({
                         </div>
                       )}
                     </div>
-                    <label className="text-sm font-medium text-base-content/70 mt-2 block">Group Icon (optional)</label>
+                    <label className="text-sm font-medium text-base-content/70 mt-2 block">
+                      Group Icon (optional)
+                    </label>
                   </div>
                   {/* Member selection */}
                   <div>
-                    <label className="text-sm font-medium text-base-content/70 mb-2 block">Add Members *</label>
+                    <label className="text-sm font-medium text-base-content/70 mb-2 block">
+                      Add Members *
+                    </label>
                     <div className="max-h-48 overflow-y-auto space-y-1 border border-base-300 rounded-xl p-2">
                       {allUsers.map((u) => (
                         <label
@@ -130,13 +175,18 @@ const ChatModals = ({
                             checked={groupMemberIds.includes(u._id)}
                             onChange={(e) =>
                               setGroupMemberIds((prev) =>
-                                e.target.checked ? [...prev, u._id] : prev.filter((id) => id !== u._id),
+                                e.target.checked
+                                  ? [...prev, u._id]
+                                  : prev.filter((id) => id !== u._id),
                               )
                             }
                             className="checkbox checkbox-primary checkbox-sm"
                           />
                           <img
-                            src={u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`}
+                            src={
+                              u.avatar ||
+                              `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`
+                            }
                             alt={u.name}
                             className="w-8 h-8 rounded-full"
                           />
@@ -146,7 +196,8 @@ const ChatModals = ({
                     </div>
                     {groupMemberIds.length > 0 && (
                       <p className="text-xs text-primary mt-1">
-                        {groupMemberIds.length} member{groupMemberIds.length > 1 ? "s" : ""} selected
+                        {groupMemberIds.length} member
+                        {groupMemberIds.length > 1 ? "s" : ""} selected
                       </p>
                     )}
                   </div>
@@ -175,8 +226,10 @@ const ChatModals = ({
       {/* ══ EDIT PROFILE MODAL ══ */}
       {showEditModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fade-in">
-          <div className={`bg-base-100 w-full max-w-md rounded-2xl p-0 shadow-xl border border-base-300 animate-modal-pop overflow-hidden`}>
-            {cropImageSrc && cropTarget === 'profile' ? (
+          <div
+            className={`bg-base-100 w-full max-w-md rounded-2xl p-0 shadow-xl border border-base-300 animate-modal-pop overflow-hidden`}
+          >
+            {cropImageSrc && cropTarget === "profile" ? (
               <ImageCropView
                 imageSrc={cropImageSrc}
                 onCropComplete={(croppedFile) => {
@@ -194,7 +247,9 @@ const ChatModals = ({
                 <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
                 <form onSubmit={handleUpdateProfile}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-base-content/70 mb-2">Name</label>
+                    <label className="block text-sm font-medium text-base-content/70 mb-2">
+                      Name
+                    </label>
                     <input
                       type="text"
                       value={editName}
@@ -208,7 +263,7 @@ const ChatModals = ({
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => handleFileSelect(e, 'profile')}
+                        onChange={(e) => handleFileSelect(e, "profile")}
                         className="absolute inset-0 opacity-0 cursor-pointer z-10"
                       />
                       {editAvatar ? (
@@ -220,7 +275,9 @@ const ChatModals = ({
                       ) : (
                         <>
                           <BsCamera className="text-3xl text-base-content/50 group-hover:text-primary transition-colors" />
-                          <span className="text-xs text-base-content/50 mt-1 font-medium group-hover:text-primary">Upload</span>
+                          <span className="text-xs text-base-content/50 mt-1 font-medium group-hover:text-primary">
+                            Upload
+                          </span>
                         </>
                       )}
                       {editAvatar && (
@@ -229,7 +286,9 @@ const ChatModals = ({
                         </div>
                       )}
                     </div>
-                    <label className="block text-sm font-medium text-base-content/70 mt-2">Profile Image (optional)</label>
+                    <label className="block text-sm font-medium text-base-content/70 mt-2">
+                      Profile Image (optional)
+                    </label>
                   </div>
                   <div className="flex justify-end gap-3">
                     <button
@@ -257,7 +316,10 @@ const ChatModals = ({
 
       {/* ══ MESSAGE INFO MODAL ══ */}
       {showInfoModal && infoMessage && (
-        <div className={`${modalOverlay} z-[110]`} onClick={() => setShowInfoModal(false)}>
+        <div
+          className={`${modalOverlay} z-[110]`}
+          onClick={() => setShowInfoModal(false)}
+        >
           <div className={modalCard} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold">Message Info</h3>
@@ -280,10 +342,14 @@ const ChatModals = ({
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-base-300">
-                <span className="text-base-content/60 font-medium">Delivered</span>
+                <span className="text-base-content/60 font-medium">
+                  Delivered
+                </span>
                 <span className="flex items-center gap-2 font-semibold text-base-content/60">
                   <BsCheckAll />
-                  {new Date(new Date(infoMessage.createdAt).getTime() + 1500).toLocaleTimeString([], {
+                  {new Date(
+                    new Date(infoMessage.createdAt).getTime() + 1500,
+                  ).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -293,7 +359,9 @@ const ChatModals = ({
                 <span className="text-base-content/60 font-medium">Read</span>
                 <span className="flex items-center gap-2 font-semibold text-success">
                   <BsCheckAll />
-                  {new Date(new Date(infoMessage.createdAt).getTime() + 3000).toLocaleTimeString([], {
+                  {new Date(
+                    new Date(infoMessage.createdAt).getTime() + 3000,
+                  ).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -320,13 +388,19 @@ const ChatModals = ({
       {showForwardModal && (
         <div
           className={`${modalOverlay} z-[110]`}
-          onClick={() => { setShowForwardModal(false); setForwardMessage(null); }}
+          onClick={() => {
+            setShowForwardModal(false);
+            setForwardMessage(null);
+          }}
         >
           <div className={modalCard} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold">Forward to</h3>
               <button
-                onClick={() => { setShowForwardModal(false); setForwardMessage(null); }}
+                onClick={() => {
+                  setShowForwardModal(false);
+                  setForwardMessage(null);
+                }}
                 className="btn btn-ghost btn-sm btn-circle active:scale-90 transition-transform"
               >
                 <BsX size={18} />
@@ -337,7 +411,8 @@ const ChatModals = ({
                 <div
                   key={chat.id}
                   onClick={() => {
-                    if (forwardMessage === "__multi__") forwardSelectedMessages(chat);
+                    if (forwardMessage === "__multi__")
+                      forwardSelectedMessages(chat);
                     else confirmForward(chat);
                   }}
                   className="flex items-center gap-3 p-3 rounded-xl hover:bg-base-200 cursor-pointer transition-colors"
@@ -390,7 +465,10 @@ const ChatModals = ({
                 Delete for me
               </button>
               <button
-                onClick={() => { setShowDeleteModal(false); setDeleteMessageId(null); }}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteMessageId(null);
+                }}
                 className="btn btn-ghost w-full active:scale-95 transition-transform"
               >
                 Cancel

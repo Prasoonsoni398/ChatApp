@@ -1,6 +1,11 @@
-import React from "react";
 import EmojiPicker from "emoji-picker-react";
-import { BsEmojiSmile, BsPaperclip, BsFillSendFill, BsX, BsPencil } from "react-icons/bs";
+import {
+  BsEmojiSmile,
+  BsPaperclip,
+  BsFillSendFill,
+  BsX,
+  BsPencil,
+} from "react-icons/bs";
 
 /**
  * ChatInputArea – the bottom bar where users type messages.
@@ -35,7 +40,9 @@ const ChatInputArea = ({
     <div className="bg-base-100 px-4 py-3 flex flex-col gap-2 border-t border-base-300">
       {/* Reply preview */}
       {replyingTo && (
-        <div className={`flex items-center justify-between px-3 py-2 rounded-xl border-l-4 border-primary bg-primary/5`}>
+        <div
+          className={`flex items-center justify-between px-3 py-2 rounded-xl border-l-4 border-primary bg-primary/5`}
+        >
           <div className="min-w-0">
             <p className="text-xs font-semibold text-primary">
               Replying to {replyingTo.senderName}
@@ -74,7 +81,11 @@ const ChatInputArea = ({
       {/* Image preview */}
       {imagePreview && (
         <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-base-300 shadow-sm self-start">
-          <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+          <img
+            src={imagePreview}
+            alt="Preview"
+            className="w-full h-full object-cover"
+          />
           <button
             onClick={() => {
               setSelectedImage(null);
@@ -93,7 +104,9 @@ const ChatInputArea = ({
           ref={emojiPickerRef}
           className="absolute bottom-[100%] left-4 mb-2 z-50 shadow-xl animate-modal-pop origin-bottom-left"
         >
-          <EmojiPicker onEmojiClick={(emoji) => setMessage((prev) => prev + emoji.emoji)} />
+          <EmojiPicker
+            onEmojiClick={(emoji) => setMessage((prev) => prev + emoji.emoji)}
+          />
         </div>
       )}
 
@@ -122,13 +135,20 @@ const ChatInputArea = ({
           <BsPaperclip size={22} />
         </button>
 
-        <form onSubmit={handleSendMessage} className="flex-1 flex items-end gap-2 relative">
+        <form
+          onSubmit={handleSendMessage}
+          className="flex-1 flex items-end gap-2 relative"
+        >
           {/* Mention Popup */}
           {showMentionPopup && selectedChat?.isGroup && (
             <div className="absolute bottom-[calc(100%+8px)] left-0 w-64 max-h-48 overflow-y-auto bg-base-100 border border-base-300 rounded-xl shadow-2xl z-[150] animate-fade-in py-1">
               {(selectedChat.members || [])
                 .filter((m) => m && m._id !== loggedInUser?._id && m.name)
-                .filter((m) => m.name.toLowerCase().includes((mentionFilter || "").toLowerCase()))
+                .filter((m) =>
+                  m.name
+                    .toLowerCase()
+                    .includes((mentionFilter || "").toLowerCase()),
+                )
                 .map((member) => (
                   <div
                     key={member._id}
@@ -148,8 +168,11 @@ const ChatInputArea = ({
                 ))}
               {(selectedChat.members || [])
                 .filter((m) => m && m._id !== loggedInUser?._id && m.name)
-                .filter((m) => m.name.toLowerCase().includes((mentionFilter || "").toLowerCase()))
-                .length === 0 && (
+                .filter((m) =>
+                  m.name
+                    .toLowerCase()
+                    .includes((mentionFilter || "").toLowerCase()),
+                ).length === 0 && (
                 <div className="px-4 py-3 text-sm text-base-content/50 text-center">
                   No members found
                 </div>
@@ -160,7 +183,11 @@ const ChatInputArea = ({
           <textarea
             value={message}
             onChange={handleTypingEvent}
-            placeholder={replyingTo ? `Reply to ${replyingTo.senderName}…` : "Type a message"}
+            placeholder={
+              replyingTo
+                ? `Reply to ${replyingTo.senderName}…`
+                : "Type a message"
+            }
             className="textarea textarea-bordered w-full rounded-xl bg-base-200 min-h-[44px] max-h-32 focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none py-3 text-sm"
             rows={1}
             onKeyDown={(e) => {

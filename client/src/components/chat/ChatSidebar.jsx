@@ -1,6 +1,9 @@
-import React from "react";
 import { BsSearch, BsThreeDotsVertical, BsPeopleFill } from "react-icons/bs";
-import { hoverPrimary, searchInput, sidebarChat } from "../../constants/styles.js";
+import {
+  hoverPrimary,
+  searchInput,
+  sidebarChat,
+} from "../../constants/styles.js";
 
 /**
  * ChatSidebar – left panel containing the user avatar/profile menu,

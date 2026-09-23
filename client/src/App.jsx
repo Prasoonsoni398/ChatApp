@@ -1,4 +1,3 @@
-import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -14,12 +13,44 @@ const App = () => {
     <BrowserRouter>
       {/* Global Toaster for notifications */}
       <Toaster position="top-right" reverseOrder={false} />
-      
+
       <Routes>
-        <Route path="/" element={<><Navbar /><Home /></>} />
-        <Route path="/login" element={<><Navbar /><Login /></>} />
-        <Route path="/signup" element={<><Navbar /><Register /></>} />
-        <Route path="/forgot-password" element={<><Navbar /><ForgotPassword /></>} />
+        <Route
+          path="/"
+          element={
+            <>
+              <Navbar />
+              <Home />
+            </>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <>
+              <Navbar />
+              <Login />
+            </>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <>
+              <Navbar />
+              <Register />
+            </>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <>
+              <Navbar />
+              <ForgotPassword />
+            </>
+          }
+        />
         {/* Chat page without the main Navbar to look like an app */}
         <Route path="/chat" element={<Chat />} />
       </Routes>
