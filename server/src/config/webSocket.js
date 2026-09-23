@@ -1,4 +1,3 @@
-import { Socket } from "socket.io";
 import Group from "../models/group.model.js";
 import Message from "../models/message.model.js";
 
@@ -177,7 +176,7 @@ const WebSocket = (io) => {
             }
         });
 
-        socket.on("joinCall", async ({ roomId, user }) => {
+        socket.on("joinCall", async ({ roomId }) => {
             socket.join(roomId);
             const clients = io.sockets.adapter.rooms.get(roomId);
             const otherUsers = [];

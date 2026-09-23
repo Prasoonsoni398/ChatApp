@@ -1,6 +1,5 @@
 import Status from '../models/status.model.js';
 import cloudinary from '../config/cloudinary.js';
-import User from '../models/user.model.js';
 
 export const uploadStatus = async (req, res) => {
     try {

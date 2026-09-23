@@ -1,6 +1,5 @@
 import Group from '../models/group.model.js';
 import Message from '../models/message.model.js';
-import User from '../models/user.model.js';
 import cloudinary from '../config/cloudinary.js';
 
 /* ── Create a new group ── */

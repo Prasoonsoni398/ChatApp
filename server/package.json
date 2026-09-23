@@ -5,13 +5,17 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "build": "echo \"Backend build not required\"",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "Prasoon Soni",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "eslint": "^8.57.1",
     "nodemon": "^3.1.14"
   },
   "dependencies": {
@@ -24,6 +28,7 @@
     "google-auth-library": "^11.0.2",
     "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
+    "mongodb": "^7.6.0",
     "mongoose": "^9.9.2",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",

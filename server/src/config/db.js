@@ -1,4 +1,8 @@
+import dns from "node:dns";
 import mongoose from "mongoose";
+
+// Fix for querySrv ECONNREFUSED on networks blocking MongoDB SRV records
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const connectDB = async () => {
     try {
