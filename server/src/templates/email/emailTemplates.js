@@ -6,7 +6,7 @@ const getBaseEmailTemplate = ({
   contentMessage,
   otpLabel,
   warningMessage,
-  otp
+  otp,
 }) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -251,25 +251,30 @@ const getBaseEmailTemplate = ({
 </html>
 `;
 
-export const getVerificationEmailTemplate = (otp) => getBaseEmailTemplate({
-  title: 'ChatApp OTP Verification',
-  headerTitle: 'Welcome to ChatApp',
-  headerSubtitle: 'Your secure communication starts here.',
-  contentTitle: 'Verify your account 🔐',
-  contentMessage: 'We received a request to verify your ChatApp account. Use the verification code below to continue.',
-  otpLabel: 'Your OTP',
-  warningMessage: 'Please do not share this OTP with anyone. ChatApp will never ask you for this code.',
-  otp
-});
+export const getVerificationEmailTemplate = (otp) =>
+  getBaseEmailTemplate({
+    title: "ChatApp OTP Verification",
+    headerTitle: "Welcome to ChatApp",
+    headerSubtitle: "Your secure communication starts here.",
+    contentTitle: "Verify your account 🔐",
+    contentMessage:
+      "We received a request to verify your ChatApp account. Use the verification code below to continue.",
+    otpLabel: "Your OTP",
+    warningMessage:
+      "Please do not share this OTP with anyone. ChatApp will never ask you for this code.",
+    otp,
+  });
 
-export const getPasswordResetEmailTemplate = (otp) => getBaseEmailTemplate({
-  title: 'ChatApp Password Reset',
-  headerTitle: 'Password Reset',
-  headerSubtitle: 'ChatApp Security',
-  contentTitle: 'Reset your password 🔐',
-  contentMessage: 'We received a request to reset your password for your ChatApp account. Use the OTP code below to continue.',
-  otpLabel: 'Your Reset OTP',
-  warningMessage: "Please do not share this OTP with anyone. If you didn't request a password reset, you can safely ignore this email.",
-  otp
-});
-
+export const getPasswordResetEmailTemplate = (otp) =>
+  getBaseEmailTemplate({
+    title: "ChatApp Password Reset",
+    headerTitle: "Password Reset",
+    headerSubtitle: "ChatApp Security",
+    contentTitle: "Reset your password 🔐",
+    contentMessage:
+      "We received a request to reset your password for your ChatApp account. Use the OTP code below to continue.",
+    otpLabel: "Your Reset OTP",
+    warningMessage:
+      "Please do not share this OTP with anyone. If you didn't request a password reset, you can safely ignore this email.",
+    otp,
+  });
