@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
+import cors from "cors";
 import connectDB from "./src/config/db.js";
 import authRouter from "./src/routers/auth.router.js";
 import userRouter from "./src/routers/user.router.js";
@@ -15,6 +16,19 @@ import WebSocket from "./src/config/webSocket.js";
 connectDB();
 
 const app = express();
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:5173",
+  "https://chat-app-two-rosy-94.vercel.app",
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
@@ -33,7 +47,7 @@ const httpServer = http.createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
