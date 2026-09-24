@@ -17,18 +17,38 @@ connectDB();
 
 const app = express();
 
-const allowedOrigins = [
+const staticOrigins = [
   process.env.CLIENT_URL,
   "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
   "https://chat-app-two-rosy-94.vercel.app",
-].filter(Boolean);
+]
+  .filter(Boolean)
+  .map((url) => url.replace(/\/$/, ""));
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  }),
-);
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  const cleanOrigin = origin.replace(/\/$/, "");
+  if (staticOrigins.includes(cleanOrigin)) return true;
+  // Match any Vercel deployment domain
+  if (/^https:\/\/.*\.vercel\.app$/.test(cleanOrigin)) return true;
+  return false;
+};
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked origin: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
@@ -46,11 +66,7 @@ const PORT = process.env.PORT || 5000;
 const httpServer = http.createServer(app);
 
 const io = new Server(httpServer, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
 WebSocket(io);

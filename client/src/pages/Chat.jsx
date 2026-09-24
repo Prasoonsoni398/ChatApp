@@ -188,7 +188,15 @@ const Chat = () => {
     }
     fetchChats();
     if (!state.loggedInUser) return;
-    socketAPI.emit("createPath", state.loggedInUser?._id);
+
+    const registerOnline = () => {
+      if (state.loggedInUser?._id) {
+        socketAPI.emit("createPath", state.loggedInUser._id);
+      }
+    };
+
+    registerOnline();
+    socketAPI.on("connect", registerOnline);
     socketAPI.on("onlineUsers", setOnlineUsersMap);
 
     const handleNewGroup = (group) => {
@@ -213,7 +221,8 @@ const Chat = () => {
     socketAPI.on("newGroup", handleNewGroup);
 
     return () => {
-      socketAPI.off("onlineUsers");
+      socketAPI.off("connect", registerOnline);
+      socketAPI.off("onlineUsers", setOnlineUsersMap);
       socketAPI.off("newGroup", handleNewGroup);
       if (state.loggedInUser)
         socketAPI.emit("destroyPath", state.loggedInUser?._id);
