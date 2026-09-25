@@ -41,13 +41,13 @@ const ImageCropView = ({ imageSrc, onCropComplete, onCancel }) => {
         <h3 className="font-bold text-lg">Crop Image</h3>
         <button
           onClick={onCancel}
-          className="btn btn-ghost btn-sm btn-circle active:scale-90 transition-transform"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
         >
           <BsX size={20} />
         </button>
       </div>
 
-      <div className="relative w-full h-[400px] bg-base-300">
+      <div className="relative w-full h-100 bg-base-300">
         <Cropper
           image={imageSrc}
           crop={crop}

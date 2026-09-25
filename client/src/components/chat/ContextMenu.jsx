@@ -4,6 +4,8 @@ import {
   BsCopy,
   BsForward,
   BsPin,
+  BsStar,
+  BsStarFill,
   BsCheckSquare,
   BsTrash,
   BsPencil,
@@ -23,6 +25,7 @@ const ContextMenu = ({
   handleCopy,
   handleForward,
   handlePin,
+  handleToggleStar,
   handleStartSelect,
   openDeleteModal,
   closeContextMenu,
@@ -30,6 +33,15 @@ const ContextMenu = ({
   setMessage,
 }) => {
   if (!contextMenu.visible) return null;
+
+  const isStarred = Boolean(
+    contextMenu.msg?.starredBy &&
+      contextMenu.msg.starredBy.some(
+        (uid) =>
+          uid.toString() === loggedInUser?._id?.toString() ||
+          uid._id?.toString() === loggedInUser?._id?.toString(),
+      ),
+  );
 
   return (
     <ul
@@ -69,6 +81,20 @@ const ContextMenu = ({
               {contextMenu.msg?.isPinned ? "Unpin" : "Pin"}
             </a>
           </li>
+          <li>
+            <a onClick={handleToggleStar} className={contextMenuAction}>
+              {isStarred ? (
+                <>
+                  <BsStarFill size={15} className="text-warning fill-warning" />{" "}
+                  Unstar
+                </>
+              ) : (
+                <>
+                  <BsStar size={15} className="text-base-content/50" /> Star
+                </>
+              )}
+            </a>
+          </li>
           <div className="divider my-1"></div>
           <li>
             <a onClick={handleStartSelect} className={contextMenuAction}>
@@ -100,9 +126,9 @@ const ContextMenu = ({
       <li>
         <a
           onClick={openDeleteModal}
-          className="flex items-center gap-3 py-2.5 rounded-xl text-error hover:bg-error/10"
+          className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-error bg-error/10 hover:bg-error/20 font-medium transition-colors"
         >
-          <BsTrash size={15} /> Delete
+          <BsTrash size={15} className="text-error flex-shrink-0" /> Delete
         </a>
       </li>
     </ul>
