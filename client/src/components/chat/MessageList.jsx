@@ -25,6 +25,8 @@ const MessageList = ({
   reactionTimeoutRef,
   messagesEndRef,
   otherUserTyping,
+  onOpenViewOnce,
+  onRespondEvent,
 }) => {
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
@@ -111,6 +113,8 @@ const MessageList = ({
                   toggleSelectMessage={toggleSelectMessage}
                   setReplyingTo={setReplyingTo}
                   reactionTimeoutRef={reactionTimeoutRef}
+                  onOpenViewOnce={onOpenViewOnce}
+                  onRespondEvent={onRespondEvent}
                 />
               </React.Fragment>
             );
