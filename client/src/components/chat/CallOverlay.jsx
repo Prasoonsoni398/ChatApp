@@ -86,7 +86,7 @@ const CallOverlay = ({
   // Render Incoming Call Screen
   if (callState === "ringing" && incomingCall) {
     return (
-      <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center text-white animate-fade-in">
+      <div className="fixed inset-0 z-200 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center text-white animate-fade-in">
         <div className="text-center mb-12">
           <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6 animate-pulse">
             <BsTelephoneFill size={40} className="text-primary" />
@@ -118,7 +118,7 @@ const CallOverlay = ({
   // Render Outgoing Call Screen
   if (callState === "outgoing") {
     return (
-      <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center text-white animate-fade-in">
+      <div className="fixed inset-0 z-200 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center text-white animate-fade-in">
         <div className="text-center mb-12">
           <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6">
             <BsTelephoneFill
@@ -154,7 +154,7 @@ const CallOverlay = ({
   else if (totalParticipants > 4) gridClass = "grid-cols-2 md:grid-cols-3";
 
   return (
-    <div className="fixed inset-0 z-[200] bg-base-300 flex flex-col animate-fade-in">
+    <div className="fixed inset-0 z-200 bg-base-300 flex flex-col animate-fade-in">
       <div className="flex-1 p-4 md:p-8">
         <div className={`grid gap-4 w-full h-full ${gridClass}`}>
           {/* Local Stream */}
@@ -181,7 +181,11 @@ const CallOverlay = ({
       <div className="h-24 bg-base-100 border-t border-base-300 flex items-center justify-center gap-4 px-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <button
           onClick={() => setIsMuted(!isMuted)}
-          className={`btn btn-circle btn-lg ${isMuted ? "btn-error" : "btn-ghost bg-base-200"} active:scale-95`}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+            isMuted
+              ? "bg-error text-white hover:bg-error/90 shadow-md"
+              : "bg-base-200 text-base-content hover:bg-base-300"
+          } active:scale-95 cursor-pointer`}
         >
           {isMuted ? <BsMicMuteFill size={24} /> : <BsMicFill size={24} />}
         </button>
@@ -189,7 +193,11 @@ const CallOverlay = ({
         {callType === "video" && (
           <button
             onClick={() => setIsVideoOff(!isVideoOff)}
-            className={`btn btn-circle btn-lg ${isVideoOff ? "btn-error" : "btn-ghost bg-base-200"} active:scale-95`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+              isVideoOff
+                ? "bg-error text-white hover:bg-error/90 shadow-md"
+                : "bg-base-200 text-base-content hover:bg-base-300"
+            } active:scale-95 cursor-pointer`}
           >
             {isVideoOff ? (
               <BsCameraVideoOffFill size={24} />
@@ -202,7 +210,11 @@ const CallOverlay = ({
         {callType === "video" && (
           <button
             onClick={toggleScreenShare}
-            className={`btn btn-circle btn-lg ${isScreenSharing ? "btn-primary" : "btn-ghost bg-base-200"} active:scale-95`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+              isScreenSharing
+                ? "bg-primary text-primary-content hover:bg-primary/90 shadow-md"
+                : "bg-base-200 text-base-content hover:bg-base-300"
+            } active:scale-95 cursor-pointer`}
             title="Screen Share"
           >
             <BsDisplay size={24} />
@@ -211,7 +223,7 @@ const CallOverlay = ({
 
         <button
           onClick={endCall}
-          className="btn btn-circle btn-lg btn-error active:scale-95 shadow-lg ml-4"
+          className="w-14 h-14 rounded-full flex items-center justify-center bg-error text-white hover:bg-error/90 active:scale-95 shadow-lg ml-4 transition-all cursor-pointer"
         >
           <BsTelephoneXFill size={24} />
         </button>

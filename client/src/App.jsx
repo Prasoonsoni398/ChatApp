@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Chat from "./pages/Chat";
 import ForgotPassword from "./pages/ForgotPassword";
+import JoinGroupPage from "./pages/JoinGroupPage";
 
 const App = () => {
   return (
@@ -53,6 +54,7 @@ const App = () => {
         />
         {/* Chat page without the main Navbar to look like an app */}
         <Route path="/chat" element={<Chat />} />
+        <Route path="/join/:inviteCode" element={<JoinGroupPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -75,8 +75,8 @@ const ChatMessage = ({ msg, typingDurationMs = 1200 }) => {
       <div
         className={`rounded-xl text-[10.5px] leading-snug shadow-sm ${
           isMe
-            ? "bg-[#05A63F] text-white rounded-br-sm shadow-[#05A63F]/20"
-            : "bg-white text-gray-700 border border-gray-100 rounded-bl-sm"
+            ? "bg-primary text-primary-content rounded-br-sm shadow-primary/20"
+            : "bg-base-100 text-base-content border border-base-300 rounded-bl-sm"
         }`}
       >
         {showTyping && !displayed ? (
@@ -164,7 +164,7 @@ const HeroPhone = () => {
         style={{ transform: "translateX(-78%)" }}
       >
         <motion.div
-          className="bg-white/95 rounded-xl p-2 shadow-xl border border-gray-100 flex items-center gap-2 cursor-default"
+          className="bg-base-100/95 rounded-xl p-2 shadow-xl border border-base-300 flex items-center gap-2 cursor-default"
           animate={prefersReducedMotion ? {} : { y: [0, -12, 0] }}
           transition={{
             duration: 5,
@@ -173,14 +173,14 @@ const HeroPhone = () => {
             delay: 0,
           }}
         >
-          <div className="w-8 h-8 rounded-full bg-[#05A63F]/10 flex items-center justify-center text-[#05A63F] shrink-0">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
             <BsBellFill size={14} />
           </div>
           <div className="leading-none">
-            <div className="text-[11px] font-bold text-gray-800">
+            <div className="text-[11px] font-bold text-base-content">
               New Message
             </div>
-            <div className="text-[9px] text-gray-400 mt-0.5">from Alex</div>
+            <div className="text-[9px] text-base-content/60 mt-0.5">from Alex</div>
           </div>
         </motion.div>
       </FloatingIcon>
@@ -249,7 +249,7 @@ const HeroPhone = () => {
           transition: { type: "spring", stiffness: 400 },
         }}
       >
-        <div className={`${floatingCircleBase} text-[#05A63F]`}>
+        <div className={`${floatingCircleBase} text-primary`}>
           <BsCameraVideoFill size={20} />
         </div>
       </motion.div>
@@ -301,7 +301,7 @@ const HeroPhone = () => {
           transition: { type: "spring", stiffness: 300 },
         }}
       >
-        <div className="w-12 h-12 rounded-2xl rounded-br-sm bg-[#05A63F] shadow-xl flex items-center justify-center text-white">
+        <div className="w-12 h-12 rounded-2xl rounded-br-sm bg-primary shadow-xl flex items-center justify-center text-primary-content">
           <BsChatDotsFill size={22} />
         </div>
       </motion.div>
@@ -325,14 +325,14 @@ const HeroPhone = () => {
           transition: { type: "spring", stiffness: 400 },
         }}
       >
-        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[#05A63F] shadow-xl border border-gray-100">
+        <div className="w-9 h-9 rounded-full bg-base-100 flex items-center justify-center text-primary shadow-xl border border-base-300">
           <BsSendFill size={13} className="mr-0.5 mt-0.5" />
         </div>
       </motion.div>
 
       {/* 8. Typing dots bubble — lower-left */}
       <motion.div
-        className="absolute z-20 bg-white rounded-2xl rounded-bl-sm shadow-xl border border-gray-100 px-3 py-2.5 flex items-center gap-1.5 cursor-default"
+        className="absolute z-20 bg-base-100 rounded-2xl rounded-bl-sm shadow-xl border border-base-300 px-3 py-2.5 flex items-center gap-1.5 cursor-default"
         style={{ bottom: "30%", left: 0, transform: "translateX(-68%)" }}
         animate={prefersReducedMotion ? {} : { y: [0, -10, 0] }}
         transition={{
@@ -398,19 +398,19 @@ const HeroPhone = () => {
         <div className="absolute top-24 -right-0.5 w-0.5 h-12 bg-gray-700 rounded-r-sm" />
 
         {/* Screen */}
-        <div className="relative w-full h-full bg-[#f4fbf6] rounded-[2.1rem] overflow-hidden flex flex-col">
+        <div className="relative w-full h-full bg-base-200 rounded-[2.1rem] overflow-hidden flex flex-col">
           {/* Notch */}
           <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-50">
-            <div className="w-20 h-6 bg-gray-900 rounded-b-xl flex justify-center items-center gap-2">
-              <div className="w-8 h-1 bg-gray-800 rounded-full" />
-              <div className="w-2 h-2 bg-blue-900/30 rounded-full" />
+            <div className="w-20 h-6 bg-neutral rounded-b-xl flex justify-center items-center gap-2">
+              <div className="w-8 h-1 bg-base-300 rounded-full" />
+              <div className="w-2 h-2 bg-info/30 rounded-full" />
             </div>
           </div>
 
           {/* Chat Header */}
-          <div className="bg-white/95 backdrop-blur-md pt-8 pb-2.5 px-3 flex items-center justify-between shadow-sm z-40 border-b border-gray-100">
+          <div className="bg-base-100/95 backdrop-blur-md pt-8 pb-2.5 px-3 flex items-center justify-between shadow-sm z-40 border-b border-base-300">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 bg-white shrink-0 shadow-sm">
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-base-300 bg-base-100 shrink-0 shadow-sm">
                 <img
                   src="https://api.dicebear.com/7.x/avataaars/svg?seed=DesignTeam"
                   alt="Guftagu Team"
@@ -418,38 +418,38 @@ const HeroPhone = () => {
                 />
               </div>
               <div>
-                <div className="font-bold text-[12px] text-gray-800 leading-tight">
+                <div className="font-bold text-[12px] text-base-content leading-tight">
                   Guftagu Team
                 </div>
-                <div className="text-[9px] text-[#05A63F] font-medium">
+                <div className="text-[9px] text-primary font-medium">
                   3 online
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-[#05A63F]">
+            <div className="flex items-center gap-2 text-primary">
               <BsCameraVideoFill size={14} />
               <BsTelephoneFill size={12} />
-              <BsThreeDotsVertical size={14} className="text-gray-400" />
+              <BsThreeDotsVertical size={14} className="text-base-content/50" />
             </div>
           </div>
 
           {/* Chat Body — messages with typewriter */}
-          <div className="flex-1 overflow-hidden flex flex-col px-3 pt-3 pb-1 gap-3 justify-end bg-[#f4fbf6]">
+          <div className="flex-1 overflow-hidden flex flex-col px-3 pt-3 pb-1 gap-3 justify-end bg-base-200">
             {heroMessages.map((msg) => (
               <ChatMessage key={msg.id} msg={msg} typingDurationMs={1200} />
             ))}
           </div>
 
           {/* Footer */}
-          <div className="bg-white/95 backdrop-blur-md px-2.5 pt-2 pb-5 flex items-center gap-1.5 border-t border-gray-100">
-            <div className="flex-1 bg-gray-100 rounded-full h-8 flex items-center px-2.5 gap-1.5 border border-gray-200">
-              <BsEmojiSmileFill className="text-gray-400" size={13} />
-              <span className="text-gray-400 text-[10px] flex-1">
+          <div className="bg-base-100/95 backdrop-blur-md px-2.5 pt-2 pb-5 flex items-center gap-1.5 border-t border-base-300">
+            <div className="flex-1 bg-base-200 rounded-full h-8 flex items-center px-2.5 gap-1.5 border border-base-300">
+              <BsEmojiSmileFill className="text-base-content/50" size={13} />
+              <span className="text-base-content/50 text-[10px] flex-1">
                 Message...
               </span>
-              <BsMicFill className="text-gray-400" size={13} />
+              <BsMicFill className="text-base-content/50" size={13} />
             </div>
-            <div className="w-8 h-8 rounded-full bg-[#05A63F] flex items-center justify-center shadow-md text-white shrink-0">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md text-primary-content shrink-0">
               <BsSendFill size={11} className="mr-0.5 mt-0.5" />
             </div>
           </div>
