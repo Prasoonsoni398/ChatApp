@@ -159,7 +159,7 @@ const ChatInputArea = ({
   };
 
   return (
-    <div className="bg-base-100 px-4 py-3 flex flex-col gap-2 border-t border-base-300 relative">
+    <div className="bg-base-100 px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 border-t border-base-300 relative">
       {/* Reply Preview */}
       {replyingTo && (
         <div className="flex items-center justify-between px-3 py-2 rounded-xl border-l-4 border-primary bg-primary/5">
@@ -356,20 +356,20 @@ const ChatInputArea = ({
         </div>
       ) : (
         /* ── STANDARD INPUT BAR ── */
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-1 sm:gap-2">
           {/* Emoji Toggle */}
           <button
             ref={emojiToggleBtnRef}
             type="button"
             onClick={() => setShowEmojiPicker((v) => !v)}
-            className={`p-2 transition-colors ${
+            className={`p-1.5 sm:p-2 transition-colors ${
               showEmojiPicker
                 ? "text-primary"
                 : "text-base-content/50 hover:text-primary"
             }`}
             title="Emoji"
           >
-            <BsEmojiSmile size={22} />
+            <BsEmojiSmile size={20} />
           </button>
 
           {/* Attachment Paperclip & Popup */}
@@ -377,14 +377,14 @@ const ChatInputArea = ({
             <button
               type="button"
               onClick={() => setShowAttachMenu((v) => !v)}
-              className={`p-2 transition-colors ${
+              className={`p-1.5 sm:p-2 transition-colors ${
                 showAttachMenu
                   ? "text-primary"
                   : "text-base-content/50 hover:text-primary"
               }`}
               title="Attach media or document"
             >
-              <BsPaperclip size={22} />
+              <BsPaperclip size={20} />
             </button>
 
             {/* GuftguAttachment Menu Sheet */}
@@ -584,19 +584,19 @@ const ChatInputArea = ({
             {message.trim() || selectedImage || selectedFile ? (
               <button
                 type="submit"
-                className="btn btn-circle btn-primary shadow-sm active:scale-95 transition-transform"
+                className="btn btn-circle btn-primary btn-sm sm:btn-md shadow-sm active:scale-95 transition-transform"
                 title="Send message"
               >
-                <BsFillSendFill size={16} className="ml-0.5" />
+                <BsFillSendFill size={15} className="ml-0.5" />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={voiceRecorder.startRecording}
-                className="btn btn-circle btn-primary shadow-sm hover:scale-110 active:scale-95 transition-transform"
+                className="btn btn-circle btn-primary btn-sm sm:btn-md shadow-sm hover:scale-110 active:scale-95 transition-transform"
                 title="Record voice message"
               >
-                <BsMicFill size={18} />
+                <BsMicFill size={16} />
               </button>
             )}
           </form>

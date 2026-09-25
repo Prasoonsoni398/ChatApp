@@ -34,6 +34,16 @@ const useChatState = () => {
       return "";
     }
   });
+  const [editAbout, setEditAbout] = useState(() => {
+    try {
+      return (
+        JSON.parse(localStorage.getItem("user"))?.about ||
+        "Hey there! I am using ChatApp."
+      );
+    } catch {
+      return "Hey there! I am using ChatApp.";
+    }
+  });
   const [editAvatar, setEditAvatar] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -127,6 +137,8 @@ const useChatState = () => {
     setShowEditModal,
     editName,
     setEditName,
+    editAbout,
+    setEditAbout,
     editAvatar,
     setEditAvatar,
     isUpdating,

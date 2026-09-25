@@ -64,94 +64,99 @@ const ChatHeader = ({
   onOpenInfo,
 }) => {
   return (
-    <div className="h-16 px-2 sm:px-4 flex items-center gap-1.5 sm:gap-3 bg-base-100 border-b border-base-300 shadow-sm z-20">
+    <div className="h-16 px-2 sm:px-4 flex items-center bg-base-100 border-b border-base-300 shadow-sm z-20">
       {/* Back button — mobile only */}
       <button
-        className="md:hidden p-1.5 sm:p-2 -ml-1 sm:-ml-2 text-base-content/70 hover:text-primary flex-shrink-0"
+        className="md:hidden w-8 h-8 flex items-center justify-center -ml-1 text-base-content/70 hover:text-primary rounded-full hover:bg-base-200 transition-colors flex-shrink-0 mr-1"
         onClick={() => setSelectedChat(null)}
+        title="Back to chats"
       >
-        <BsArrowLeft size={20} />
+        <BsArrowLeft size={19} />
       </button>
 
-      {/* Clickable Avatar & Name container (GuftguContact/Group Info) */}
+      {/* Clickable Avatar & Name container (Guftgu Contact/Group Info) */}
       <div
-        className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-85 transition-opacity"
+        className="flex items-center flex-1 min-w-0 cursor-pointer hover:opacity-85 transition-opacity mr-2"
         onClick={() => onOpenInfo?.()}
         title="Click to view info and settings"
       >
-        <div className="avatar flex-shrink-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden">
+        <div className="avatar flex-shrink-0 mr-2.5">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden shadow-xs">
             <img src={selectedChat.avatar} alt={selectedChat.name} className="w-full h-full object-cover" />
           </div>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-sm sm:text-base flex items-center gap-1.5 truncate">
-            {selectedChat.customName ||
-              selectedChat.displayName ||
-              selectedChat.name}
+        <div className="flex-1 min-w-0 pr-1 overflow-hidden">
+          <h2 className="font-semibold text-sm sm:text-base leading-tight truncate flex items-center gap-1">
+            <span className="truncate">
+              {selectedChat.customName ||
+                selectedChat.displayName ||
+                selectedChat.name}
+            </span>
             {selectedChat.isGroup && (
-              <BsPeopleFill size={14} className="text-primary flex-shrink-0" />
+              <BsPeopleFill size={13} className="text-primary flex-shrink-0" />
             )}
           </h2>
           <div className="flex items-center gap-1.5 mt-0.5">
             {selectedChat.isGroup ? (
-              <span className="text-xs text-base-content/60 truncate">
+              <span className="text-[11px] sm:text-xs text-base-content/60 truncate block">
                 {selectedChat.members?.length} members · tap for info
               </span>
             ) : onlineUsersMap[selectedChat.id] ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-success flex-shrink-0"></span>
-                <span className="text-xs text-success font-medium">Online</span>
-              </>
+              <span className="flex items-center gap-1 text-[11px] sm:text-xs text-success font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-success flex-shrink-0"></span>
+                Online
+              </span>
             ) : (
-              <span className="text-xs text-base-content/60">Offline</span>
+              <span className="text-[11px] sm:text-xs text-base-content/60 block">Offline</span>
             )}
           </div>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-0.5 sm:gap-1.5 text-base-content/60 items-center flex-shrink-0">
+      <div className="flex items-center gap-0.5 sm:gap-1.5 text-base-content/60 flex-shrink-0 ml-auto">
         {/* Call Buttons */}
         <button
-          onClick={() => startCall(selectedChat, "voice")}
-          className="p-1.5 sm:p-2 hover:text-primary rounded-lg transition-all duration-300 hover:bg-primary/10 hover:scale-110 active:scale-95"
-          title="Voice Call"
-        >
-          <BsTelephone size={17} />
-        </button>
-        <button
           onClick={() => startCall(selectedChat, "video")}
-          className="p-1.5 sm:p-2 hover:text-primary rounded-lg transition-all duration-300 hover:bg-primary/10 hover:scale-110 active:scale-95"
+          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center hover:text-primary rounded-full hover:bg-base-200 transition-colors active:scale-95"
           title="Video Call"
         >
-          <BsCameraVideo size={17} />
+          <BsCameraVideo size={16} />
+        </button>
+        <button
+          onClick={() => startCall(selectedChat, "voice")}
+          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center hover:text-primary rounded-full hover:bg-base-200 transition-colors active:scale-95"
+          title="Voice Call"
+        >
+          <BsTelephone size={16} />
         </button>
 
-        {/* Search toggle (shown on desktop, accessible via 3-dot menu on mobile) */}
+        {/* Search button — Desktop only (accessible via 3-dot menu on mobile) */}
         <button
           onClick={() => {
             setShowMsgSearch((v) => !v);
             setMsgSearchQuery("");
             setMsgSearchIndex(0);
           }}
-          className={`hidden sm:flex p-2 hover:text-primary rounded-lg transition-all duration-300 hover:bg-primary/10 hover:scale-110 active:scale-95 ${
+          className={`hidden md:flex w-9 h-9 items-center justify-center hover:text-primary rounded-full hover:bg-base-200 transition-colors active:scale-95 ${
             showMsgSearch ? "text-primary bg-primary/10 shadow-inner" : ""
           }`}
+          title="Search Messages"
         >
-          <BsSearch size={17} />
+          <BsSearch size={16} />
         </button>
 
         {/* 3-dot menu */}
         <div className="relative" ref={headerMenuRef}>
           <button
             onClick={() => setShowHeaderMenu((v) => !v)}
-            className={`p-1.5 sm:p-2 hover:text-primary rounded-lg transition-all duration-300 hover:bg-primary/10 hover:scale-110 active:scale-95 ${
+            className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center hover:text-primary rounded-full hover:bg-base-200 transition-colors active:scale-95 ${
               showHeaderMenu ? "text-primary bg-primary/10 shadow-inner" : ""
             }`}
+            title="More Options"
           >
-            <BsThreeDotsVertical size={17} />
+            <BsThreeDotsVertical size={16} />
           </button>
 
           {showHeaderMenu && (

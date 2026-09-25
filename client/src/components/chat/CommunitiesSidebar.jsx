@@ -5,15 +5,17 @@ import {
   BsMegaphoneFill,
   BsChevronRight,
   BsX,
+  BsTrash,
 } from "react-icons/bs";
 import toast from "react-hot-toast";
 import * as communityService from "../../services/communityService.js";
+import socketAPI from "../../config/webSocket.js";
 
 /**
- * CommunitiesSidebar – GuftguCommunities tab (PRD Section 48).
- * Groups related chats under an umbrella with an announcement feed.
+ * CommunitiesSidebar – Guftgu Communities tab (PRD Section 48).
+ * Groups related chats under an umbrella with an official announcement feed.
  */
-const CommunitiesSidebar = ({ chats = [], onSelectChat }) => {
+const CommunitiesSidebar = ({ chats = [], onSelectChat, loggedInUser }) => {
   const [communities, setCommunities] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -37,6 +39,20 @@ const CommunitiesSidebar = ({ chats = [], onSelectChat }) => {
 
   useEffect(() => {
     fetchCommunities();
+
+    const handleCommunitySync = () => {
+      fetchCommunities();
+    };
+
+    socketAPI.on("communityCreated", handleCommunitySync);
+    socketAPI.on("communityUpdated", handleCommunitySync);
+    socketAPI.on("communityDeleted", handleCommunitySync);
+
+    return () => {
+      socketAPI.off("communityCreated", handleCommunitySync);
+      socketAPI.off("communityUpdated", handleCommunitySync);
+      socketAPI.off("communityDeleted", handleCommunitySync);
+    };
   }, []);
 
   const handleCreateCommunity = async (e) => {
@@ -59,6 +75,18 @@ const CommunitiesSidebar = ({ chats = [], onSelectChat }) => {
       fetchCommunities();
     } catch (_err) {
       toast.error("Failed to create community");
+    }
+  };
+
+  const handleDeleteCommunity = async (commId, e) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this community?")) return;
+    try {
+      await communityService.deleteCommunity(commId);
+      toast.success("Community deleted");
+      fetchCommunities();
+    } catch (_err) {
+      toast.error("Failed to delete community");
     }
   };
 
@@ -120,127 +148,154 @@ const CommunitiesSidebar = ({ chats = [], onSelectChat }) => {
             </button>
           </div>
         ) : (
-          communities.map((comm) => (
-            <div key={comm._id} className="border-b border-base-300">
-              {/* Community Header Card */}
-              <div className="p-3.5 bg-base-200/40 flex items-center gap-3">
-                <img
-                  src={comm.avatar}
-                  alt={comm.name}
-                  className="w-11 h-11 rounded-2xl object-cover"
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-sm truncate">{comm.name}</h3>
-                  <p className="text-xs text-base-content/60 truncate">
-                    {comm.description || "Community"}
-                  </p>
-                </div>
-              </div>
+          communities.map((comm) => {
+            const isAdmin =
+              loggedInUser &&
+              (comm.admin?._id || comm.admin)?.toString() ===
+                (loggedInUser._id || loggedInUser.id)?.toString();
 
-              {/* Sub-groups */}
-              <div className="divide-y divide-base-200 pl-4 bg-base-100">
-                {/* Announcements entry */}
-                <div
-                  onClick={() => {
-                    const firstG = comm.groups?.[0];
-                    if (firstG) {
-                      const gid = firstG._id || firstG.id;
-                      const chatMatch = chats.find(
-                        (c) => c.id === gid || c._id === gid,
-                      );
-                      if (chatMatch) {
-                        onSelectChat(chatMatch);
-                      } else {
-                        onSelectChat({
-                          id: gid,
-                          _id: gid,
-                          name: `${comm.name} Announcements`,
-                          isGroup: true,
-                          avatar: comm.avatar || firstG.avatar,
-                          members: firstG.members || comm.members || [],
-                        });
-                      }
-                    } else {
-                      onSelectChat({
-                        id: comm._id,
-                        _id: comm._id,
-                        name: `${comm.name} Announcements`,
-                        isGroup: true,
-                        avatar: comm.avatar,
-                        members: comm.members || [],
-                      });
-                    }
-                  }}
-                  className="flex items-center gap-3 p-3 hover:bg-base-200 cursor-pointer transition-colors"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-warning/20 text-warning flex items-center justify-center flex-shrink-0">
-                    <BsMegaphoneFill size={15} />
+            return (
+              <div key={comm._id} className="border-b border-base-300">
+                {/* Community Header Card */}
+                <div className="p-3.5 bg-base-200/40 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <img
+                      src={comm.avatar}
+                      alt={comm.name}
+                      className="w-11 h-11 rounded-2xl object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-sm truncate">{comm.name}</h3>
+                      <p className="text-xs text-base-content/60 truncate">
+                        {comm.description || `${comm.groups?.length || 0} topic groups`}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h5 className="font-semibold text-xs">{comm.name} Announcements</h5>
-                    <p className="text-[11px] text-base-content/50 truncate">
-                      Community admin messages
-                    </p>
-                  </div>
-                  <BsChevronRight
-                    size={12}
-                    className="text-base-content/40 mr-2"
-                  />
+
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteCommunity(comm._id, e)}
+                      className="p-1.5 text-base-content/40 hover:text-error rounded-lg transition-colors flex-shrink-0"
+                      title="Delete Community"
+                    >
+                      <BsTrash size={15} />
+                    </button>
+                  )}
                 </div>
 
-                {/* Linked topic groups */}
-                {comm.groups?.map((g) => {
-                  const gid = g._id || g.id;
-                  return (
-                    <div
-                      key={gid}
-                      onClick={() => {
+                {/* Sub-groups */}
+                <div className="divide-y divide-base-200 pl-4 bg-base-100">
+                  {/* Official Announcements Entry */}
+                  <div
+                    onClick={() => {
+                      const annGroup = comm.announcementGroup;
+                      const annId = annGroup?._id || annGroup?.id || annGroup;
+                      if (annId) {
                         const chatMatch = chats.find(
-                          (c) => c.id === gid || c._id === gid,
+                          (c) => c.id === annId || c._id === annId,
                         );
                         if (chatMatch) {
                           onSelectChat(chatMatch);
                         } else {
                           onSelectChat({
-                            id: gid,
-                            _id: gid,
-                            name: g.name,
+                            id: annId,
+                            _id: annId,
+                            name: annGroup?.name || `${comm.name} Announcements`,
                             isGroup: true,
-                            avatar:
-                              g.avatar ||
-                              `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`,
-                            members: g.members || [],
+                            isCommunityAnnouncement: true,
+                            onlyAdminsCanMessage: true,
+                            admin: comm.admin?._id || comm.admin,
+                            admins: comm.admins || [comm.admin?._id || comm.admin],
+                            avatar: annGroup?.avatar || comm.avatar,
+                            members: annGroup?.members || comm.members || [],
                           });
                         }
-                      }}
-                      className="flex items-center gap-3 p-3 hover:bg-base-200 cursor-pointer transition-colors"
-                    >
-                      <img
-                        src={
-                          g.avatar ||
-                          `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`
-                        }
-                        alt={g.name}
-                        className="w-9 h-9 rounded-xl object-cover flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h5 className="font-semibold text-xs truncate">
-                          {g.name}
-                        </h5>
-                        <p className="text-[11px] text-base-content/50">
-                          {g.members?.length || 0} members
-                        </p>
-                      </div>
-                      <BsChevronRight
-                        size={12}
-                        className="text-base-content/40 mr-2"
-                      />
+                      } else {
+                        onSelectChat({
+                          id: comm._id,
+                          _id: comm._id,
+                          name: `${comm.name} Announcements`,
+                          isGroup: true,
+                          isCommunityAnnouncement: true,
+                          avatar: comm.avatar,
+                          members: comm.members || [],
+                        });
+                      }
+                    }}
+                    className="flex items-center gap-3 p-3 hover:bg-base-200 cursor-pointer transition-colors"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-warning/20 text-warning flex items-center justify-center flex-shrink-0">
+                      <BsMegaphoneFill size={15} />
                     </div>
-                  );
-                })}
+                    <div className="flex-1 min-w-0">
+                      <h5 className="font-semibold text-xs text-base-content">
+                        {comm.name} Announcements
+                      </h5>
+                      <p className="text-[11px] text-base-content/50 truncate">
+                        Official community admin broadcasts
+                      </p>
+                    </div>
+                    <BsChevronRight
+                      size={12}
+                      className="text-base-content/40 mr-2 flex-shrink-0"
+                    />
+                  </div>
+
+                  {/* Linked Topic Groups */}
+                  {comm.groups?.map((g) => {
+                    const gid = g._id || g.id;
+                    return (
+                      <div
+                        key={gid}
+                        onClick={() => {
+                          const chatMatch = chats.find(
+                            (c) => c.id === gid || c._id === gid,
+                          );
+                          if (chatMatch) {
+                            onSelectChat(chatMatch);
+                          } else {
+                            onSelectChat({
+                              id: gid,
+                              _id: gid,
+                              name: g.name,
+                              isGroup: true,
+                              avatar:
+                                g.avatar ||
+                                `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`,
+                              members: g.members || [],
+                            });
+                          }
+                        }}
+                        className="flex items-center gap-3 p-3 hover:bg-base-200 cursor-pointer transition-colors"
+                      >
+                        <img
+                          src={
+                            g.avatar ||
+                            `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`
+                          }
+                          alt={g.name}
+                          className="w-9 h-9 rounded-xl object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h5 className="font-semibold text-xs truncate">
+                            {g.name}
+                          </h5>
+                          <p className="text-[11px] text-base-content/50">
+                            {g.members?.length || 0} members
+                          </p>
+                        </div>
+                        <BsChevronRight
+                          size={12}
+                          className="text-base-content/40 mr-2 flex-shrink-0"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -337,7 +392,7 @@ const CommunitiesSidebar = ({ chats = [], onSelectChat }) => {
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm btn-primary rounded-xl px-4"
+                  className="btn btn-sm btn-primary rounded-xl px-5"
                 >
                   Create Community
                 </button>

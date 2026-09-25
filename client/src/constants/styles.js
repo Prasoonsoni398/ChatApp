@@ -79,8 +79,8 @@ export const sidebarChat =
 
 /** Square floating icon tile (shield, etc.) */
 export const floatingIconBase =
-  "w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-xl border border-gray-100";
+  "w-10 h-10 rounded-xl bg-base-100 flex items-center justify-center shadow-xl border border-base-300";
 
 /** Circular floating icon (video cam, send, etc.) */
 export const floatingCircleBase =
-  "w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-xl border border-gray-100";
+  "w-11 h-11 rounded-full bg-base-100 flex items-center justify-center shadow-xl border border-base-300";

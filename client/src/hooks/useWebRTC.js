@@ -223,12 +223,32 @@ const useWebRTC = (loggedInUser) => {
     return peer;
   }
 
+  const recordCallLog = (logEntry) => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("chat_call_logs") || "[]");
+      const updated = [logEntry, ...saved.slice(0, 49)];
+      localStorage.setItem("chat_call_logs", JSON.stringify(updated));
+      window.dispatchEvent(new Event("call_logs_updated"));
+    } catch (_e) {}
+  };
+
   const startCall = async (chat, type) => {
     setCallType(type);
     const roomId = `room-${Date.now()}`;
     setActiveRoomId(roomId);
     setCallState("outgoing");
     setOutgoingCallStatus("calling");
+
+    recordCallLog({
+      id: roomId,
+      userId: chat.id || chat._id,
+      name: chat.name || "Contact",
+      avatar: chat.avatar,
+      type: type,
+      direction: "outgoing",
+      status: "answered",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    });
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -268,6 +288,17 @@ const useWebRTC = (loggedInUser) => {
     stopRingtone();
     if (!incomingCall) return;
 
+    recordCallLog({
+      id: incomingCall.roomId || Date.now().toString(),
+      userId: incomingCall.from,
+      name: incomingCall.name || "Caller",
+      avatar: incomingCall.avatar,
+      type: incomingCall.callType || "voice",
+      direction: "incoming",
+      status: "answered",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    });
+
     setCallState("active");
     setActiveRoomId(incomingCall.roomId);
 
@@ -292,6 +323,16 @@ const useWebRTC = (loggedInUser) => {
   const rejectCall = () => {
     stopRingtone();
     if (incomingCall) {
+      recordCallLog({
+        id: incomingCall.roomId || Date.now().toString(),
+        userId: incomingCall.from,
+        name: incomingCall.name || "Caller",
+        avatar: incomingCall.avatar,
+        type: incomingCall.callType || "voice",
+        direction: "incoming",
+        status: "missed",
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      });
       socketAPI.emit("rejectCall", { to: incomingCall.from });
     }
     setIncomingCall(null);
