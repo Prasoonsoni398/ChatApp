@@ -6,10 +6,43 @@ const statusSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  type: {
+    type: String,
+    enum: ["image", "text"],
+    default: "image",
+    required: true,
+  },
   image: {
     type: String,
-    required: true, // User can only upload images
   },
+  caption: {
+    type: String,
+    default: "",
+  },
+  text: {
+    type: String,
+    default: "",
+  },
+  backgroundColor: {
+    type: String,
+    default: "#075e54",
+  },
+  fontFamily: {
+    type: String,
+    default: "sans-serif",
+  },
+  viewers: [
+    {
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      viewedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

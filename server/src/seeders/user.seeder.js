@@ -19,24 +19,33 @@ const seedUser = async () => {
       {
         name: "Alice Smith",
         email: "alice@example.com",
+        phone: "+12025550101",
         password: "password123",
+        loginType: "normal_user",
         isVerified: true,
+        about: "Hey there! I am using ChatApp.",
         avatar:
           "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
       },
       {
         name: "Bob Johnson",
         email: "bob@example.com",
+        phone: "+12025550102",
         password: "password123",
+        loginType: "normal_user",
         isVerified: true,
+        about: "Busy coding 🚀 | Urgent calls only",
         avatar:
           "https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
       },
       {
         name: "Charlie Brown",
         email: "charlie@example.com",
+        phone: "+12025550103",
         password: "password123",
+        loginType: "normal_user",
         isVerified: true,
+        about: "Available for quick chats ☕",
         avatar:
           "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
       },
