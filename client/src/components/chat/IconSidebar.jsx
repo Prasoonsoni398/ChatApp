@@ -122,8 +122,6 @@ const IconSidebar = ({
       </div>
 
       <div className="flex flex-col gap-5 w-full items-center">
-        
-
         {/* Settings Dropdown */}
         <div className="relative" ref={settingsMenuRef}>
           <button
@@ -152,7 +150,8 @@ const IconSidebar = ({
                   }}
                   className="active:scale-95 transition-transform flex items-center gap-2.5"
                 >
-                  <BsPersonCircle size={15} className="text-primary" /> Edit Profile
+                  <BsPersonCircle size={15} className="text-primary" /> Edit
+                  Profile
                 </a>
               </li>
               <li>

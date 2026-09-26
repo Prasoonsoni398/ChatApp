@@ -7,9 +7,11 @@ import {
   BsPaletteFill,
   BsX,
   BsSendFill,
+  BsMusicNoteBeamed,
 } from "react-icons/bs";
 import toast from "react-hot-toast";
 import * as statusService from "../../services/statusService.js";
+import SongPickerModal from "./status/SongPickerModal.jsx";
 
 const BACKGROUND_COLORS = [
   "#075e54", // Guftgugreen
@@ -45,6 +47,10 @@ const StatusSidebar = ({
   const [selectedFont, setSelectedFont] = useState(FONTS[0].id);
   const [isPublishingText, setIsPublishingText] = useState(false);
 
+  // Song status state
+  const [selectedSong, setSelectedSong] = useState(null);
+  const [showSongPicker, setShowSongPicker] = useState(false);
+
   // Caption modal for image status
   const [pendingImageFile, setPendingImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
@@ -57,6 +63,7 @@ const StatusSidebar = ({
     setPendingImageFile(null);
     setImagePreviewUrl(null);
     setImageCaption("");
+    setSelectedSong(null);
   };
 
   useEffect(() => {
@@ -111,6 +118,14 @@ const StatusSidebar = ({
       if (imageCaption.trim()) {
         formData.append("caption", imageCaption.trim());
       }
+      if (selectedSong) {
+        if (selectedSong.audioFile) {
+          formData.append("audio", selectedSong.audioFile);
+        }
+        formData.append("songTitle", selectedSong.title || "");
+        formData.append("songArtist", selectedSong.artist || "");
+        formData.append("songAudioUrl", selectedSong.audioUrl || "");
+      }
       await onUploadStatus(formData);
       handleClearImagePreview();
       if (onStatusUpdated) onStatusUpdated();
@@ -130,9 +145,17 @@ const StatusSidebar = ({
         text: statusText.trim(),
         backgroundColor: selectedBg,
         fontFamily: selectedFont,
+        song: selectedSong
+          ? {
+              title: selectedSong.title,
+              artist: selectedSong.artist,
+              audioUrl: selectedSong.audioUrl,
+            }
+          : undefined,
       });
       toast.success("Status published!");
       setStatusText("");
+      setSelectedSong(null);
       setShowTextStatusModal(false);
       if (onStatusUpdated) onStatusUpdated();
     } catch (err) {
@@ -156,7 +179,10 @@ const StatusSidebar = ({
         <div className="flex items-center gap-1 text-base-content/70">
           {/* Create Text Status Button */}
           <button
-            onClick={() => setShowTextStatusModal(true)}
+            onClick={() => {
+              setSelectedSong(null);
+              setShowTextStatusModal(true);
+            }}
             className="p-2 hover:bg-base-300 rounded-full transition-colors"
             title="Type text status"
           >
@@ -272,9 +298,18 @@ const StatusSidebar = ({
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-[15px] truncate">
-                      {group.user.name}
-                    </h3>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-semibold text-[15px] truncate">
+                        {group.user.name}
+                      </h3>
+                      {lastStatus.song && (
+                        <BsMusicNoteBeamed
+                          className="text-primary flex-shrink-0"
+                          size={12}
+                          title={`Song: ${lastStatus.song.title}`}
+                        />
+                      )}
+                    </div>
                     <p className="text-xs text-base-content/60">
                       {lastStatus.type === "text"
                         ? `"${lastStatus.text?.substring(0, 24)}..."`
@@ -293,7 +328,7 @@ const StatusSidebar = ({
         </div>
       </div>
 
-      {/* ── TEXT STATUS COMPOSER MODAL (PRD Section 50.1 & 50.2) ── */}
+      {/* ── TEXT STATUS COMPOSER MODAL ── */}
       {showTextStatusModal && (
         <div className="fixed inset-0 z-10000 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div
@@ -303,13 +338,30 @@ const StatusSidebar = ({
             {/* Top Toolbar */}
             <div className="flex items-center justify-between">
               <button
-                onClick={() => setShowTextStatusModal(false)}
+                onClick={() => {
+                  setSelectedSong(null);
+                  setShowTextStatusModal(false);
+                }}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
               >
                 <BsX size={26} />
               </button>
 
               <div className="flex items-center gap-2">
+                {/* Music Song Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowSongPicker(true)}
+                  className={`p-2 rounded-full transition-colors ${
+                    selectedSong
+                      ? "bg-primary text-white"
+                      : "bg-white/20 hover:bg-white/30 text-white"
+                  }`}
+                  title="Add Song"
+                >
+                  <BsMusicNoteBeamed size={16} />
+                </button>
+
                 {/* Font cycle */}
                 <button
                   onClick={() => {
@@ -339,6 +391,28 @@ const StatusSidebar = ({
                 </button>
               </div>
             </div>
+
+            {/* Song Pill Indicator if chosen */}
+            {selectedSong && (
+              <div className="flex items-center justify-between px-3.5 py-1.5 bg-black/40 backdrop-blur-md rounded-full text-xs text-white max-w-full my-2 border border-white/20 animate-fade-in">
+                <div className="flex items-center gap-2 truncate">
+                  <BsMusicNoteBeamed className="text-primary flex-shrink-0 animate-bounce" />
+                  <span className="font-semibold truncate">
+                    {selectedSong.title}
+                  </span>
+                  <span className="text-white/70 truncate">
+                    • {selectedSong.artist}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSong(null)}
+                  className="ml-2 hover:text-error text-white/70 flex-shrink-0"
+                >
+                  <BsX size={16} />
+                </button>
+              </div>
+            )}
 
             {/* Input Textarea */}
             <div className="flex-1 flex items-center justify-center my-6">
@@ -392,6 +466,38 @@ const StatusSidebar = ({
               />
             </div>
 
+            {/* Song Pill / Add Song Button */}
+            <div className="px-4 pt-2.5">
+              {selectedSong ? (
+                <div className="flex items-center justify-between px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl text-xs">
+                  <div className="flex items-center gap-2 truncate">
+                    <BsMusicNoteBeamed className="text-primary flex-shrink-0" />
+                    <span className="font-semibold truncate">
+                      {selectedSong.title}
+                    </span>
+                    <span className="text-base-content/60 truncate">
+                      • {selectedSong.artist}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSong(null)}
+                    className="hover:text-error text-base-content/60 ml-2"
+                  >
+                    <BsX size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowSongPicker(true)}
+                  className="btn btn-ghost btn-xs text-primary gap-1.5 font-medium"
+                >
+                  <BsMusicNoteBeamed size={14} /> Add Song to Status
+                </button>
+              )}
+            </div>
+
             <div className="p-4 flex items-center gap-2">
               <input
                 type="text"
@@ -414,6 +520,13 @@ const StatusSidebar = ({
           </div>
         </div>
       )}
+
+      {/* Song Picker Modal */}
+      <SongPickerModal
+        isOpen={showSongPicker}
+        onClose={() => setShowSongPicker(false)}
+        onSelectSong={(song) => setSelectedSong(song)}
+      />
     </div>
   );
 };

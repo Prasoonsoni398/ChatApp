@@ -87,8 +87,6 @@ export async function resendPhoneOtp(phone) {
   return data;
 }
 
-
-
 /**
  * Request a password-reset OTP for the given email.
  * @returns {Promise<{ message: string }>}

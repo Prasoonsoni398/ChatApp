@@ -29,15 +29,29 @@ export const getMessages = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, replyToId, replyToText, replyToSender, isVoice, duration, isForwarded, isViewOnce } =
-      req.body;
+    const {
+      text,
+      replyToId,
+      replyToText,
+      replyToSender,
+      isVoice,
+      duration,
+      isForwarded,
+      isViewOnce,
+    } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
     // Check if receiver blocked sender or sender blocked receiver
     const receiverUser = await User.findById(receiverId);
-    if (receiverUser?.blockedUsers?.some((b) => b.toString() === senderId.toString())) {
-      return res.status(403).json({ error: "You cannot send messages to this contact (blocked)" });
+    if (
+      receiverUser?.blockedUsers?.some(
+        (b) => b.toString() === senderId.toString(),
+      )
+    ) {
+      return res
+        .status(403)
+        .json({ error: "You cannot send messages to this contact (blocked)" });
     }
 
     const isViewOnceFlag = isViewOnce === "true" || isViewOnce === true;
@@ -54,6 +68,17 @@ export const sendMessage = async (req, res) => {
         mediaType = "video";
       } else if (mimetype.startsWith("audio/")) {
         mediaType = "audio";
+      }
+
+      if (
+        (mediaType === "audio" ||
+          mediaType === "video" ||
+          mediaType === "voice") &&
+        req.file.size > 5 * 1024 * 1024
+      ) {
+        return res.status(400).json({
+          error: "Audio and video uploads are restricted to a maximum of 5MB.",
+        });
       }
 
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -95,19 +120,31 @@ export const sendMessage = async (req, res) => {
     let parsedLocation = null;
     if (req.body.location) {
       try {
-        parsedLocation = typeof req.body.location === "string" ? JSON.parse(req.body.location) : req.body.location;
-      } catch (_e) {}
+        parsedLocation =
+          typeof req.body.location === "string"
+            ? JSON.parse(req.body.location)
+            : req.body.location;
+      } catch (_e) {
+        parsedLocation = null;
+      }
     }
     let parsedContact = null;
     if (req.body.contactCard) {
       try {
-        parsedContact = typeof req.body.contactCard === "string" ? JSON.parse(req.body.contactCard) : req.body.contactCard;
-      } catch (_e) {}
+        parsedContact =
+          typeof req.body.contactCard === "string"
+            ? JSON.parse(req.body.contactCard)
+            : req.body.contactCard;
+      } catch (_e) {
+        parsedContact = null;
+      }
     }
 
     let resolvedMediaType = "text";
-    if (req.body.mediaType === "location" || parsedLocation) resolvedMediaType = "location";
-    else if (req.body.mediaType === "contact" || parsedContact) resolvedMediaType = "contact";
+    if (req.body.mediaType === "location" || parsedLocation)
+      resolvedMediaType = "location";
+    else if (req.body.mediaType === "contact" || parsedContact)
+      resolvedMediaType = "contact";
 
     const newMessage = new Message({
       senderId,

@@ -6,7 +6,12 @@ import {
   BsMusicNoteBeamed,
 } from "react-icons/bs";
 
-const AudioPlayer = ({ src, isVoice = false, initialDuration = 0, isMe = false }) => {
+const AudioPlayer = ({
+  src,
+  isVoice = false,
+  initialDuration = 0,
+  isMe = false,
+}) => {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -18,7 +23,11 @@ const AudioPlayer = ({ src, isVoice = false, initialDuration = 0, isMe = false }
     if (!audio) return;
 
     const onLoadedMetadata = () => {
-      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+      if (
+        audio.duration &&
+        !isNaN(audio.duration) &&
+        isFinite(audio.duration)
+      ) {
         setDuration(audio.duration);
       }
     };
@@ -97,7 +106,11 @@ const AudioPlayer = ({ src, isVoice = false, initialDuration = 0, isMe = false }
         onClick={togglePlay}
         className="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center flex-shrink-0 shadow-sm hover:scale-105 active:scale-95 transition-transform"
       >
-        {isPlaying ? <BsPauseFill size={22} /> : <BsPlayFill size={22} className="ml-0.5" />}
+        {isPlaying ? (
+          <BsPauseFill size={22} />
+        ) : (
+          <BsPlayFill size={22} className="ml-0.5" />
+        )}
       </button>
 
       {/* Waveform / Scrubber & Time */}

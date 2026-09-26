@@ -4,7 +4,12 @@ import { BsX, BsPersonBadgeFill, BsSearch } from "react-icons/bs";
 /**
  * ContactShareModal – WhatsApp-style contact sharing (PRD Section 33).
  */
-const ContactShareModal = ({ isOpen, onClose, allUsers = [], onSendContact }) => {
+const ContactShareModal = ({
+  isOpen,
+  onClose,
+  allUsers = [],
+  onSendContact,
+}) => {
   const [search, setSearch] = useState("");
 
   if (!isOpen) return null;
@@ -84,7 +89,9 @@ const ContactShareModal = ({ isOpen, onClose, allUsers = [], onSendContact }) =>
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-sm truncate">{user.name}</h4>
+                  <h4 className="font-semibold text-sm truncate">
+                    {user.name}
+                  </h4>
                   <p className="text-xs text-base-content/50 truncate">
                     {user.email}
                   </p>

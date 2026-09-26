@@ -119,7 +119,11 @@ const ReportModal = ({ isOpen, onClose, target, onBlocked }) => {
               <ToggleSwitch
                 checked={blockAlso}
                 onChange={(val) => setBlockAlso(val)}
-                label={<span className="text-xs text-base-content/80">Block contact and delete chat messages</span>}
+                label={
+                  <span className="text-xs text-base-content/80">
+                    Block contact and delete chat messages
+                  </span>
+                }
                 size="sm"
               />
             </div>

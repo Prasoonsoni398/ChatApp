@@ -1,16 +1,37 @@
 import { useState, useEffect } from "react";
-import { BsX, BsEye } from "react-icons/bs";
+import {
+  BsX,
+  BsEye,
+  BsMusicNoteBeamed,
+  BsVolumeUpFill,
+  BsVolumeMuteFill,
+} from "react-icons/bs";
 import * as statusService from "../../services/statusService.js";
+import { playStatusTrack, stopStatusTrack } from "../../utils/statusMusic.js";
 
 const StatusViewer = ({ group, loggedInUser, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [showViewersSheet, setShowViewersSheet] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const STATUS_DURATION = 4000; // 4 seconds per status
   const statuses = group.statuses;
   const currentStatus = statuses[currentIndex];
   const isMyStatus = group.user._id === loggedInUser?._id;
+
+  // Handle music playback for the active status
+  useEffect(() => {
+    if (currentStatus?.song && !isMuted) {
+      playStatusTrack(currentStatus.song);
+    } else {
+      stopStatusTrack();
+    }
+
+    return () => {
+      stopStatusTrack();
+    };
+  }, [currentIndex, currentStatus?._id, currentStatus?.song, isMuted]);
 
   // Mark as viewed when active status changes
   useEffect(() => {
@@ -34,6 +55,7 @@ const StatusViewer = ({ group, loggedInUser, onClose }) => {
           startTime = Date.now();
           animationFrame = requestAnimationFrame(animate);
         } else {
+          stopStatusTrack();
           onClose();
         }
       } else {
@@ -51,6 +73,7 @@ const StatusViewer = ({ group, loggedInUser, onClose }) => {
       setCurrentIndex((prev) => prev + 1);
       setProgress(0);
     } else {
+      stopStatusTrack();
       onClose();
     }
   };
@@ -60,6 +83,11 @@ const StatusViewer = ({ group, loggedInUser, onClose }) => {
       setCurrentIndex((prev) => prev - 1);
       setProgress(0);
     }
+  };
+
+  const handleClose = () => {
+    stopStatusTrack();
+    onClose();
   };
 
   return (
@@ -112,12 +140,49 @@ const StatusViewer = ({ group, loggedInUser, onClose }) => {
           </div>
         </div>
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
         >
           <BsX size={28} />
         </button>
       </div>
+
+      {/* Song Sticker Badge if status has a song */}
+      {currentStatus?.song && (
+        <div className="absolute top-22 left-0 right-0 w-full max-w-xl mx-auto px-4 z-20 pointer-events-none">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs shadow-xl animate-fade-in pointer-events-auto">
+            <BsMusicNoteBeamed
+              className={`text-primary flex-shrink-0 ${
+                !isMuted ? "animate-bounce" : ""
+              }`}
+              size={13}
+            />
+            <span className="font-semibold max-w-[130px] truncate">
+              {currentStatus.song.title}
+            </span>
+            {currentStatus.song.artist && (
+              <span className="text-white/70 max-w-[100px] truncate">
+                • {currentStatus.song.artist}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMuted((prev) => !prev);
+              }}
+              className="ml-1 p-1 hover:bg-white/20 rounded-full transition-colors text-white/90"
+              title={isMuted ? "Unmute song" : "Mute song"}
+            >
+              {isMuted ? (
+                <BsVolumeMuteFill size={14} />
+              ) : (
+                <BsVolumeUpFill size={14} />
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Status Content (Text or Image — Video is Strictly Excluded per PRD) */}
       <div className="flex-1 relative flex items-center justify-center h-full max-w-xl mx-auto w-full">

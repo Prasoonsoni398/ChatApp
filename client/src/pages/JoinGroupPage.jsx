@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BsPeopleFill, BsCheckCircleFill, BsExclamationTriangleFill } from "react-icons/bs";
+import {
+  BsPeopleFill,
+  BsCheckCircleFill,
+  BsExclamationTriangleFill,
+} from "react-icons/bs";
 import toast from "react-hot-toast";
 import * as groupService from "../services/groupService.js";
 
@@ -54,7 +58,9 @@ const JoinGroupPage = () => {
           {loading ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <span className="loading loading-spinner loading-lg text-primary"></span>
-              <p className="text-sm text-base-content/60">Fetching group invite details...</p>
+              <p className="text-sm text-base-content/60">
+                Fetching group invite details...
+              </p>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center gap-4 py-6">
@@ -63,7 +69,10 @@ const JoinGroupPage = () => {
               </div>
               <h2 className="text-xl font-bold">Invite Link Expired</h2>
               <p className="text-sm text-base-content/60">{error}</p>
-              <button onClick={() => navigate("/")} className="btn btn-primary btn-sm mt-4 rounded-xl">
+              <button
+                onClick={() => navigate("/")}
+                className="btn btn-primary btn-sm mt-4 rounded-xl"
+              >
                 Go to Chats
               </button>
             </div>
@@ -73,7 +82,10 @@ const JoinGroupPage = () => {
               <div className="avatar">
                 <div className="w-24 h-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
                   <img
-                    src={group.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.name}`}
+                    src={
+                      group.avatar ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.name}`
+                    }
                     alt={group.name}
                   />
                 </div>

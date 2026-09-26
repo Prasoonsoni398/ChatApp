@@ -7,6 +7,7 @@ import {
   BsKeyboardFill,
   BsBoxArrowRight,
   BsArrowLeft,
+  BsMegaphoneFill,
 } from "react-icons/bs";
 import { hoverPrimary } from "../../../constants/styles.js";
 
@@ -22,6 +23,7 @@ const SidebarTopbar = ({
   setEditName,
   setShowEditModal,
   onOpenPrivacySettings,
+  onOpenChannels,
   onOpenLinkedDevices,
   onOpenShortcuts,
   handleLogout,
@@ -39,8 +41,7 @@ const SidebarTopbar = ({
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-base leading-tight">Archived</h3>
           <p className="text-[11px] text-base-content/50">
-            {archivedChatsCount}{" "}
-            {archivedChatsCount === 1 ? "chat" : "chats"}
+            {archivedChatsCount} {archivedChatsCount === 1 ? "chat" : "chats"}
           </p>
         </div>
       </div>
@@ -88,7 +89,30 @@ const SidebarTopbar = ({
             <BsThreeDotsVertical size={18} />
           </button>
           {showProfileMenu && (
-            <ul className="absolute right-0 z-50 menu p-2 shadow-xl text-sm bg-base-100 rounded-2xl w-46 border border-base-300 mt-2 animate-slide-up origin-top-right">
+            <ul className="absolute right-0 z-50 menu p-2 shadow-xl text-sm bg-base-100 rounded-2xl w-48 border border-base-300 mt-2 animate-slide-up origin-top-right">
+              <li>
+                <a
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    onOpenChannels?.();
+                  }}
+                  className="flex items-center gap-2 py-2 text-primary font-medium"
+                >
+                  <BsMegaphoneFill size={15} /> Channels & Broadcast
+                </a>
+              </li>
+              <li>
+                <a
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    setShowCreateGroup(true);
+                  }}
+                  className="flex items-center gap-2 py-2"
+                >
+                  <BsPeopleFill size={15} /> New Group
+                </a>
+              </li>
+              <div className="divider my-1"></div>
               <li>
                 <a
                   onClick={() => {

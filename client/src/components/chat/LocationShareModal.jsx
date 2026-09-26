@@ -75,7 +75,9 @@ const LocationShareModal = ({ isOpen, onClose, onSendLocation }) => {
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3">
               <span className="loading loading-spinner text-primary loading-lg"></span>
-              <p className="text-xs text-base-content/60">Detecting GPS location…</p>
+              <p className="text-xs text-base-content/60">
+                Detecting GPS location…
+              </p>
             </div>
           ) : coords ? (
             <div className="w-full space-y-4">
@@ -108,7 +110,8 @@ const LocationShareModal = ({ isOpen, onClose, onSendLocation }) => {
                   className="input input-sm input-bordered w-full rounded-xl bg-base-200"
                 />
                 <p className="text-[11px] text-base-content/50 mt-1">
-                  Lat: {coords.latitude.toFixed(4)}, Long: {coords.longitude.toFixed(4)}
+                  Lat: {coords.latitude.toFixed(4)}, Long:{" "}
+                  {coords.longitude.toFixed(4)}
                 </p>
               </div>
 

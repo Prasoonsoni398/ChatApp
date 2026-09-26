@@ -117,7 +117,7 @@ const SidebarSearchResults = ({
                   : ""
                 : senderObj?.avatar;
 
-            const date = new Date(msg.createdAt || Date.now());
+            const date = new Date(msg.createdAt || 0);
             const timeStr = date.toLocaleDateString([], {
               month: "short",
               day: "numeric",

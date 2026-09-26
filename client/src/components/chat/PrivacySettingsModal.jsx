@@ -65,6 +65,10 @@ const PrivacySettingsModal = ({
     handleSaveProfile,
     soundEnabled,
     handleToggleSound,
+    notificationSound,
+    handleSelectNotificationSound,
+    ringtoneSound,
+    handleSelectRingtoneSound,
     reactionsAlerts,
     handleToggleReactionsAlerts,
     notifPermission,
@@ -183,6 +187,10 @@ const PrivacySettingsModal = ({
               <NotificationsTabContent
                 soundEnabled={soundEnabled}
                 handleToggleSound={handleToggleSound}
+                notificationSound={notificationSound}
+                handleSelectNotificationSound={handleSelectNotificationSound}
+                ringtoneSound={ringtoneSound}
+                handleSelectRingtoneSound={handleSelectRingtoneSound}
                 reactionsAlerts={reactionsAlerts}
                 handleToggleReactionsAlerts={handleToggleReactionsAlerts}
                 notifPermission={notifPermission}

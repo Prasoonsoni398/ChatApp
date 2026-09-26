@@ -2,8 +2,7 @@ import { io } from "socket.io-client";
 
 // Use the env variable. In dev it points to http://localhost:4500.
 // In production builds it should be set to the deployed API URL.
-const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:4500";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4500";
 
 const socketAPI = io(BACKEND_URL, {
   transports: ["websocket", "polling"],

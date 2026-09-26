@@ -136,7 +136,9 @@ export const toggleStarMessage = async (req, res) => {
     }
 
     await message.save();
-    res.status(200).json({ isStarred, messageId: id, starredBy: message.starredBy });
+    res
+      .status(200)
+      .json({ isStarred, messageId: id, starredBy: message.starredBy });
   } catch (error) {
     console.error("Error in toggleStarMessage:", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -255,11 +257,19 @@ export const searchMessages = async (req, res) => {
 
     if (type && type !== "all") {
       const lowerType = type.toLowerCase();
-      if (lowerType === "photos" || lowerType === "image" || lowerType === "images") {
+      if (
+        lowerType === "photos" ||
+        lowerType === "image" ||
+        lowerType === "images"
+      ) {
         filter.$and.push({ mediaType: "image" });
       } else if (lowerType === "videos" || lowerType === "video") {
         filter.$and.push({ mediaType: "video" });
-      } else if (lowerType === "documents" || lowerType === "document" || lowerType === "docs") {
+      } else if (
+        lowerType === "documents" ||
+        lowerType === "document" ||
+        lowerType === "docs"
+      ) {
         filter.$and.push({ mediaType: "document" });
       } else if (lowerType === "audio" || lowerType === "voice") {
         filter.$and.push({ mediaType: { $in: ["audio", "voice"] } });
@@ -319,7 +329,7 @@ export const clearAllChats = async (req, res) => {
       },
       {
         $addToSet: { deletedFor: myId },
-      }
+      },
     );
 
     res.status(200).json({ message: "All chats cleared successfully" });

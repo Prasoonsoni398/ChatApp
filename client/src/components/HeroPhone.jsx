@@ -180,7 +180,9 @@ const HeroPhone = () => {
             <div className="text-[11px] font-bold text-base-content">
               New Message
             </div>
-            <div className="text-[9px] text-base-content/60 mt-0.5">from Alex</div>
+            <div className="text-[9px] text-base-content/60 mt-0.5">
+              from Alex
+            </div>
           </div>
         </motion.div>
       </FloatingIcon>

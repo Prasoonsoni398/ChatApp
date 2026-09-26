@@ -50,7 +50,9 @@ export const registerUser = async (req, res) => {
     // Check duplicate phone
     const existingPhone = await User.findOne({ phone: normPhone });
     if (existingPhone && existingPhone.isVerified) {
-      return res.status(400).json({ message: "Phone number already registered. Please log in." });
+      return res
+        .status(400)
+        .json({ message: "Phone number already registered. Please log in." });
     }
 
     // Check duplicate email if provided
@@ -59,7 +61,8 @@ export const registerUser = async (req, res) => {
       const existingEmail = await User.findOne({ email: cleanEmail });
       if (
         existingEmail &&
-        (!existingPhone || existingEmail._id.toString() !== existingPhone._id.toString())
+        (!existingPhone ||
+          existingEmail._id.toString() !== existingPhone._id.toString())
       ) {
         return res.status(400).json({ message: "Email already registered" });
       }
@@ -114,8 +117,8 @@ export const registerUser = async (req, res) => {
       message: smsResult?.dispatchedRealSms
         ? `Real-time SMS forwarded to ${normPhone}. Enter the 6-digit code to complete registration.`
         : emailSent
-        ? `Verification code sent to ${user.email} and generated for ${normPhone}.`
-        : `Verification code ready for ${normPhone}. Enter the 6-digit code to complete registration.`,
+          ? `Verification code sent to ${user.email} and generated for ${normPhone}.`
+          : `Verification code ready for ${normPhone}. Enter the 6-digit code to complete registration.`,
       phone: normPhone,
       userId: user._id,
       smsDelivered: smsResult?.dispatchedRealSms || false,
@@ -144,7 +147,9 @@ export const resendPhoneOTP = async (req, res) => {
     const user = await User.findOne({ phone: normPhone });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found with this phone number" });
+      return res
+        .status(404)
+        .json({ message: "User not found with this phone number" });
     }
 
     const otp = generateOTP();
@@ -177,8 +182,8 @@ export const resendPhoneOTP = async (req, res) => {
       message: smsResult?.dispatchedRealSms
         ? `New OTP forwarded via SMS to ${normPhone}`
         : emailSent
-        ? `New verification code emailed to ${user.email}`
-        : `New verification code ready for ${normPhone}`,
+          ? `New verification code emailed to ${user.email}`
+          : `New verification code ready for ${normPhone}`,
       phone: normPhone,
       smsDelivered: smsResult?.dispatchedRealSms || false,
       emailDelivered: emailSent,
@@ -215,7 +220,9 @@ export const verifyOTP = async (req, res) => {
     }
 
     if (user.isVerified) {
-      return res.status(400).json({ message: "User is already verified. Please log in." });
+      return res
+        .status(400)
+        .json({ message: "User is already verified. Please log in." });
     }
 
     if (user.otp !== otp.toString().trim()) {
@@ -223,7 +230,9 @@ export const verifyOTP = async (req, res) => {
     }
 
     if (Date.now() > user.otpExpires) {
-      return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+      return res
+        .status(400)
+        .json({ message: "OTP has expired. Please request a new one." });
     }
 
     user.isVerified = true;
@@ -253,10 +262,14 @@ export const verifyOTP = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, phone, identifier, password } = req.body;
-    const loginIdentifier = (identifier || phone || email || "").toString().trim();
+    const loginIdentifier = (identifier || phone || email || "")
+      .toString()
+      .trim();
 
     if (!loginIdentifier || !password) {
-      return res.status(400).json({ message: "Phone number or email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Phone number or email and password are required" });
     }
 
     const normPhone = normalisePhone(loginIdentifier);
@@ -284,7 +297,8 @@ export const loginUser = async (req, res) => {
         });
 
         return res.status(401).json({
-          message: "Please verify your phone number first. A real-time OTP has been forwarded to your phone.",
+          message:
+            "Please verify your phone number first. A real-time OTP has been forwarded to your phone.",
           phone: user.phone,
           needsVerification: true,
           devOtp: freshOtp,
@@ -299,7 +313,9 @@ export const loginUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
-      res.status(401).json({ message: "Invalid phone number/email or password" });
+      res
+        .status(401)
+        .json({ message: "Invalid phone number/email or password" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -71,8 +71,7 @@ const ToggleSwitch = ({
       "bg-primary shadow-[inset_0_2px_4px_rgba(0,0,0,0.3),_0_0_12px_rgba(var(--color-primary),0.35)]",
     success:
       "bg-success shadow-[inset_0_2px_4px_rgba(0,0,0,0.3),_0_0_12px_rgba(var(--color-success),0.35)]",
-    info:
-      "bg-info shadow-[inset_0_2px_4px_rgba(0,0,0,0.3),_0_0_12px_rgba(var(--color-info),0.35)]",
+    info: "bg-info shadow-[inset_0_2px_4px_rgba(0,0,0,0.3),_0_0_12px_rgba(var(--color-info),0.35)]",
     warning:
       "bg-warning shadow-[inset_0_2px_4px_rgba(0,0,0,0.3),_0_0_12px_rgba(var(--color-warning),0.35)]",
     error:
@@ -108,9 +107,7 @@ const ToggleSwitch = ({
           ? activeColorStyles[color] || activeColorStyles.primary
           : "bg-base-300/80 hover:bg-base-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.28),_inset_0_1px_1px_rgba(0,0,0,0.15)]"
       } ${
-        disabled
-          ? "opacity-50 cursor-not-allowed"
-          : "active:scale-[0.97]"
+        disabled ? "opacity-50 cursor-not-allowed" : "active:scale-[0.97]"
       } ${trackClassName}`}
     >
       {/* Hidden native input for form compatibility */}

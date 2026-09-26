@@ -20,7 +20,8 @@ export async function getAllUsers() {
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || data.error || "Failed to fetch contacts");
+  if (!res.ok)
+    throw new Error(data.message || data.error || "Failed to fetch contacts");
   return Array.isArray(data) ? data : [];
 }
 
@@ -33,7 +34,8 @@ export async function getAllVerifiedUsers() {
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || data.error || "Failed to fetch users");
+  if (!res.ok)
+    throw new Error(data.message || data.error || "Failed to fetch users");
   return Array.isArray(data) ? data : [];
 }
 
@@ -48,12 +50,12 @@ export async function getUserProfile(userId) {
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || data.error || "Failed to fetch user profile");
+  if (!res.ok)
+    throw new Error(
+      data.message || data.error || "Failed to fetch user profile",
+    );
   return data;
 }
-
-
-
 
 /**
  * Update the logged-in user's profile (name and/or avatar image).
@@ -83,7 +85,8 @@ export async function updatePrivacySettings(settings) {
     body: JSON.stringify(settings),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to update privacy settings");
+  if (!res.ok)
+    throw new Error(data.message || "Failed to update privacy settings");
   return data;
 }
 
@@ -124,7 +127,8 @@ export async function getLinkedDevices() {
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to fetch linked devices");
+  if (!res.ok)
+    throw new Error(data.message || "Failed to fetch linked devices");
   return data;
 }
 
@@ -185,4 +189,3 @@ export async function deleteAccount() {
   if (!res.ok) throw new Error(data.message || "Failed to delete account");
   return data;
 }
-

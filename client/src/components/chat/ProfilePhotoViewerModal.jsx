@@ -12,7 +12,13 @@ import {
  * ProfilePhotoViewerModal — Full-screen lightbox for viewing profile pictures
  * and group icons, with zoom and download capabilities.
  */
-const ProfilePhotoViewerModal = ({ isOpen, onClose, avatarUrl, name, isGroup }) => {
+const ProfilePhotoViewerModal = ({
+  isOpen,
+  onClose,
+  avatarUrl,
+  name,
+  isGroup,
+}) => {
   const [scale, setScale] = useState(1);
 
   if (!isOpen) return null;
@@ -49,7 +55,11 @@ const ProfilePhotoViewerModal = ({ isOpen, onClose, avatarUrl, name, isGroup }) 
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-base-300/30 flex items-center justify-center">
             {avatarUrl ? (
-              <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
+              <img
+                src={avatarUrl}
+                alt={name}
+                className="w-full h-full object-cover"
+              />
             ) : isGroup ? (
               <BsPeopleFill size={20} />
             ) : (

@@ -121,6 +121,23 @@ export const usePrivacySettings = ({
       ? Notification.permission
       : "unsupported",
   );
+  const [notificationSound, setNotificationSound] = useState(
+    () => localStorage.getItem("setting_notification_sound") || "default",
+  );
+  const [ringtoneSound, setRingtoneSound] = useState(
+    () => localStorage.getItem("setting_ringtone_sound") || "classic",
+  );
+
+  const handleSelectNotificationSound = (soundKey) => {
+    setNotificationSound(soundKey);
+    localStorage.setItem("setting_notification_sound", soundKey);
+    playMessageChime(soundKey);
+  };
+
+  const handleSelectRingtoneSound = (ringtoneKey) => {
+    setRingtoneSound(ringtoneKey);
+    localStorage.setItem("setting_ringtone_sound", ringtoneKey);
+  };
 
   // Theme Preferences
   const [appTheme, setAppTheme] = useState(
@@ -406,6 +423,10 @@ export const usePrivacySettings = ({
     handleSaveProfile,
     soundEnabled,
     handleToggleSound,
+    notificationSound,
+    handleSelectNotificationSound,
+    ringtoneSound,
+    handleSelectRingtoneSound,
     reactionsAlerts,
     handleToggleReactionsAlerts,
     notifPermission,

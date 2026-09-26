@@ -14,14 +14,19 @@ export const uploadStatus = async (formData) => {
   return data;
 };
 
-export const uploadTextStatus = async ({ text, backgroundColor, fontFamily }) => {
+export const uploadTextStatus = async ({
+  text,
+  backgroundColor,
+  fontFamily,
+  song,
+}) => {
   const res = await fetch(`${BASE}/text`, {
     method: "POST",
     headers: {
       ...authHeader(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text, backgroundColor, fontFamily }),
+    body: JSON.stringify({ text, backgroundColor, fontFamily, song }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to create text status");

@@ -21,7 +21,7 @@ export const createChannel = async (req, res) => {
             (error, result) => {
               if (error) return reject(error);
               resolve(result);
-            }
+            },
           );
           stream.end(req.file.buffer);
         });
@@ -35,13 +35,18 @@ export const createChannel = async (req, res) => {
     const channel = new Channel({
       name: name.trim(),
       description: description || "",
-      avatar: avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(name.trim())}`,
+      avatar:
+        avatar ||
+        `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(name.trim())}`,
       owner: userId,
       followers: [userId],
     });
 
     await channel.save();
-    const populated = await Channel.findById(channel._id).populate("owner", "name avatar");
+    const populated = await Channel.findById(channel._id).populate(
+      "owner",
+      "name avatar",
+    );
 
     const formatted = {
       ...populated.toObject(),
@@ -89,7 +94,8 @@ export const getChannels = async (req, res) => {
         {
           name: "Guftgu Official",
           description: "News, updates, and product tips from the Guftgu team.",
-          avatar: "https://static.whatsapp.net/rsrc.php/v3/yO/r/y5jZqw0hT0Q.png",
+          avatar:
+            "https://static.whatsapp.net/rsrc.php/v3/yO/r/y5jZqw0hT0Q.png",
           owner: userId,
           verified: true,
           followers: [userId],
@@ -103,7 +109,8 @@ export const getChannels = async (req, res) => {
         },
         {
           name: "Tech Pulse",
-          description: "Daily technology breakthroughs, AI updates, and developer insights.",
+          description:
+            "Daily technology breakthroughs, AI updates, and developer insights.",
           avatar: "https://api.dicebear.com/7.x/identicon/svg?seed=TechPulse",
           owner: userId,
           verified: true,
@@ -126,7 +133,9 @@ export const getChannels = async (req, res) => {
       return {
         ...obj,
         followerCount: c.followers?.length || 0,
-        isFollowing: c.followers?.some((f) => f.toString() === userId.toString()),
+        isFollowing: c.followers?.some(
+          (f) => f.toString() === userId.toString(),
+        ),
         isOwner: ownerId === userId.toString(),
       };
     });
@@ -153,7 +162,9 @@ export const getChannelById = async (req, res) => {
     const formatted = {
       ...channel.toObject(),
       followerCount: channel.followers?.length || 0,
-      isFollowing: channel.followers?.some((f) => f.toString() === userId.toString()),
+      isFollowing: channel.followers?.some(
+        (f) => f.toString() === userId.toString(),
+      ),
       isOwner: ownerId === userId.toString(),
     };
 
@@ -175,7 +186,9 @@ export const toggleFollowChannel = async (req, res) => {
     const channel = await Channel.findById(id);
     if (!channel) return res.status(404).json({ error: "Channel not found" });
 
-    const idx = channel.followers.findIndex((f) => f.toString() === userId.toString());
+    const idx = channel.followers.findIndex(
+      (f) => f.toString() === userId.toString(),
+    );
     let isFollowing = false;
     if (idx === -1) {
       channel.followers.push(userId);
@@ -221,10 +234,35 @@ export const postToChannel = async (req, res) => {
 
     const ownerId = (channel.owner?._id || channel.owner)?.toString();
     if (ownerId !== userId.toString()) {
-      return res.status(403).json({ error: "Only the channel owner can post updates" });
+      return res
+        .status(403)
+        .json({ error: "Only the channel owner can post updates" });
     }
 
+    let fileName = "";
     if (req.file) {
+      const mime = req.file.mimetype || "";
+      if (mime.startsWith("image/")) {
+        mediaType = "image";
+      } else if (mime.startsWith("video/")) {
+        mediaType = "video";
+      } else if (mime.startsWith("audio/")) {
+        mediaType = "audio";
+      } else {
+        mediaType = "document";
+      }
+
+      if (
+        (mediaType === "audio" || mediaType === "video") &&
+        req.file.size > 5 * 1024 * 1024
+      ) {
+        return res.status(400).json({
+          error: "Audio and video uploads are restricted to a maximum of 5MB.",
+        });
+      }
+
+      fileName = req.file.originalname || "attachment";
+
       try {
         const uploadResult = await new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
@@ -232,27 +270,31 @@ export const postToChannel = async (req, res) => {
             (error, result) => {
               if (error) return reject(error);
               resolve(result);
-            }
+            },
           );
           stream.end(req.file.buffer);
         });
         mediaUrl = uploadResult.secure_url;
-        mediaType = req.file.mimetype.startsWith("image/") ? "image" : "file";
       } catch (uploadErr) {
-        console.warn("Cloudinary upload failed, using data URI fallback:", uploadErr.message);
+        console.warn(
+          "Cloudinary upload failed, using data URI fallback:",
+          uploadErr.message,
+        );
         mediaUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
-        mediaType = req.file.mimetype.startsWith("image/") ? "image" : "file";
       }
     }
 
     if (!text?.trim() && !mediaUrl) {
-      return res.status(400).json({ error: "Post message or media attachment is required" });
+      return res
+        .status(400)
+        .json({ error: "Post message or media attachment is required" });
     }
 
     const newPost = {
       text: (text || "").trim(),
       mediaUrl: mediaUrl || "",
       mediaType: mediaType || "text",
+      fileName: fileName || "",
       createdAt: new Date(),
       reactions: [],
     };
@@ -274,7 +316,9 @@ export const postToChannel = async (req, res) => {
       ...channel.toObject(),
       followerCount: channel.followers?.length || 0,
       followersCount: channel.followers?.length || 0,
-      isFollowing: channel.followers?.some((f) => f.toString() === userId.toString()),
+      isFollowing: channel.followers?.some(
+        (f) => f.toString() === userId.toString(),
+      ),
       isOwner: true,
     };
 
@@ -331,7 +375,9 @@ export const reactToChannelPost = async (req, res) => {
     }
 
     // Clean up empty reaction groups
-    post.reactions = post.reactions.filter((r) => r.userIds && r.userIds.length > 0);
+    post.reactions = post.reactions.filter(
+      (r) => r.userIds && r.userIds.length > 0,
+    );
 
     await channel.save();
 
@@ -364,10 +410,14 @@ export const deleteChannelPost = async (req, res) => {
 
     const ownerId = (channel.owner?._id || channel.owner)?.toString();
     if (ownerId !== userId.toString()) {
-      return res.status(403).json({ error: "Only the channel owner can delete posts" });
+      return res
+        .status(403)
+        .json({ error: "Only the channel owner can delete posts" });
     }
 
-    channel.posts = channel.posts.filter((p) => p._id.toString() !== postId.toString());
+    channel.posts = channel.posts.filter(
+      (p) => p._id.toString() !== postId.toString(),
+    );
     await channel.save();
 
     const io = req.app.get("io");
@@ -398,7 +448,9 @@ export const deleteChannel = async (req, res) => {
 
     const ownerId = (channel.owner?._id || channel.owner)?.toString();
     if (ownerId !== userId.toString()) {
-      return res.status(403).json({ error: "Only the channel owner can delete this channel" });
+      return res
+        .status(403)
+        .json({ error: "Only the channel owner can delete this channel" });
     }
 
     await Channel.findByIdAndDelete(id);

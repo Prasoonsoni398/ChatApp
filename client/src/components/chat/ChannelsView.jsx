@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { BsPlus, BsX, BsMegaphoneFill, BsSearch, BsPlusCircleFill } from "react-icons/bs";
+import {
+  BsPlus,
+  BsX,
+  BsMegaphoneFill,
+  BsSearch,
+  BsPlusCircleFill,
+} from "react-icons/bs";
 import toast from "react-hot-toast";
 import * as channelService from "../../services/channelService.js";
 import socketAPI from "../../config/webSocket.js";
@@ -208,8 +214,12 @@ const ChannelsView = ({ loggedInUser }) => {
         };
       }
 
-      const res = await channelService.postToChannel(selectedChannel._id, postPayload);
-      const newPost = res.post || (Array.isArray(res.posts) ? res.posts[0] : res);
+      const res = await channelService.postToChannel(
+        selectedChannel._id,
+        postPayload,
+      );
+      const newPost =
+        res.post || (Array.isArray(res.posts) ? res.posts[0] : res);
 
       setSelectedChannel((prev) => {
         if (!prev) return prev;
@@ -223,9 +233,7 @@ const ChannelsView = ({ loggedInUser }) => {
 
       setChannels((prev) =>
         prev.map((c) =>
-          c._id === selectedChannel._id
-            ? { ...c, lastPost: newPost }
-            : c,
+          c._id === selectedChannel._id ? { ...c, lastPost: newPost } : c,
         ),
       );
 
@@ -362,7 +370,8 @@ const ChannelsView = ({ loggedInUser }) => {
                 <span>Want to post updates?</span>
               </div>
               <p className="text-[11px] text-base-content/70 leading-relaxed">
-                Create your own broadcast channel to share news, updates, and photos with followers.
+                Create your own broadcast channel to share news, updates, and
+                photos with followers.
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -379,7 +388,9 @@ const ChannelsView = ({ loggedInUser }) => {
             <div>
               <div className="px-4 py-2 bg-base-200/40 text-[11px] font-bold text-base-content/60 uppercase tracking-wider flex items-center justify-between">
                 <span>Channels You Manage</span>
-                <span className="badge badge-xs badge-primary font-mono">{myChannels.length}</span>
+                <span className="badge badge-xs badge-primary font-mono">
+                  {myChannels.length}
+                </span>
               </div>
               {myChannels.map((ch) => (
                 <ChannelListItem
@@ -404,7 +415,8 @@ const ChannelsView = ({ loggedInUser }) => {
             )}
             {otherChannels.length === 0 && myChannels.length === 0 ? (
               <div className="p-8 text-center text-xs text-base-content/50">
-                No channels found. Click &quot;New Channel&quot; above to create the first one!
+                No channels found. Click &quot;New Channel&quot; above to create
+                the first one!
               </div>
             ) : (
               otherChannels.map((ch) => (
@@ -427,6 +439,8 @@ const ChannelsView = ({ loggedInUser }) => {
       <ChannelFeedView
         selectedChannel={selectedChannel}
         setSelectedChannel={setSelectedChannel}
+        myChannels={myChannels}
+        channels={channels}
         isOwner={isSelectedOwner}
         currentUserId={currentUserId}
         handleDeleteChannel={handleDeleteChannel}

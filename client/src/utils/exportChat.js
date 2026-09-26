@@ -23,8 +23,13 @@ export function exportChatToTxt(chat, messages = [], loggedInUser = null) {
 
     // Sender name
     let senderName = "Unknown";
-    const senderId = typeof msg.senderId === "object" ? msg.senderId?._id : msg.senderId;
-    if (senderId && loggedInUser && String(senderId) === String(loggedInUser._id)) {
+    const senderId =
+      typeof msg.senderId === "object" ? msg.senderId?._id : msg.senderId;
+    if (
+      senderId &&
+      loggedInUser &&
+      String(senderId) === String(loggedInUser._id)
+    ) {
       senderName = loggedInUser.name || "You";
     } else if (typeof msg.senderId === "object" && msg.senderId?.name) {
       senderName = msg.senderId.name;
@@ -47,7 +52,10 @@ export function exportChatToTxt(chat, messages = [], loggedInUser = null) {
       body = body
         ? `<Video: ${msg.mediaUrl}> - ${body}`
         : `<Video: ${msg.mediaUrl}>`;
-    } else if ((msg.mediaType === "voice" || msg.mediaType === "audio") && msg.mediaUrl) {
+    } else if (
+      (msg.mediaType === "voice" || msg.mediaType === "audio") &&
+      msg.mediaUrl
+    ) {
       body = `<Voice note: ${msg.mediaUrl}${msg.duration ? ` (${msg.duration}s)` : ""}>`;
     } else if (msg.mediaType === "document" && msg.mediaUrl) {
       body = `<Document: ${msg.fileName || "File"} (${msg.mediaUrl})>`;

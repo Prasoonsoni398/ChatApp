@@ -21,17 +21,22 @@ export const searchByPhone = async (req, res) => {
     }
 
     const normPhone = normalisePhone(phone);
-    const user = await User.findOne({ phone: normPhone, isVerified: true }).select(
-      "name email phone avatar"
-    );
+    const user = await User.findOne({
+      phone: normPhone,
+      isVerified: true,
+    }).select("name email phone avatar");
 
     if (!user) {
-      return res.status(404).json({ message: "No user found with that phone number" });
+      return res
+        .status(404)
+        .json({ message: "No user found with that phone number" });
     }
 
     // Don't return yourself
     if (user._id.toString() === req.user._id.toString()) {
-      return res.status(400).json({ message: "You cannot add yourself as a contact" });
+      return res
+        .status(400)
+        .json({ message: "You cannot add yourself as a contact" });
     }
 
     res.status(200).json(user);
@@ -45,7 +50,7 @@ export const getContacts = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate(
       "contacts",
-      "name email phone avatar online about"
+      "name email phone avatar online about",
     );
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -53,7 +58,8 @@ export const getContacts = async (req, res) => {
     const nicknameMap = new Map();
     if (user.contactNicknames && Array.isArray(user.contactNicknames)) {
       user.contactNicknames.forEach((cn) => {
-        if (cn && cn.userId) nicknameMap.set(cn.userId.toString(), cn.customName);
+        if (cn && cn.userId)
+          nicknameMap.set(cn.userId.toString(), cn.customName);
       });
     }
 
@@ -98,7 +104,7 @@ export const addContact = async (req, res) => {
     if (!me) return res.status(404).json({ message: "User not found" });
 
     const alreadyAdded = me.contacts.some(
-      (c) => c.toString() === userId.toString()
+      (c) => c.toString() === userId.toString(),
     );
 
     if (alreadyAdded) {
@@ -106,7 +112,7 @@ export const addContact = async (req, res) => {
       if (customName && customName.trim()) {
         me.contactNicknames = me.contactNicknames || [];
         const existingIdx = me.contactNicknames.findIndex(
-          (cn) => cn.userId.toString() === userId.toString()
+          (cn) => cn.userId.toString() === userId.toString(),
         );
         if (existingIdx >= 0) {
           me.contactNicknames[existingIdx].customName = customName.trim();
@@ -144,7 +150,8 @@ export const addContact = async (req, res) => {
 
     await me.save();
 
-    const finalDisplayName = customName && customName.trim() ? customName.trim() : targetUser.name;
+    const finalDisplayName =
+      customName && customName.trim() ? customName.trim() : targetUser.name;
 
     res.status(201).json({
       message: "Contact added successfully",
@@ -175,7 +182,7 @@ export const updateContactName = async (req, res) => {
 
     me.contactNicknames = me.contactNicknames || [];
     const idx = me.contactNicknames.findIndex(
-      (cn) => cn.userId.toString() === userId.toString()
+      (cn) => cn.userId.toString() === userId.toString(),
     );
 
     if (customName && customName.trim()) {
@@ -208,13 +215,11 @@ export const removeContact = async (req, res) => {
     const me = await User.findById(req.user._id);
     if (!me) return res.status(404).json({ message: "User not found" });
 
-    me.contacts = me.contacts.filter(
-      (c) => c.toString() !== userId.toString()
-    );
+    me.contacts = me.contacts.filter((c) => c.toString() !== userId.toString());
 
     if (me.contactNicknames && Array.isArray(me.contactNicknames)) {
       me.contactNicknames = me.contactNicknames.filter(
-        (cn) => cn.userId.toString() !== userId.toString()
+        (cn) => cn.userId.toString() !== userId.toString(),
       );
     }
 

@@ -26,12 +26,7 @@ router.post("/:groupId/invite/reset", protect, resetGroupInviteLink);
 router.get("/:groupId/details", protect, getGroupDetails);
 router.post("/:groupId/members", protect, addMembersToGroup);
 router.get("/:groupId/messages", protect, getGroupMessages);
-router.post(
-  "/:groupId/messages",
-  protect,
-  uploadAnyMedia,
-  sendGroupMessage,
-);
+router.post("/:groupId/messages", protect, uploadAnyMedia, sendGroupMessage);
 router.delete("/:groupId/leave", protect, leaveGroup);
 
 export default router;

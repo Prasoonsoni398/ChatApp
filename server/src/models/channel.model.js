@@ -35,6 +35,7 @@ const channelSchema = new mongoose.Schema(
         text: { type: String, default: "" },
         mediaUrl: { type: String, default: "" },
         mediaType: { type: String, default: "text" },
+        fileName: { type: String, default: "" },
         createdAt: { type: Date, default: Date.now },
         reactions: [
           {

@@ -50,8 +50,10 @@ const RemoveActionButton = ({
   // Variant classes
   const variantClasses = {
     pill: "inline-flex items-center justify-center shadow-xs",
-    circle: "!p-0 rounded-full inline-flex items-center justify-center aspect-square shadow-xs",
-    square: "!p-0 rounded-xl inline-flex items-center justify-center aspect-square shadow-xs",
+    circle:
+      "!p-0 rounded-full inline-flex items-center justify-center aspect-square shadow-xs",
+    square:
+      "!p-0 rounded-xl inline-flex items-center justify-center aspect-square shadow-xs",
     row: "w-full flex items-center justify-start text-left px-3 py-2.5 rounded-xl",
   };
 
@@ -64,9 +66,10 @@ const RemoveActionButton = ({
   };
 
   const isIconOnly = !label && !children;
-  const dimensionClass = isIconOnly && (variant === "circle" || variant === "square")
-    ? circleSizeClasses[size] || "w-8 h-8"
-    : sizeClasses[size] || sizeClasses.sm;
+  const dimensionClass =
+    isIconOnly && (variant === "circle" || variant === "square")
+      ? circleSizeClasses[size] || "w-8 h-8"
+      : sizeClasses[size] || sizeClasses.sm;
 
   const defaultIcon = <BsTrash size={iconSizes[size] || 14} />;
 

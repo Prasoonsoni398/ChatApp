@@ -2,10 +2,7 @@ import toast from "react-hot-toast";
 import * as groupService from "../services/groupService.js";
 import * as userService from "../services/userService.js";
 
-export const useChatSecurityAndSettings = ({
-  state,
-  modals,
-}) => {
+export const useChatSecurityAndSettings = ({ state, modals }) => {
   const handleToggleLockChat = (customId) => {
     const chatId = customId || state.selectedChat?.id;
     if (!chatId) return;

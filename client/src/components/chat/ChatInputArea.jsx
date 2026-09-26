@@ -1,10 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import EmojiPicker from "emoji-picker-react";
-import {
-  BsEmojiSmile,
-  BsFillSendFill,
-  BsMicFill,
-} from "react-icons/bs";
+import { BsEmojiSmile, BsFillSendFill, BsMicFill } from "react-icons/bs";
+import toast from "react-hot-toast";
 import useVoiceRecorder from "../../hooks/useVoiceRecorder.js";
 import InputPreviews from "./input/InputPreviews.jsx";
 import VoiceRecordingBar from "./input/VoiceRecordingBar.jsx";
@@ -84,11 +81,18 @@ const ChatInputArea = ({
           wasAutoCapitalizedRef.current = true;
         }
       }
-    } else if (val.length > prevVal.length && val.length - prevVal.length === 1) {
+    } else if (
+      val.length > prevVal.length &&
+      val.length - prevVal.length === 1
+    ) {
       const charTyped = val.charAt(cursor - 1);
       const textBefore = val.slice(0, cursor - 1);
       if (/(?:^|[.!?]\s+)$/.test(textBefore)) {
-        if (!userPrefersLowercaseRef.current && charTyped >= "a" && charTyped <= "z") {
+        if (
+          !userPrefersLowercaseRef.current &&
+          charTyped >= "a" &&
+          charTyped <= "z"
+        ) {
           val = textBefore + charTyped.toUpperCase() + val.slice(cursor);
           wasAutoCapitalizedRef.current = true;
         }
@@ -117,6 +121,17 @@ const ChatInputArea = ({
   const handleDocSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    const isAudioOrVideo =
+      file.type?.startsWith("audio/") ||
+      file.type?.startsWith("video/") ||
+      /\.(mp3|wav|ogg|m4a|aac|flac|opus|weba|mp4|webm|mov|mkv|avi|3gp|m4v)$/i.test(
+        file.name || "",
+      );
+    if (isAudioOrVideo && file.size > 5 * 1024 * 1024) {
+      toast.error("Audio and video files cannot exceed 5MB.");
+      e.target.value = null;
+      return;
+    }
     if (setSelectedFile) setSelectedFile(file);
     setShowAttachMenu(false);
     e.target.value = null;
@@ -125,6 +140,11 @@ const ChatInputArea = ({
   const handleVideoSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Video file cannot exceed 5MB.");
+      e.target.value = null;
+      return;
+    }
     if (setSelectedFile) setSelectedFile(file);
     setShowAttachMenu(false);
     e.target.value = null;
@@ -133,6 +153,11 @@ const ChatInputArea = ({
   const handleAudioSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Audio file cannot exceed 5MB.");
+      e.target.value = null;
+      return;
+    }
     if (setSelectedFile) setSelectedFile(file);
     setShowAttachMenu(false);
     e.target.value = null;
@@ -148,14 +173,23 @@ const ChatInputArea = ({
   const currentUserId = (loggedInUser?._id || loggedInUser?.id)?.toString();
   const isAnnouncementAdmin =
     !selectedChat?.onlyAdminsCanMessage ||
-    (selectedChat?.admin?._id || selectedChat?.admin)?.toString() === currentUserId ||
-    (selectedChat?.admins || []).some((a) => (a?._id || a)?.toString() === currentUserId);
+    (selectedChat?.admin?._id || selectedChat?.admin)?.toString() ===
+      currentUserId ||
+    (selectedChat?.admins || []).some(
+      (a) => (a?._id || a)?.toString() === currentUserId,
+    );
 
-  if (selectedChat?.isGroup && selectedChat?.onlyAdminsCanMessage && !isAnnouncementAdmin) {
+  if (
+    selectedChat?.isGroup &&
+    selectedChat?.onlyAdminsCanMessage &&
+    !isAnnouncementAdmin
+  ) {
     return (
       <div className="bg-base-200/60 px-4 py-3.5 border-t border-base-300 text-center text-xs text-base-content/60 flex items-center justify-center gap-2">
         <span className="text-warning">🔒</span>
-        <span>Only community admins can send messages to this announcement group.</span>
+        <span>
+          Only community admins can send messages to this announcement group.
+        </span>
       </div>
     );
   }
@@ -163,12 +197,14 @@ const ChatInputArea = ({
   return (
     <div className="bg-base-100 px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 border-t border-base-300 relative">
       {/* Community Announcement Admin Banner */}
-      {selectedChat?.isGroup && selectedChat?.onlyAdminsCanMessage && isAnnouncementAdmin && (
-        <div className="px-3 py-1 bg-warning/10 border border-warning/20 rounded-lg text-[11px] text-warning flex items-center gap-1.5 self-center">
-          <span className="font-semibold">📢 Announcement Group:</span>
-          <span>Only you and community admins can send messages here.</span>
-        </div>
-      )}
+      {selectedChat?.isGroup &&
+        selectedChat?.onlyAdminsCanMessage &&
+        isAnnouncementAdmin && (
+          <div className="px-3 py-1 bg-warning/10 border border-warning/20 rounded-lg text-[11px] text-warning flex items-center gap-1.5 self-center">
+            <span className="font-semibold">📢 Announcement Group:</span>
+            <span>Only you and community admins can send messages here.</span>
+          </div>
+        )}
 
       {/* Input Previews (Reply, Edit, Image, Generic File) */}
       <InputPreviews
@@ -303,7 +339,8 @@ const ChatInputArea = ({
               onKeyDown={(e) => {
                 if (e.key === "Backspace") {
                   if (
-                    (message.length === 1 || textareaRef.current?.selectionStart === 1) &&
+                    (message.length === 1 ||
+                      textareaRef.current?.selectionStart === 1) &&
                     wasAutoCapitalizedRef.current
                   ) {
                     userPrefersLowercaseRef.current = true;

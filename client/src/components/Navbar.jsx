@@ -21,7 +21,8 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleThemeEvent = (e) => {
-      const newTheme = e.detail || localStorage.getItem("app_theme") || "mintlify";
+      const newTheme =
+        e.detail || localStorage.getItem("app_theme") || "mintlify";
       setSelectTheme(newTheme);
     };
     window.addEventListener("app_theme_changed", handleThemeEvent);

@@ -30,7 +30,8 @@ export const createCommunity = async (req, res) => {
     }
 
     const commAvatar =
-      avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${name.trim()}`;
+      avatar ||
+      `https://api.dicebear.com/7.x/identicon/svg?seed=${name.trim()}`;
 
     // Auto-provision official Announcement Group for this Community
     const announcementGroup = new Group({
@@ -119,7 +120,10 @@ export const getCommunities = async (req, res) => {
             description: `Official announcements for ${comm.name}`,
             avatar: comm.avatar,
             admin: comm.admin._id || comm.admin,
-            admins: comm.admins.length > 0 ? comm.admins : [comm.admin._id || comm.admin],
+            admins:
+              comm.admins.length > 0
+                ? comm.admins
+                : [comm.admin._id || comm.admin],
             members: comm.members,
             onlyAdminsCanMessage: true,
             isCommunityAnnouncement: true,
@@ -131,7 +135,10 @@ export const getCommunities = async (req, res) => {
             announcementGroup: annGroup._id,
           });
         } catch (_err) {
-          console.error("Error auto-provisioning announcement group:", _err.message);
+          console.error(
+            "Error auto-provisioning announcement group:",
+            _err.message,
+          );
         }
       }
     }
@@ -175,13 +182,16 @@ export const addGroupsToCommunity = async (req, res) => {
     const userId = req.user._id;
 
     const community = await Community.findById(id);
-    if (!community) return res.status(404).json({ error: "Community not found" });
+    if (!community)
+      return res.status(404).json({ error: "Community not found" });
 
     if (
       community.admin.toString() !== userId.toString() &&
       !community.admins.some((a) => a.toString() === userId.toString())
     ) {
-      return res.status(403).json({ error: "Only admins can add groups to this community" });
+      return res
+        .status(403)
+        .json({ error: "Only admins can add groups to this community" });
     }
 
     if (Array.isArray(groupIds) && groupIds.length > 0) {
@@ -242,16 +252,21 @@ export const removeGroupFromCommunity = async (req, res) => {
     const userId = req.user._id;
 
     const community = await Community.findById(id);
-    if (!community) return res.status(404).json({ error: "Community not found" });
+    if (!community)
+      return res.status(404).json({ error: "Community not found" });
 
     if (
       community.admin.toString() !== userId.toString() &&
       !community.admins.some((a) => a.toString() === userId.toString())
     ) {
-      return res.status(403).json({ error: "Only admins can remove groups from this community" });
+      return res
+        .status(403)
+        .json({ error: "Only admins can remove groups from this community" });
     }
 
-    community.groups = community.groups.filter((g) => g.toString() !== groupId.toString());
+    community.groups = community.groups.filter(
+      (g) => g.toString() !== groupId.toString(),
+    );
     await community.save();
 
     await Group.findByIdAndUpdate(groupId, { communityId: null });
@@ -280,13 +295,16 @@ export const deleteCommunity = async (req, res) => {
     const userId = req.user._id;
 
     const community = await Community.findById(id);
-    if (!community) return res.status(404).json({ error: "Community not found" });
+    if (!community)
+      return res.status(404).json({ error: "Community not found" });
 
     if (
       community.admin.toString() !== userId.toString() &&
       !community.admins.some((a) => a.toString() === userId.toString())
     ) {
-      return res.status(403).json({ error: "Only the admin can delete this community" });
+      return res
+        .status(403)
+        .json({ error: "Only the admin can delete this community" });
     }
 
     // Clean up announcement group
@@ -318,9 +336,12 @@ export const leaveCommunity = async (req, res) => {
     const userId = req.user._id;
 
     const community = await Community.findById(id);
-    if (!community) return res.status(404).json({ error: "Community not found" });
+    if (!community)
+      return res.status(404).json({ error: "Community not found" });
 
-    community.members = community.members.filter((m) => m.toString() !== userId.toString());
+    community.members = community.members.filter(
+      (m) => m.toString() !== userId.toString(),
+    );
     await community.save();
 
     if (community.announcementGroup) {

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { BsX, BsCameraFill, BsMegaphoneFill } from "react-icons/bs";
+import toast from "react-hot-toast";
 
 const CreateChannelModal = ({
   show,
@@ -39,6 +40,11 @@ const CreateChannelModal = ({
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Avatar image cannot exceed 5MB.");
+        e.target.value = "";
+        return;
+      }
       if (avatarPreview) {
         URL.revokeObjectURL(avatarPreview);
       }
@@ -104,7 +110,10 @@ const CreateChannelModal = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <BsCameraFill size={24} className="text-base-content/40 group-hover:text-primary transition-colors" />
+                <BsCameraFill
+                  size={24}
+                  className="text-base-content/40 group-hover:text-primary transition-colors"
+                />
               )}
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-medium">
                 Change
@@ -150,7 +159,8 @@ const CreateChannelModal = ({
           </div>
 
           <p className="text-[11px] text-base-content/60 bg-base-200/60 p-2.5 rounded-xl border border-base-300/50">
-            💡 As the creator, you can broadcast messages, updates, and photos anytime. Followers can view and react to your posts!
+            💡 As the creator, you can broadcast messages, updates, and photos
+            anytime. Followers can view and react to your posts!
           </p>
 
           <div className="flex justify-end gap-2 pt-2">

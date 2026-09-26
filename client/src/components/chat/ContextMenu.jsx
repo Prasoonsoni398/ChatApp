@@ -36,11 +36,11 @@ const ContextMenu = ({
 
   const isStarred = Boolean(
     contextMenu.msg?.starredBy &&
-      contextMenu.msg.starredBy.some(
-        (uid) =>
-          uid.toString() === loggedInUser?._id?.toString() ||
-          uid._id?.toString() === loggedInUser?._id?.toString(),
-      ),
+    contextMenu.msg.starredBy.some(
+      (uid) =>
+        uid.toString() === loggedInUser?._id?.toString() ||
+        uid._id?.toString() === loggedInUser?._id?.toString(),
+    ),
   );
 
   return (

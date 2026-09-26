@@ -89,7 +89,9 @@ const ThemeTabContent = ({ appTheme, handleThemeChange }) => {
                 <span className="text-xs font-bold block truncate">
                   {t.name}
                 </span>
-                <span className="text-[10px] text-base-content/50">{t.mode}</span>
+                <span className="text-[10px] text-base-content/50">
+                  {t.mode}
+                </span>
               </div>
             </button>
           ))}

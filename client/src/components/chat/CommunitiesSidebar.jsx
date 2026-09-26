@@ -80,7 +80,8 @@ const CommunitiesSidebar = ({ chats = [], onSelectChat, loggedInUser }) => {
 
   const handleDeleteCommunity = async (commId, e) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this community?")) return;
+    if (!window.confirm("Are you sure you want to delete this community?"))
+      return;
     try {
       await communityService.deleteCommunity(commId);
       toast.success("Community deleted");
@@ -165,9 +166,12 @@ const CommunitiesSidebar = ({ chats = [], onSelectChat, loggedInUser }) => {
                       className="w-11 h-11 rounded-2xl object-cover flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-sm truncate">{comm.name}</h3>
+                      <h3 className="font-bold text-sm truncate">
+                        {comm.name}
+                      </h3>
                       <p className="text-xs text-base-content/60 truncate">
-                        {comm.description || `${comm.groups?.length || 0} topic groups`}
+                        {comm.description ||
+                          `${comm.groups?.length || 0} topic groups`}
                       </p>
                     </div>
                   </div>
@@ -201,12 +205,15 @@ const CommunitiesSidebar = ({ chats = [], onSelectChat, loggedInUser }) => {
                           onSelectChat({
                             id: annId,
                             _id: annId,
-                            name: annGroup?.name || `${comm.name} Announcements`,
+                            name:
+                              annGroup?.name || `${comm.name} Announcements`,
                             isGroup: true,
                             isCommunityAnnouncement: true,
                             onlyAdminsCanMessage: true,
                             admin: comm.admin?._id || comm.admin,
-                            admins: comm.admins || [comm.admin?._id || comm.admin],
+                            admins: comm.admins || [
+                              comm.admin?._id || comm.admin,
+                            ],
                             avatar: annGroup?.avatar || comm.avatar,
                             members: annGroup?.members || comm.members || [],
                           });

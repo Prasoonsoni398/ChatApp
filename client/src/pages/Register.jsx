@@ -13,7 +13,11 @@ import {
 } from "react-icons/bs";
 import toast from "react-hot-toast";
 import useAuthRedirect from "../hooks/useAuthRedirect.js";
-import { registerUser, verifyOtp, resendPhoneOtp } from "../services/authService.js";
+import {
+  registerUser,
+  verifyOtp,
+  resendPhoneOtp,
+} from "../services/authService.js";
 import {
   authPageWrapper,
   authCard,
@@ -39,7 +43,9 @@ const Register = () => {
     email: "",
   });
   const [otp, setOtp] = useState("");
-  const [receivedDevOtp, setReceivedDevOtp] = useState(location.state?.devOtp || "");
+  const [receivedDevOtp, setReceivedDevOtp] = useState(
+    location.state?.devOtp || "",
+  );
   const [deliveryInfo, setDeliveryInfo] = useState({
     smsDelivered: false,
     emailDelivered: false,
@@ -210,7 +216,9 @@ const Register = () => {
               {/* Phone Number */}
               <div className={authFormControl}>
                 <label className={authLabel}>
-                  <span className={authLabelText}>Phone Number (WhatsApp Identifier)</span>
+                  <span className={authLabelText}>
+                    Phone Number (WhatsApp Identifier)
+                  </span>
                 </label>
                 <div className={authInputGroup}>
                   <span className={authInputIconSpan}>
@@ -227,7 +235,8 @@ const Register = () => {
                   />
                 </div>
                 <p className="text-xs text-base-content/50 mt-1 pl-1">
-                  Include country code (e.g. +91). A real-time verification code will be forwarded to this number.
+                  Include country code (e.g. +91). A real-time verification code
+                  will be forwarded to this number.
                 </p>
               </div>
 
@@ -316,7 +325,10 @@ const Register = () => {
                   </div>
                   {deliveryInfo.emailDelivered && deliveryInfo.email && (
                     <p className="text-[11px] text-base-content/70">
-                      ✉️ Also delivered to your email: <span className="font-medium text-primary">{deliveryInfo.email}</span>
+                      ✉️ Also delivered to your email:{" "}
+                      <span className="font-medium text-primary">
+                        {deliveryInfo.email}
+                      </span>
                     </p>
                   )}
                   {deliveryInfo.smsDelivered ? (
@@ -340,7 +352,9 @@ const Register = () => {
 
               <div className={authFormControl}>
                 <label className={authLabel}>
-                  <span className={authLabelText}>6-Digit Verification Code</span>
+                  <span className={authLabelText}>
+                    6-Digit Verification Code
+                  </span>
                 </label>
                 <div className={authInputGroup}>
                   <span className={authInputIconSpan}>
@@ -353,7 +367,9 @@ const Register = () => {
                     className="input input-bordered w-full pl-10 tracking-[0.35em] text-center font-mono text-xl font-bold rounded-xl"
                     maxLength={6}
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
+                    onChange={(e) =>
+                      setOtp(e.target.value.replace(/[^0-9]/g, ""))
+                    }
                     required
                     autoFocus
                   />
@@ -398,8 +414,8 @@ const Register = () => {
                   {resending
                     ? "Sending..."
                     : countdown > 0
-                    ? `Resend in ${countdown}s`
-                    : "Resend OTP"}
+                      ? `Resend in ${countdown}s`
+                      : "Resend OTP"}
                 </button>
               </div>
             </form>

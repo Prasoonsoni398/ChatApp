@@ -29,7 +29,7 @@ const EventCard = ({ message, loggedInUser, onRespond }) => {
     (r) => r.status === "not_going",
   ).length;
 
-  const eventDate = new Date(event.startDate || Date.now());
+  const eventDate = new Date(event.startDate || 0);
   const monthStr = eventDate
     .toLocaleDateString([], { month: "short" })
     .toUpperCase();

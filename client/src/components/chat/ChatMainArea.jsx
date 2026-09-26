@@ -78,23 +78,27 @@ const ChatMainArea = ({
               onOpenStarred={() => setShowStarredModal(true)}
               isChatLocked={Boolean(
                 state.selectedChat &&
-                  lockedChatIds.includes(state.selectedChat.id),
+                lockedChatIds.includes(state.selectedChat.id),
               )}
-              onToggleLockChat={() => handleToggleLockChat(state.selectedChat.id)}
+              onToggleLockChat={() =>
+                handleToggleLockChat(state.selectedChat.id)
+              }
               isChatArchived={Boolean(
                 state.selectedChat &&
-                  archivedChatIds.includes(state.selectedChat.id),
+                archivedChatIds.includes(state.selectedChat.id),
               )}
               onToggleArchiveChat={handleToggleArchiveChat}
               isChatMuted={Boolean(
                 state.selectedChat &&
-                  mutedChatIds.includes(state.selectedChat.id),
+                mutedChatIds.includes(state.selectedChat.id),
               )}
-              onToggleMuteChat={() => handleToggleMuteChat(state.selectedChat.id)}
+              onToggleMuteChat={() =>
+                handleToggleMuteChat(state.selectedChat.id)
+              }
               onOpenGroupInvite={() => setShowGroupInviteModal(true)}
               isContactBlocked={Boolean(
                 state.selectedChat &&
-                  blockedUserIds.includes(state.selectedChat.id),
+                blockedUserIds.includes(state.selectedChat.id),
               )}
               onToggleBlockContact={() =>
                 handleToggleBlockContact(state.selectedChat.id)
@@ -326,11 +330,14 @@ const ChatMainArea = ({
             blockedUserIds.includes(state.selectedChat.id) ? (
               <div className="p-4 bg-base-200/90 border-t border-base-300 text-center flex flex-col items-center justify-center gap-1.5 z-20">
                 <p className="text-xs text-base-content/70">
-                  You blocked this contact. Tap below to unblock and resume chatting.
+                  You blocked this contact. Tap below to unblock and resume
+                  chatting.
                 </p>
                 <button
                   type="button"
-                  onClick={() => handleToggleBlockContact(state.selectedChat.id)}
+                  onClick={() =>
+                    handleToggleBlockContact(state.selectedChat.id)
+                  }
                   className="btn btn-sm btn-outline btn-primary rounded-xl"
                 >
                   Unblock Contact

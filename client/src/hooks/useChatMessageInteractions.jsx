@@ -15,7 +15,8 @@ export const useChatMessageInteractions = ({
     state.setIsUpdating(true);
     const formData = new FormData();
     formData.append("name", state.editName);
-    if (state.editAbout !== undefined) formData.append("about", state.editAbout);
+    if (state.editAbout !== undefined)
+      formData.append("about", state.editAbout);
     if (state.editAvatar) formData.append("avatar", state.editAvatar);
     try {
       const data = await userService.updateProfile(formData);
@@ -120,7 +121,8 @@ export const useChatMessageInteractions = ({
         targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
         targetEl.classList.add("ring-4", "ring-primary", "rounded-2xl");
         setTimeout(
-          () => targetEl.classList.remove("ring-4", "ring-primary", "rounded-2xl"),
+          () =>
+            targetEl.classList.remove("ring-4", "ring-primary", "rounded-2xl"),
           1500,
         );
       }

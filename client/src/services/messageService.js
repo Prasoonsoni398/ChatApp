@@ -145,7 +145,8 @@ export async function getStarredMessages() {
     headers: authHeader(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Failed to fetch starred messages");
+  if (!res.ok)
+    throw new Error(data.error || "Failed to fetch starred messages");
   return data;
 }
 
@@ -274,5 +275,3 @@ export async function getStorageUsage() {
   if (!res.ok) throw new Error(data.error || "Failed to get storage usage");
   return data;
 }
-
-

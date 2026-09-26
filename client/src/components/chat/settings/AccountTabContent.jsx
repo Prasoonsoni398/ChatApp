@@ -32,7 +32,8 @@ const AccountTabContent = ({
                 Show security notifications on this device
               </span>
               <span className="text-xs text-base-content/60 block mt-0.5">
-                Get notified when your security code changes for a contact's phone
+                Get notified when your security code changes for a contact's
+                phone
               </span>
             </div>
           </div>
@@ -60,8 +61,9 @@ const AccountTabContent = ({
               </span>
               <span className="text-xs text-base-content/60 block mt-1 leading-relaxed">
                 Create a downloadable report of your ChatApp account information
-                and settings. This export includes your profile details, contacts
-                list, group memberships, and configuration data in JSON format.
+                and settings. This export includes your profile details,
+                contacts list, group memberships, and configuration data in JSON
+                format.
               </span>
             </div>
           </div>

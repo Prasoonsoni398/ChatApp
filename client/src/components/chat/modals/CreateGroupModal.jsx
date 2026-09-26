@@ -152,8 +152,8 @@ const CreateGroupModal = ({
                         No added contacts found
                       </p>
                       <p className="text-[11px]">
-                        Only users you have added to your contacts can be
-                        added to a group.
+                        Only users you have added to your contacts can be added
+                        to a group.
                       </p>
                     </div>
                   )}

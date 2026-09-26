@@ -60,7 +60,10 @@ export const useChatModalsState = (loggedInUser) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem("chat_archived_ids", JSON.stringify(archivedChatIds));
+      localStorage.setItem(
+        "chat_archived_ids",
+        JSON.stringify(archivedChatIds),
+      );
     } catch (_e) {}
   }, [archivedChatIds]);
 

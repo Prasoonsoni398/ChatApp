@@ -1,5 +1,10 @@
 import React from "react";
-import { BsCameraFill, BsPencilFill, BsTelephoneFill, BsLockFill } from "react-icons/bs";
+import {
+  BsCameraFill,
+  BsPencilFill,
+  BsTelephoneFill,
+  BsLockFill,
+} from "react-icons/bs";
 
 const statusPresets = [
   "Available",
@@ -37,7 +42,9 @@ const ProfileTabContent = ({
           />
           <label className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
             <BsCameraFill className="text-white text-2xl drop-shadow" />
-            <span className="text-[11px] text-white font-medium mt-1">Change</span>
+            <span className="text-[11px] text-white font-medium mt-1">
+              Change
+            </span>
             <input
               type="file"
               accept="image/*"
@@ -140,7 +147,10 @@ const ProfileTabContent = ({
               </p>
             </div>
           </div>
-          <BsLockFill size={15} className="text-base-content/40 flex-shrink-0" />
+          <BsLockFill
+            size={15}
+            className="text-base-content/40 flex-shrink-0"
+          />
         </div>
 
         {/* Save Button */}

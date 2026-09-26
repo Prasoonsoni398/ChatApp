@@ -4,10 +4,20 @@ import Message from "../models/message.model.js";
 export const createEvent = async (req, res) => {
   try {
     const senderId = req.user._id;
-    const { title, startDate, startTime, location, description, groupId, receiverId } = req.body;
+    const {
+      title,
+      startDate,
+      startTime,
+      location,
+      description,
+      groupId,
+      receiverId,
+    } = req.body;
 
     if (!title || !startDate) {
-      return res.status(400).json({ error: "Event title and date are required" });
+      return res
+        .status(400)
+        .json({ error: "Event title and date are required" });
     }
 
     const newMessage = new Message({
@@ -28,7 +38,10 @@ export const createEvent = async (req, res) => {
     });
 
     await newMessage.save();
-    const populated = await Message.findById(newMessage._id).populate("senderId", "name avatar");
+    const populated = await Message.findById(newMessage._id).populate(
+      "senderId",
+      "name avatar",
+    );
     res.status(201).json(populated);
   } catch (error) {
     console.error("Error in createEvent:", error.message);
@@ -52,7 +65,7 @@ export const respondEvent = async (req, res) => {
     }
 
     const existingIdx = message.event.responses.findIndex(
-      (r) => r.userId.toString() === userId.toString()
+      (r) => r.userId.toString() === userId.toString(),
     );
 
     if (existingIdx !== -1) {
@@ -62,7 +75,10 @@ export const respondEvent = async (req, res) => {
     }
 
     await message.save();
-    const populated = await Message.findById(id).populate("senderId", "name avatar");
+    const populated = await Message.findById(id).populate(
+      "senderId",
+      "name avatar",
+    );
     res.status(200).json(populated);
   } catch (error) {
     console.error("Error in respondEvent:", error.message);

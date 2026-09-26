@@ -44,7 +44,10 @@ const ClearChatsConfirmModal = ({
           <h4 id="clear-chats-title" className="font-bold text-base">
             Clear all chats?
           </h4>
-          <p id="clear-chats-desc" className="text-xs text-base-content/60 mt-1">
+          <p
+            id="clear-chats-desc"
+            className="text-xs text-base-content/60 mt-1"
+          >
             This action will clear messages across all your conversations. You
             will not be able to undo this operation.
           </p>

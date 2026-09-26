@@ -31,6 +31,7 @@ const ChatSidebar = ({
   isLockedSectionUnlocked = false,
   onOpenLockedChats,
   onOpenPrivacySettings,
+  onOpenChannels,
   onOpenLinkedDevices,
   onOpenShortcuts,
   onAddContact,
@@ -81,18 +82,22 @@ const ChatSidebar = ({
   }, [searchQuery, searchCategory, isGlobalSearchMode]);
 
   const handleSelectMessageResult = (msg) => {
-    let targetChat = null;
-    if (msg.groupId) {
-      const gid = msg.groupId._id || msg.groupId;
-      targetChat = chats.find((c) => c.isGroup && (c.id === gid || c._id === gid));
-    } else {
-      const myId = loggedInUser?._id;
-      const otherId =
-        String(msg.senderId?._id || msg.senderId) === String(myId)
-          ? msg.receiverId?._id || msg.receiverId
-          : msg.senderId?._id || msg.senderId;
-      targetChat = chats.find((c) => !c.isGroup && (c.id === otherId || c._id === otherId));
-    }
+    const myId = loggedInUser?._id;
+    const otherId =
+      String(msg.senderId?._id || msg.senderId) === String(myId)
+        ? msg.receiverId?._id || msg.receiverId
+        : msg.senderId?._id || msg.senderId;
+
+    const targetChat = msg.groupId
+      ? chats.find(
+          (c) =>
+            c.isGroup &&
+            (c.id === (msg.groupId._id || msg.groupId) ||
+              c._id === (msg.groupId._id || msg.groupId)),
+        )
+      : chats.find(
+          (c) => !c.isGroup && (c.id === otherId || c._id === otherId),
+        );
 
     if (targetChat) {
       setSelectedChat(targetChat);
@@ -167,6 +172,7 @@ const ChatSidebar = ({
         setEditName={setEditName}
         setShowEditModal={setShowEditModal}
         onOpenPrivacySettings={onOpenPrivacySettings}
+        onOpenChannels={onOpenChannels}
         onOpenLinkedDevices={onOpenLinkedDevices}
         onOpenShortcuts={onOpenShortcuts}
         handleLogout={handleLogout}
@@ -221,7 +227,8 @@ const ChatSidebar = ({
                 <div className="p-8 text-center text-base-content/50">
                   <p className="text-sm font-medium">No archived chats</p>
                   <p className="text-xs text-base-content/40 mt-1">
-                    Archived chats stay saved and hidden from your main chat list.
+                    Archived chats stay saved and hidden from your main chat
+                    list.
                   </p>
                 </div>
               ) : (

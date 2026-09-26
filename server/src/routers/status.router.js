@@ -7,11 +7,11 @@ import {
   deleteStatus,
 } from "../controllers/status.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
-import { upload } from "../middlewares/upload.middleware.js";
+import { uploadAnyMedia } from "../middlewares/upload.middleware.js";
 
 const router = express.Router();
 
-router.post("/", protect, upload.single("image"), uploadStatus);
+router.post("/", protect, uploadAnyMedia, uploadStatus);
 router.post("/text", protect, createTextStatus);
 router.post("/:id/view", protect, viewStatus);
 router.get("/", protect, getStatuses);

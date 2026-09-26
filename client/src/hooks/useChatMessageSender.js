@@ -21,6 +21,19 @@ export const useChatMessageSender = ({
     )
       return;
 
+    if (selectedFile) {
+      const isAudioOrVideo =
+        selectedFile.type?.startsWith("audio/") ||
+        selectedFile.type?.startsWith("video/") ||
+        /\.(mp3|wav|ogg|m4a|aac|flac|opus|weba|mp4|webm|mov|mkv|avi|3gp|m4v)$/i.test(
+          selectedFile.name || "",
+        );
+      if (isAudioOrVideo && selectedFile.size > 5 * 1024 * 1024) {
+        toast.error("Audio and video uploads cannot exceed 5MB.");
+        return;
+      }
+    }
+
     try {
       localStorage.removeItem(`draft_${state.selectedChat.id}`);
     } catch (_e) {}
@@ -161,6 +174,11 @@ export const useChatMessageSender = ({
 
   const handleSendVoice = async (voiceBlob, duration) => {
     if (!state.selectedChat) return;
+
+    if (voiceBlob && voiceBlob.size > 5 * 1024 * 1024) {
+      toast.error("Voice recording cannot exceed 5MB.");
+      return;
+    }
 
     const tempId = Date.now().toString();
     const senderInfo = {

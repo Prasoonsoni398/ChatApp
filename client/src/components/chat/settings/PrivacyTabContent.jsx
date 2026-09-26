@@ -195,7 +195,10 @@ const PrivacyTabContent = ({
           </div>
         ) : blockedUsers.length === 0 ? (
           <div className="p-6 text-center text-xs text-base-content/50 bg-base-200/40 rounded-2xl border border-base-300">
-            <BsPersonXFill size={24} className="mx-auto mb-2 text-base-content/30" />
+            <BsPersonXFill
+              size={24}
+              className="mx-auto mb-2 text-base-content/30"
+            />
             No blocked contacts
           </div>
         ) : (

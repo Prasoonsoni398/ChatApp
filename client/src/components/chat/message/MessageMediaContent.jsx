@@ -19,7 +19,8 @@ const formatFileSize = (bytes) => {
 
 const getDocIcon = (filename = "") => {
   const ext = filename.split(".").pop()?.toLowerCase();
-  if (ext === "pdf") return <BsFileEarmarkPdfFill size={28} className="text-error" />;
+  if (ext === "pdf")
+    return <BsFileEarmarkPdfFill size={28} className="text-error" />;
   if (["txt", "doc", "docx"].includes(ext))
     return <BsFileEarmarkTextFill size={28} className="text-info" />;
   if (["zip", "rar", "7z", "tar"].includes(ext))
@@ -46,7 +47,8 @@ const MessageMediaContent = ({
             ? msg.viewedBy && msg.viewedBy.length > 0
             : msg.viewedBy &&
               msg.viewedBy.some(
-                (v) => (v._id || v).toString() === loggedInUser?._id?.toString(),
+                (v) =>
+                  (v._id || v).toString() === loggedInUser?._id?.toString(),
               );
 
           if (isOpened) {

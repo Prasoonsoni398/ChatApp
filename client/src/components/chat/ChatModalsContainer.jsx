@@ -165,7 +165,9 @@ const ChatModalsContainer = ({
       <ViewOnceModal
         isOpen={Boolean(modals.activeViewOnceMsg)}
         onClose={handleCloseViewOnce}
-        mediaUrl={modals.activeViewOnceMsg?.mediaUrl || modals.activeViewOnceMsg?.image}
+        mediaUrl={
+          modals.activeViewOnceMsg?.mediaUrl || modals.activeViewOnceMsg?.image
+        }
         isVideo={modals.activeViewOnceMsg?.mediaType === "video"}
       />
 
@@ -222,15 +224,18 @@ const ChatModalsContainer = ({
         loggedInUser={state.loggedInUser}
         onUpdateContactName={handleUpdateContactName}
         isMuted={Boolean(
-          state.selectedChat && modals.mutedChatIds.includes(state.selectedChat.id),
+          state.selectedChat &&
+          modals.mutedChatIds.includes(state.selectedChat.id),
         )}
         onToggleMute={() => handleToggleMuteChat(state.selectedChat?.id)}
         isLocked={Boolean(
-          state.selectedChat && modals.lockedChatIds.includes(state.selectedChat.id),
+          state.selectedChat &&
+          modals.lockedChatIds.includes(state.selectedChat.id),
         )}
         onToggleLock={() => handleToggleLockChat(state.selectedChat?.id)}
         isBlocked={Boolean(
-          state.selectedChat && modals.blockedUserIds.includes(state.selectedChat.id),
+          state.selectedChat &&
+          modals.blockedUserIds.includes(state.selectedChat.id),
         )}
         onToggleBlock={() => handleToggleBlockContact(state.selectedChat?.id)}
         onOpenReport={() => modals.setShowReportModal(true)}
@@ -249,7 +254,8 @@ const ChatModalsContainer = ({
         loggedInUser={state.loggedInUser}
         allContacts={state.allUsers}
         isMuted={Boolean(
-          state.selectedChat && modals.mutedChatIds.includes(state.selectedChat.id),
+          state.selectedChat &&
+          modals.mutedChatIds.includes(state.selectedChat.id),
         )}
         onToggleMute={() => handleToggleMuteChat(state.selectedChat?.id)}
         onOpenInviteLink={() => modals.setShowGroupInviteModal(true)}

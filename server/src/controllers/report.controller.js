@@ -10,7 +10,9 @@ export const createReport = async (req, res) => {
     const reporterId = req.user?._id;
 
     if (!targetType || !targetId || !reason) {
-      return res.status(400).json({ error: "Target type, target ID, and reason are required" });
+      return res
+        .status(400)
+        .json({ error: "Target type, target ID, and reason are required" });
     }
 
     if (!VALID_TARGET_TYPES.includes(targetType)) {
@@ -29,8 +31,13 @@ export const createReport = async (req, res) => {
       return res.status(400).json({ error: "Invalid target ID format" });
     }
 
-    if (targetType === "user" && targetId.toString() === reporterId?.toString()) {
-      return res.status(400).json({ error: "You cannot report your own account" });
+    if (
+      targetType === "user" &&
+      targetId.toString() === reporterId?.toString()
+    ) {
+      return res
+        .status(400)
+        .json({ error: "You cannot report your own account" });
     }
 
     const report = new Report({

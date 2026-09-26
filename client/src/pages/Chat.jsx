@@ -151,6 +151,7 @@ const Chat = () => {
             isLockedSectionUnlocked={modals.isLockedSectionUnlocked}
             onOpenLockedChats={securityActions.handleOpenLockedChats}
             onOpenPrivacySettings={() => modals.setShowPrivacyModal(true)}
+            onOpenChannels={() => setActiveTab("channels")}
             onOpenLinkedDevices={() => modals.setShowLinkedDevicesModal(true)}
             onOpenShortcuts={() => modals.setShowShortcutsModal(true)}
             onAddContact={() => modals.setShowAddContactModal(true)}

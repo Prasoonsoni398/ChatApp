@@ -102,7 +102,8 @@ const AddContactModal = ({ isOpen, onClose, onContactAdded }) => {
         {/* Body */}
         <div className="p-5 space-y-5">
           <p className="text-sm text-base-content/60">
-            Enter the phone number of the person you want to chat with. They must be registered on ChatApp.
+            Enter the phone number of the person you want to chat with. They
+            must be registered on ChatApp.
           </p>
 
           {/* Phone search form */}
@@ -175,7 +176,9 @@ const AddContactModal = ({ isOpen, onClose, onContactAdded }) => {
               <div className="pt-1 border-t border-base-300/60">
                 <label className="text-xs font-semibold text-base-content/80 flex items-center justify-between mb-1.5">
                   <span>Save Contact Name</span>
-                  <span className="text-[10px] text-primary font-medium">Editable</span>
+                  <span className="text-[10px] text-primary font-medium">
+                    Editable
+                  </span>
                 </label>
                 <div className="relative">
                   <input

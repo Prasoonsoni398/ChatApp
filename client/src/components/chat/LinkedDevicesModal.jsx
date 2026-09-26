@@ -268,7 +268,7 @@ const LinkedDevicesModal = ({ isOpen, onClose, loggedInUser }) => {
                                   {isCurrent
                                     ? "Active now"
                                     : `Last active ${new Date(
-                                        device.lastActive || Date.now(),
+                                        device.lastActive || 0,
                                       ).toLocaleDateString([], {
                                         month: "short",
                                         day: "numeric",

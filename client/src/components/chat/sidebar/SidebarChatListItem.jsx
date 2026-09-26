@@ -66,9 +66,7 @@ const SidebarChatListItem = ({
               />
             )}
           </h3>
-          <span className="text-[11px] text-base-content/50">
-            {chat.time}
-          </span>
+          <span className="text-[11px] text-base-content/50">{chat.time}</span>
         </div>
 
         <div className="flex justify-between items-center">

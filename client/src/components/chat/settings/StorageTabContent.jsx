@@ -129,7 +129,9 @@ const StorageTabContent = ({
             <div className="p-2 rounded-xl bg-base-100 border border-base-300/80 flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-success flex-shrink-0" />
               <div className="min-w-0">
-                <span className="text-[11px] font-bold block truncate">Photos</span>
+                <span className="text-[11px] font-bold block truncate">
+                  Photos
+                </span>
                 <span className="text-[10px] text-base-content/60">
                   {storageData?.breakdown?.photos?.formatted || "0 B"}
                 </span>
@@ -138,7 +140,9 @@ const StorageTabContent = ({
             <div className="p-2 rounded-xl bg-base-100 border border-base-300/80 flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-info flex-shrink-0" />
               <div className="min-w-0">
-                <span className="text-[11px] font-bold block truncate">Videos</span>
+                <span className="text-[11px] font-bold block truncate">
+                  Videos
+                </span>
                 <span className="text-[10px] text-base-content/60">
                   {storageData?.breakdown?.videos?.formatted || "0 B"}
                 </span>
@@ -147,7 +151,9 @@ const StorageTabContent = ({
             <div className="p-2 rounded-xl bg-base-100 border border-base-300/80 flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-secondary flex-shrink-0" />
               <div className="min-w-0">
-                <span className="text-[11px] font-bold block truncate">Audio</span>
+                <span className="text-[11px] font-bold block truncate">
+                  Audio
+                </span>
                 <span className="text-[10px] text-base-content/60">
                   {storageData?.breakdown?.audio?.formatted || "0 B"}
                 </span>
@@ -179,7 +185,8 @@ const StorageTabContent = ({
               <span className="loading loading-spinner loading-xs mr-2" />
               Calculating storage breakdown...
             </div>
-          ) : !storageData?.largeFiles || storageData.largeFiles.length === 0 ? (
+          ) : !storageData?.largeFiles ||
+            storageData.largeFiles.length === 0 ? (
             <p className="text-xs text-base-content/60 py-2 text-center">
               No large media files currently stored.
             </p>

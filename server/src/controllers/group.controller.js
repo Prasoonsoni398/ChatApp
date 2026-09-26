@@ -189,9 +189,13 @@ export const sendGroupMessage = async (req, res) => {
     if (group.onlyAdminsCanMessage) {
       const isAdmin =
         (group.admin?._id || group.admin)?.toString() === senderId.toString() ||
-        (group.admins || []).some((a) => (a._id || a)?.toString() === senderId.toString());
+        (group.admins || []).some(
+          (a) => (a._id || a)?.toString() === senderId.toString(),
+        );
       if (!isAdmin) {
-        return res.status(403).json({ error: "Only admins can send messages to this announcement group" });
+        return res.status(403).json({
+          error: "Only admins can send messages to this announcement group",
+        });
       }
     }
 
@@ -216,6 +220,17 @@ export const sendGroupMessage = async (req, res) => {
         mediaType = "document";
       }
 
+      if (
+        (mediaType === "audio" ||
+          mediaType === "video" ||
+          mediaType === "voice") &&
+        req.file.size > 5 * 1024 * 1024
+      ) {
+        return res.status(400).json({
+          error: "Audio and video uploads are restricted to a maximum of 5MB.",
+        });
+      }
+
       const result = await new Promise((resolve, reject) => {
         cloudinary.uploader
           .upload_stream(
@@ -235,17 +250,29 @@ export const sendGroupMessage = async (req, res) => {
     let parsedLocation = null;
     if (req.body.location) {
       try {
-        parsedLocation = typeof req.body.location === "string" ? JSON.parse(req.body.location) : req.body.location;
-      } catch (_e) {}
+        parsedLocation =
+          typeof req.body.location === "string"
+            ? JSON.parse(req.body.location)
+            : req.body.location;
+      } catch (_e) {
+        parsedLocation = null;
+      }
     }
     let parsedContact = null;
     if (req.body.contactCard) {
       try {
-        parsedContact = typeof req.body.contactCard === "string" ? JSON.parse(req.body.contactCard) : req.body.contactCard;
-      } catch (_e) {}
+        parsedContact =
+          typeof req.body.contactCard === "string"
+            ? JSON.parse(req.body.contactCard)
+            : req.body.contactCard;
+      } catch (_e) {
+        parsedContact = null;
+      }
     }
-    if (req.body.mediaType === "location" || parsedLocation) mediaType = "location";
-    else if (req.body.mediaType === "contact" || parsedContact) mediaType = "contact";
+    if (req.body.mediaType === "location" || parsedLocation)
+      mediaType = "location";
+    else if (req.body.mediaType === "contact" || parsedContact)
+      mediaType = "contact";
 
     const newMessage = new Message({
       senderId,
@@ -358,7 +385,9 @@ export const resetGroupInviteLink = async (req, res) => {
       group.admin.toString() === req.user._id.toString() ||
       group.admins?.some((a) => a.toString() === req.user._id.toString());
     if (!isAdmin) {
-      return res.status(403).json({ error: "Only admins can reset invite link" });
+      return res
+        .status(403)
+        .json({ error: "Only admins can reset invite link" });
     }
 
     group.inviteCode = crypto.randomBytes(6).toString("hex");
@@ -374,8 +403,12 @@ export const resetGroupInviteLink = async (req, res) => {
 export const getGroupByInviteCode = async (req, res) => {
   try {
     const { inviteCode } = req.params;
-    const group = await Group.findOne({ inviteCode }).populate("admin", "name avatar");
-    if (!group) return res.status(404).json({ error: "Invalid or expired invite link" });
+    const group = await Group.findOne({ inviteCode }).populate(
+      "admin",
+      "name avatar",
+    );
+    if (!group)
+      return res.status(404).json({ error: "Invalid or expired invite link" });
 
     res.status(200).json({
       _id: group._id,
@@ -398,7 +431,8 @@ export const joinGroupByInviteCode = async (req, res) => {
     const myId = req.user._id;
 
     const group = await Group.findOne({ inviteCode });
-    if (!group) return res.status(404).json({ error: "Invalid or expired invite link" });
+    if (!group)
+      return res.status(404).json({ error: "Invalid or expired invite link" });
 
     if (!group.members.some((m) => m.toString() === myId.toString())) {
       group.members.push(myId);

@@ -2,47 +2,116 @@ import Status from "../models/status.model.js";
 import cloudinary from "../config/cloudinary.js";
 
 /**
+ * Helper to parse and upload song attachments for status
+ */
+const parseSongData = async (req) => {
+  let song = { title: "", artist: "", audioUrl: "" };
+  if (req.body.song) {
+    try {
+      song =
+        typeof req.body.song === "string"
+          ? JSON.parse(req.body.song)
+          : req.body.song;
+    } catch (_e) {
+      // ignore JSON parse error
+    }
+  }
+  if (req.body.songTitle) song.title = req.body.songTitle;
+  if (req.body.songArtist) song.artist = req.body.songArtist;
+  if (req.body.songAudioUrl) song.audioUrl = req.body.songAudioUrl;
+
+  const files = req.files
+    ? Array.isArray(req.files)
+      ? req.files
+      : Object.values(req.files).flat()
+    : req.file
+      ? [req.file]
+      : [];
+
+  const audioFile = files.find(
+    (f) =>
+      f.mimetype?.startsWith("audio/") ||
+      /\.(mp3|wav|ogg|m4a|aac|flac|opus|weba)$/i.test(f.originalname || ""),
+  );
+
+  if (audioFile) {
+    try {
+      const uploadAudioResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "chatapp_status_songs", resource_type: "auto" },
+          (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+          },
+        );
+        stream.end(audioFile.buffer);
+      });
+      song.audioUrl = uploadAudioResult.secure_url;
+      if (!song.title) {
+        song.title =
+          audioFile.originalname?.replace(/\.[^/.]+$/, "") || "Custom Audio";
+      }
+      if (!song.artist) {
+        song.artist = "Custom Track";
+      }
+    } catch (_err) {
+      song.audioUrl = `data:${audioFile.mimetype || "audio/mp3"};base64,${audioFile.buffer.toString("base64")}`;
+      if (!song.title) {
+        song.title =
+          audioFile.originalname?.replace(/\.[^/.]+$/, "") || "Custom Audio";
+      }
+      if (!song.artist) {
+        song.artist = "Custom Track";
+      }
+    }
+  }
+
+  return song.title || song.audioUrl ? song : undefined;
+};
+
+/**
  * Upload Image Status
- * PRD Section 1.3 & 147 EXCLUSION:
- * Videos are strictly forbidden for status.
  */
 export const uploadStatus = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    if (!req.file) {
+    const files = req.files
+      ? Array.isArray(req.files)
+        ? req.files
+        : Object.values(req.files).flat()
+      : req.file
+        ? [req.file]
+        : [];
+
+    const imageFile = files.find((f) => f.mimetype?.startsWith("image/"));
+
+    if (!imageFile) {
       return res
         .status(400)
         .json({ error: "Image file is required for image status" });
     }
 
-    // STRICT PRD ENFORCEMENT: Reject any video file immediately
-    if (req.file.mimetype.startsWith("video/")) {
-      return res.status(400).json({
-        error:
-          "Video Status is explicitly excluded per platform policy. Only images and text are supported for Status.",
-      });
-    }
-
-    if (!req.file.mimetype.startsWith("image/")) {
-      return res
-        .status(400)
-        .json({ error: "Only image files are allowed for status" });
-    }
-
     const caption = req.body.caption || "";
+    const song = await parseSongData(req);
 
     const uploadStream = cloudinary.uploader.upload_stream(
       { folder: "chatapp_status" },
       async (error, result) => {
-        if (error) {
-          return res.status(500).json({ error: "Image upload failed" });
+        let imageUrl = "";
+        if (error || !result?.secure_url) {
+          // Fallback to base64 data URI if cloudinary fails
+          imageUrl = `data:${imageFile.mimetype || "image/jpeg"};base64,${imageFile.buffer.toString("base64")}`;
+        } else {
+          imageUrl = result.secure_url;
         }
+
         const newStatus = new Status({
           userId,
           type: "image",
-          image: result.secure_url,
+          image: imageUrl,
           caption,
+          song,
           viewers: [],
         });
         await newStatus.save();
@@ -51,7 +120,7 @@ export const uploadStatus = async (req, res) => {
         return res.status(201).json(newStatus);
       },
     );
-    uploadStream.end(req.file.buffer);
+    uploadStream.end(imageFile.buffer);
   } catch (error) {
     console.error("Error in uploadStatus:", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -70,12 +139,15 @@ export const createTextStatus = async (req, res) => {
       return res.status(400).json({ error: "Status text cannot be empty" });
     }
 
+    const song = await parseSongData(req);
+
     const newStatus = new Status({
       userId,
       type: "text",
       text: text.trim(),
       backgroundColor: backgroundColor || "#075e54",
       fontFamily: fontFamily || "sans-serif",
+      song,
       viewers: [],
     });
 
@@ -147,6 +219,7 @@ export const getStatuses = async (req, res) => {
         text: status.text || "",
         backgroundColor: status.backgroundColor || "#075e54",
         fontFamily: status.fontFamily || "sans-serif",
+        song: status.song || null,
         viewers: status.viewers || [],
         createdAt: status.createdAt,
       });

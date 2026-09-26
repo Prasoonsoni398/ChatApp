@@ -2,6 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Peer from "simple-peer";
 import socketAPI from "../config/webSocket.js";
 import toast from "react-hot-toast";
+import {
+  startIncomingRingtone,
+  startOutgoingCallRingtone,
+  stopRingtone,
+} from "../utils/notificationAudio.js";
 
 const useWebRTC = (loggedInUser) => {
   const [callState, setCallState] = useState("idle"); // 'idle', 'ringing', 'outgoing', 'active'
@@ -15,66 +20,20 @@ const useWebRTC = (loggedInUser) => {
 
   const peersRef = useRef({}); // { userId: peerInstance }
   const myVideoRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const ringtoneRef = useRef(null);
 
-  // Initialize ringtone using Web Audio API
+  // Automatically trigger incoming and outgoing ringing sounds based on call state
   useEffect(() => {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioContextRef.current = new AudioContext();
-    } catch {
-      console.warn("Web Audio API not supported");
+    if (callState === "ringing") {
+      startIncomingRingtone();
+    } else if (callState === "outgoing") {
+      startOutgoingCallRingtone();
+    } else {
+      stopRingtone();
     }
-  }, []);
-
-  const playRingtone = useCallback(() => {
-    if (!audioContextRef.current) return;
-    const ctx = audioContextRef.current;
-    if (ctx.state === "suspended") ctx.resume();
-
-    // Create a looping beep pattern
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(440, ctx.currentTime);
-    osc.frequency.setValueAtTime(480, ctx.currentTime + 0.2);
-
-    // Pulse volume
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.1);
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.5);
-
-    // Loop it every 2 seconds
-    ringtoneRef.current = setInterval(() => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = "sine";
-      o.frequency.setValueAtTime(440, ctx.currentTime);
-      o.frequency.setValueAtTime(480, ctx.currentTime + 0.2);
-      g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.1);
-      g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.start();
-      o.stop(ctx.currentTime + 0.5);
-    }, 2000);
-  }, []);
-
-  const stopRingtone = useCallback(() => {
-    if (ringtoneRef.current) {
-      clearInterval(ringtoneRef.current);
-      ringtoneRef.current = null;
-    }
-  }, []);
+    return () => {
+      stopRingtone();
+    };
+  }, [callState]);
 
   // Listeners for incoming calls
   useEffect(() => {
@@ -86,7 +45,6 @@ const useWebRTC = (loggedInUser) => {
       setIncomingCall(data);
       setCallState("ringing");
       setCallType(data.callType);
-      playRingtone();
     });
 
     socketAPI.on("callRejected", () => {
@@ -247,7 +205,10 @@ const useWebRTC = (loggedInUser) => {
       type: type,
       direction: "outgoing",
       status: "answered",
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     });
 
     try {
@@ -296,7 +257,10 @@ const useWebRTC = (loggedInUser) => {
       type: incomingCall.callType || "voice",
       direction: "incoming",
       status: "answered",
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     });
 
     setCallState("active");
@@ -331,7 +295,10 @@ const useWebRTC = (loggedInUser) => {
         type: incomingCall.callType || "voice",
         direction: "incoming",
         status: "missed",
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       });
       socketAPI.emit("rejectCall", { to: incomingCall.from });
     }

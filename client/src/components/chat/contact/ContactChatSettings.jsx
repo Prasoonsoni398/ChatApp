@@ -68,10 +68,26 @@ const ContactChatSettings = ({
             toast.success(`Disappearing messages set to ${val}`);
           }}
           options={[
-            { value: "off", label: "Off", description: "Messages do not expire" },
-            { value: "24h", label: "24 hours", description: "Disappear after 1 day" },
-            { value: "7d", label: "7 days", description: "Disappear after 1 week" },
-            { value: "90d", label: "90 days", description: "Disappear after 3 months" },
+            {
+              value: "off",
+              label: "Off",
+              description: "Messages do not expire",
+            },
+            {
+              value: "24h",
+              label: "24 hours",
+              description: "Disappear after 1 day",
+            },
+            {
+              value: "7d",
+              label: "7 days",
+              description: "Disappear after 1 week",
+            },
+            {
+              value: "90d",
+              label: "90 days",
+              description: "Disappear after 3 months",
+            },
           ]}
           size="sm"
           align="right"

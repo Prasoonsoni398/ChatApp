@@ -80,7 +80,9 @@ export const useVoiceRecorder = () => {
         err.name === "NotAllowedError" ||
         err.name === "PermissionDeniedError"
       ) {
-        toast.error("Microphone permission denied. Please allow microphone access.");
+        toast.error(
+          "Microphone permission denied. Please allow microphone access.",
+        );
       } else {
         toast.error("Could not access microphone");
       }
@@ -154,4 +156,3 @@ export const useVoiceRecorder = () => {
 };
 
 export default useVoiceRecorder;
-

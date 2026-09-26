@@ -67,7 +67,8 @@ const StarredMessagesModal = ({ isOpen, onClose, onJumpToMessage }) => {
               <BsStarFill size={28} className="opacity-30 text-warning" />
               <p className="text-sm font-medium">No starred messages</p>
               <p className="text-xs text-base-content/40">
-                Right-click or press and hold any message to star it for quick reference
+                Right-click or press and hold any message to star it for quick
+                reference
               </p>
             </div>
           ) : (

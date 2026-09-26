@@ -13,7 +13,7 @@ export const getUsers = async (req, res) => {
     const myId = req.user._id;
     const me = await User.findById(myId).populate(
       "contacts",
-      "name email phone avatar online"
+      "name email phone avatar online",
     );
     if (!me) return res.status(404).json({ message: "User not found" });
 
@@ -49,7 +49,8 @@ export const getUsers = async (req, res) => {
     const nicknameMap = new Map();
     if (me.contactNicknames && Array.isArray(me.contactNicknames)) {
       me.contactNicknames.forEach((cn) => {
-        if (cn && cn.userId) nicknameMap.set(cn.userId.toString(), cn.customName);
+        if (cn && cn.userId)
+          nicknameMap.set(cn.userId.toString(), cn.customName);
       });
     }
 
@@ -86,7 +87,7 @@ export const getUserProfile = async (req, res) => {
     }
 
     const user = await User.findById(userId).select(
-      "name email phone avatar about online privacySettings createdAt"
+      "name email phone avatar about online privacySettings createdAt",
     );
     if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -110,7 +111,7 @@ export const getUserProfile = async (req, res) => {
     let customName = null;
     if (me?.contactNicknames && Array.isArray(me.contactNicknames)) {
       const match = me.contactNicknames.find(
-        (cn) => cn && cn.userId && cn.userId.toString() === userId.toString()
+        (cn) => cn && cn.userId && cn.userId.toString() === userId.toString(),
       );
       if (match) customName = match.customName;
     }
@@ -132,14 +133,14 @@ export const getUserProfile = async (req, res) => {
  */
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ isVerified: true }).select("name email phone avatar");
+    const users = await User.find({ isVerified: true }).select(
+      "name email phone avatar",
+    );
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 export const updateProfile = async (req, res) => {
   try {
@@ -228,10 +229,14 @@ export const toggleBlockUser = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.blockedUsers = user.blockedUsers || [];
-    const isBlocked = user.blockedUsers.some((id) => id.toString() === userId.toString());
+    const isBlocked = user.blockedUsers.some(
+      (id) => id.toString() === userId.toString(),
+    );
 
     if (isBlocked) {
-      user.blockedUsers = user.blockedUsers.filter((id) => id.toString() !== userId.toString());
+      user.blockedUsers = user.blockedUsers.filter(
+        (id) => id.toString() !== userId.toString(),
+      );
     } else {
       user.blockedUsers.push(userId);
     }
@@ -249,7 +254,10 @@ export const toggleBlockUser = async (req, res) => {
 
 export const getBlockedUsers = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate("blockedUsers", "name email avatar");
+    const user = await User.findById(req.user._id).populate(
+      "blockedUsers",
+      "name email avatar",
+    );
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.status(200).json(user.blockedUsers || []);
@@ -278,7 +286,9 @@ export const linkDevice = async (req, res) => {
 
     user.linkedDevices = user.linkedDevices || [];
     const newDevice = {
-      deviceId: deviceId || `dev_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      deviceId:
+        deviceId ||
+        `dev_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       deviceName: deviceName || "Web Client",
       browser: browser || "Chrome",
       os: os || "Windows",
@@ -301,7 +311,7 @@ export const unlinkDevice = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.linkedDevices = (user.linkedDevices || []).filter(
-      (d) => d.deviceId !== deviceId && d._id?.toString() !== deviceId
+      (d) => d.deviceId !== deviceId && d._id?.toString() !== deviceId,
     );
     await user.save();
 
@@ -321,7 +331,9 @@ export const exportAccountData = async (req, res) => {
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const groups = await Group.find({ members: myId }).select("name description avatar admin members createdAt");
+    const groups = await Group.find({ members: myId }).select(
+      "name description avatar admin members createdAt",
+    );
 
     const messageCount = await Message.countDocuments({
       $or: [{ senderId: myId }, { receiverId: myId }],
@@ -363,27 +375,25 @@ export const deleteAccount = async (req, res) => {
           admins: myId,
           memberDetails: { user: myId },
         },
-      }
+      },
     );
 
     // 2. Remove user from other users' contacts
-    await User.updateMany(
-      { contacts: myId },
-      { $pull: { contacts: myId } }
-    );
+    await User.updateMany({ contacts: myId }, { $pull: { contacts: myId } });
 
     // 3. Mark direct messages as deleted
     await Message.updateMany(
       { $or: [{ senderId: myId }, { receiverId: myId }] },
-      { $addToSet: { deletedFor: myId } }
+      { $addToSet: { deletedFor: myId } },
     );
 
     // 4. Delete user record
     await User.findByIdAndDelete(myId);
 
-    res.status(200).json({ message: "Account and associated data deleted successfully" });
+    res
+      .status(200)
+      .json({ message: "Account and associated data deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-

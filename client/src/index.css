@@ -54,7 +54,9 @@
 .btn.btn-ghost,
 button.btn-ghost,
 button.btn.btn-ghost,
-.btn-circle:not(.btn-primary):not(.btn-error):not(.btn-success):not(.btn-warning):not(.btn-info):not([class*="bg-"]) {
+.btn-circle:not(.btn-primary):not(.btn-error):not(.btn-success):not(
+    .btn-warning
+  ):not(.btn-info):not([class*="bg-"]) {
   background-color: transparent !important;
   background: transparent !important;
   border-color: transparent !important;
@@ -66,7 +68,9 @@ button.btn.btn-ghost,
 .btn.btn-ghost:hover,
 button.btn-ghost:hover,
 button.btn.btn-ghost:hover,
-.btn-circle:not(.btn-primary):not(.btn-error):not(.btn-success):not(.btn-warning):not(.btn-info):not([class*="bg-"]):hover {
+.btn-circle:not(.btn-primary):not(.btn-error):not(.btn-success):not(
+    .btn-warning
+  ):not(.btn-info):not([class*="bg-"]):hover {
   background-color: var(--color-base-200, rgba(0, 0, 0, 0.08)) !important;
   background: var(--color-base-200, rgba(0, 0, 0, 0.08)) !important;
   border-color: transparent !important;
@@ -86,4 +90,3 @@ button:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
-

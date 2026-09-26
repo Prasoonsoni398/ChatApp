@@ -1,9 +1,6 @@
 import { BsArchiveFill, BsLockFill } from "react-icons/bs";
 
-export const ArchivedRowBanner = ({
-  archivedCount,
-  onOpenArchived,
-}) => {
+export const ArchivedRowBanner = ({ archivedCount, onOpenArchived }) => {
   if (archivedCount === 0) return null;
 
   return (

@@ -81,7 +81,10 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
 
   useEffect(() => {
     if (state.selectedChat)
-      sessionStorage.setItem("selectedChat", JSON.stringify(state.selectedChat));
+      sessionStorage.setItem(
+        "selectedChat",
+        JSON.stringify(state.selectedChat),
+      );
     else sessionStorage.removeItem("selectedChat");
   }, [state.selectedChat]);
 

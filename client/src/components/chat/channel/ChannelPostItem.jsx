@@ -1,4 +1,9 @@
-import { BsTrash } from "react-icons/bs";
+import {
+  BsTrash,
+  BsFileEarmarkTextFill,
+  BsDownload,
+  BsMusicNoteBeamed,
+} from "react-icons/bs";
 
 const QUICK_EMOJIS = ["👍", "❤️", "🔥", "🎉", "🚀", "💡", "👏", "🙌"];
 
@@ -15,8 +20,7 @@ const ChannelPostItem = ({
   post.reactions?.forEach((r) => {
     if (
       r.userIds?.some(
-        (u) =>
-          (u?._id || u)?.toString() === currentUserId?.toString(),
+        (u) => (u?._id || u)?.toString() === currentUserId?.toString(),
       )
     ) {
       userReactedMap[r.emoji] = true;
@@ -28,6 +32,18 @@ const ChannelPostItem = ({
     (post.mediaUrl &&
       (post.mediaUrl.match(/\.(jpeg|jpg|gif|png|webp|svg)($|\?)/i) ||
         post.mediaUrl.startsWith("data:image/")));
+
+  const isVideoMedia =
+    post.mediaType === "video" ||
+    (post.mediaUrl &&
+      (post.mediaUrl.match(/\.(mp4|webm|mov|mkv|avi|m4v)($|\?)/i) ||
+        post.mediaUrl.startsWith("data:video/")));
+
+  const isAudioMedia =
+    post.mediaType === "audio" ||
+    (post.mediaUrl &&
+      (post.mediaUrl.match(/\.(mp3|wav|ogg|m4a|aac|flac|opus)($|\?)/i) ||
+        post.mediaUrl.startsWith("data:audio/")));
 
   return (
     <div className="bg-base-100 rounded-2xl p-4 shadow-sm border border-base-300/80 max-w-xl mx-auto space-y-3 relative group">
@@ -50,7 +66,7 @@ const ChannelPostItem = ({
 
       {/* Post Media Attachment */}
       {post.mediaUrl && (
-        <div className="rounded-xl overflow-hidden max-h-96 bg-base-200/50 border border-base-300/80">
+        <div className="rounded-xl overflow-hidden bg-base-200/50 border border-base-300/80">
           {isImageMedia ? (
             <img
               src={post.mediaUrl}
@@ -59,15 +75,47 @@ const ChannelPostItem = ({
               onClick={() => window.open(post.mediaUrl, "_blank")}
               title="Click to view full image"
             />
+          ) : isVideoMedia ? (
+            <video
+              controls
+              src={post.mediaUrl}
+              className="w-full max-h-96 rounded-xl bg-black"
+            />
+          ) : isAudioMedia ? (
+            <div className="p-3 bg-base-200/70">
+              <div className="flex items-center gap-2 mb-2 text-xs font-medium text-base-content/80">
+                <BsMusicNoteBeamed className="text-primary flex-shrink-0" />
+                <span className="truncate">
+                  {post.fileName || "Audio broadcast"}
+                </span>
+              </div>
+              <audio controls src={post.mediaUrl} className="w-full h-10" />
+            </div>
           ) : (
-            <a
-              href={post.mediaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 p-3 text-xs text-primary font-medium hover:underline"
-            >
-              📎 View Attachment
-            </a>
+            <div className="flex items-center justify-between p-3 bg-base-200/70">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                  <BsFileEarmarkTextFill size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold truncate">
+                    {post.fileName || "Document attachment"}
+                  </p>
+                  <p className="text-[10px] text-base-content/50 uppercase">
+                    Attachment
+                  </p>
+                </div>
+              </div>
+              <a
+                href={post.mediaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                download={post.fileName || "attachment"}
+                className="btn btn-xs btn-outline btn-primary gap-1 ml-2"
+              >
+                <BsDownload size={12} /> Open
+              </a>
+            </div>
           )}
         </div>
       )}
@@ -89,7 +137,9 @@ const ChannelPostItem = ({
                 }`}
               >
                 <span>{r.emoji}</span>
-                <span className="text-[11px] font-semibold">{r.userIds?.length || 1}</span>
+                <span className="text-[11px] font-semibold">
+                  {r.userIds?.length || 1}
+                </span>
               </button>
             );
           })}
@@ -127,7 +177,7 @@ const ChannelPostItem = ({
         </div>
 
         <span className="text-[10px] text-base-content/40 font-medium">
-          {new Date(post.createdAt || Date.now()).toLocaleTimeString([], {
+          {new Date(post.createdAt || 0).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
           })}

@@ -82,7 +82,11 @@ const ChatHeader = ({
       >
         <div className="avatar flex-shrink-0 mr-2.5">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden shadow-xs">
-            <img src={selectedChat.avatar} alt={selectedChat.name} className="w-full h-full object-cover" />
+            <img
+              src={selectedChat.avatar}
+              alt={selectedChat.name}
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
 
@@ -108,7 +112,9 @@ const ChatHeader = ({
                 Online
               </span>
             ) : (
-              <span className="text-[11px] sm:text-xs text-base-content/60 block">Offline</span>
+              <span className="text-[11px] sm:text-xs text-base-content/60 block">
+                Offline
+              </span>
             )}
           </div>
         </div>

@@ -11,7 +11,10 @@ const ChannelListItem = ({
   const handleClick = onSelect || onClick;
   const channelIsOwner = isOwner || Boolean(channel.isOwner);
   const followerCount =
-    channel.followerCount ?? channel.followersCount ?? channel.followers?.length ?? 0;
+    channel.followerCount ??
+    channel.followersCount ??
+    channel.followers?.length ??
+    0;
 
   return (
     <div
@@ -38,7 +41,10 @@ const ChannelListItem = ({
           <div className="flex items-center gap-1.5 flex-wrap">
             <h4 className="font-semibold text-sm truncate">{channel.name}</h4>
             {channel.verified && (
-              <BsCheckCircleFill className="text-primary flex-shrink-0" size={12} />
+              <BsCheckCircleFill
+                className="text-primary flex-shrink-0"
+                size={12}
+              />
             )}
             {channelIsOwner && (
               <span className="badge badge-primary badge-xs py-1.5 px-2 text-[10px] font-semibold">

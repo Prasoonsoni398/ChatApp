@@ -71,11 +71,11 @@ const MessageBubble = ({
 
   const isStarred = Boolean(
     msg.starredBy &&
-      msg.starredBy.some(
-        (uid) =>
-          uid.toString() === loggedInUser?._id?.toString() ||
-          uid._id?.toString() === loggedInUser?._id?.toString(),
-      ),
+    msg.starredBy.some(
+      (uid) =>
+        uid.toString() === loggedInUser?._id?.toString() ||
+        uid._id?.toString() === loggedInUser?._id?.toString(),
+    ),
   );
 
   return (
@@ -248,9 +248,7 @@ const MessageBubble = ({
                 {msg.status === "delivered" && (
                   <BsCheckAll className="text-primary-content/90" />
                 )}
-                {msg.status === "read" && (
-                  <BsCheckAll className="text-info" />
-                )}
+                {msg.status === "read" && <BsCheckAll className="text-info" />}
               </span>
             )}
           </div>

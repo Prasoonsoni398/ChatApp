@@ -4,9 +4,10 @@
  * Supports Twilio, Fast2SMS, 2Factor, and automated console logging.
  */
 
-export const sendSMS = async ({ phone, otp, message }) => {
+const sendSMS = async ({ phone, otp, message }) => {
   const textMessage =
-    message || `Your ChatApp verification code is ${otp}. Valid for 10 minutes. Do not share this code with anyone.`;
+    message ||
+    `Your ChatApp verification code is ${otp}. Valid for 10 minutes. Do not share this code with anyone.`;
 
   console.log(`\n======================================================`);
   console.log(`📲 [REAL-TIME PHONE OTP GATEWAY]`);
@@ -23,18 +24,22 @@ export const sendSMS = async ({ phone, otp, message }) => {
   if (
     process.env.TWILIO_ACCOUNT_SID &&
     process.env.TWILIO_AUTH_TOKEN &&
-    (process.env.TWILIO_PHONE_NUMBER || process.env.TWILIO_MESSAGING_SERVICE_SID)
+    (process.env.TWILIO_PHONE_NUMBER ||
+      process.env.TWILIO_MESSAGING_SERVICE_SID)
   ) {
     try {
       const auth = Buffer.from(
-        `${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`
+        `${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`,
       ).toString("base64");
 
       const bodyParams = new URLSearchParams();
       bodyParams.append("To", phone);
       bodyParams.append("Body", textMessage);
       if (process.env.TWILIO_MESSAGING_SERVICE_SID) {
-        bodyParams.append("MessagingServiceSid", process.env.TWILIO_MESSAGING_SERVICE_SID);
+        bodyParams.append(
+          "MessagingServiceSid",
+          process.env.TWILIO_MESSAGING_SERVICE_SID,
+        );
       } else {
         bodyParams.append("From", process.env.TWILIO_PHONE_NUMBER);
       }
@@ -48,7 +53,7 @@ export const sendSMS = async ({ phone, otp, message }) => {
             "Content-Type": "application/x-www-form-urlencoded",
           },
           body: bodyParams.toString(),
-        }
+        },
       );
 
       const twilioData = await twilioRes.json();
@@ -56,7 +61,9 @@ export const sendSMS = async ({ phone, otp, message }) => {
         console.log(`✅ [Twilio SMS Delivered] SID: ${twilioData.sid}`);
         dispatched = true;
       } else {
-        console.warn(`⚠️ [Twilio SMS Warning]: ${twilioData.message || JSON.stringify(twilioData)}`);
+        console.warn(
+          `⚠️ [Twilio SMS Warning]: ${twilioData.message || JSON.stringify(twilioData)}`,
+        );
         dispatchErrors.push(`Twilio: ${twilioData.message}`);
       }
     } catch (err) {
@@ -84,7 +91,9 @@ export const sendSMS = async ({ phone, otp, message }) => {
 
       const f2sData = await f2sRes.json();
       if (f2sData.return) {
-        console.log(`✅ [Fast2SMS Delivered] Request ID: ${f2sData.request_id}`);
+        console.log(
+          `✅ [Fast2SMS Delivered] Request ID: ${f2sData.request_id}`,
+        );
         dispatched = true;
       } else {
         console.warn(`⚠️ [Fast2SMS Warning]:`, f2sData.message);
@@ -101,7 +110,7 @@ export const sendSMS = async ({ phone, otp, message }) => {
     try {
       const cleanDigits = phone.replace(/[^0-9]/g, "").slice(-10);
       const tfRes = await fetch(
-        `https://2factor.in/v1/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/${cleanDigits}/${otp}/ChatApp+OTP`
+        `https://2factor.in/v1/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/${cleanDigits}/${otp}/ChatApp+OTP`,
       );
       const tfData = await tfRes.json();
       if (tfData.Status === "Success") {

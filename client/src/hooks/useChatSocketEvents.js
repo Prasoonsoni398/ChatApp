@@ -18,19 +18,18 @@ export const useChatSocketEvents = ({
 }) => {
   // Keep fresh references to avoid recreating socket listeners on every re-render
   const stateRef = useRef(state);
-  stateRef.current = state;
-
   const selectedChatRef = useRef(state.selectedChat);
-  selectedChatRef.current = state.selectedChat;
-
   const loggedInUserRef = useRef(state.loggedInUser);
-  loggedInUserRef.current = state.loggedInUser;
-
   const handleTypingReceiveRef = useRef(handleTypingReceive);
-  handleTypingReceiveRef.current = handleTypingReceive;
-
   const setOtherUserTypingRef = useRef(setOtherUserTyping);
-  setOtherUserTypingRef.current = setOtherUserTyping;
+
+  useEffect(() => {
+    stateRef.current = state;
+    selectedChatRef.current = state.selectedChat;
+    loggedInUserRef.current = state.loggedInUser;
+    handleTypingReceiveRef.current = handleTypingReceive;
+    setOtherUserTypingRef.current = setOtherUserTyping;
+  });
 
   // 1. Fetch messages whenever the active chat changes
   useEffect(() => {
@@ -63,7 +62,11 @@ export const useChatSocketEvents = ({
           const senderIdStr = (
             typeof m.senderId === "object" ? m.senderId?._id : m.senderId
           )?.toString();
-          if (senderIdStr && senderIdStr !== currentUserId && m.status !== "read") {
+          if (
+            senderIdStr &&
+            senderIdStr !== currentUserId &&
+            m.status !== "read"
+          ) {
             unreadSet.add(m._id);
           }
         });
@@ -72,7 +75,9 @@ export const useChatSocketEvents = ({
         unreadSet.forEach((id) => {
           const msg = data.find((m) => m._id === id);
           const senderIdStr =
-            typeof msg?.senderId === "object" ? msg.senderId?._id : msg?.senderId;
+            typeof msg?.senderId === "object"
+              ? msg.senderId?._id
+              : msg?.senderId;
           socketAPI.emit("messageStatus", {
             messageId: id,
             status: "read",
@@ -85,7 +90,9 @@ export const useChatSocketEvents = ({
           const prevMap = new Map(prev.map((m) => [m._id, m.status]));
           return data.map((m) => ({
             ...m,
-            status: unreadSet.has(m._id) ? "read" : prevMap.get(m._id) || m.status,
+            status: unreadSet.has(m._id)
+              ? "read"
+              : prevMap.get(m._id) || m.status,
           }));
         });
 
@@ -115,7 +122,11 @@ export const useChatSocketEvents = ({
     return () => {
       isMounted = false;
     };
-  }, [state.selectedChat?.id, state.selectedChat?.isGroup, state.loggedInUser?._id]);
+  }, [
+    state.selectedChat?.id,
+    state.selectedChat?.isGroup,
+    state.loggedInUser?._id,
+  ]);
 
   // 2. Stable Socket listeners setup
   useEffect(() => {
@@ -125,9 +136,7 @@ export const useChatSocketEvents = ({
       const currentUser = loggedInUserRef.current;
 
       const senderIdStr = (
-        typeof msg.senderId === "object"
-          ? msg.senderId?._id
-          : msg.senderId
+        typeof msg.senderId === "object" ? msg.senderId?._id : msg.senderId
       )?.toString();
       const receiverIdStr = (
         typeof msg.receiverId === "object"

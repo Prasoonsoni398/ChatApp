@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { BsCheckCircleFill, BsCircle, BsCheckSquareFill, BsSquare } from "react-icons/bs";
+import {
+  BsCheckCircleFill,
+  BsCircle,
+  BsCheckSquareFill,
+  BsSquare,
+} from "react-icons/bs";
 import toast from "react-hot-toast";
 import * as messageService from "../../services/messageService.js";
 import socketAPI from "../../config/webSocket.js";
@@ -40,7 +45,9 @@ const PollCard = ({ message, loggedInUser, selectedChat }) => {
 
       if (!allowMultiple) {
         // Clear all votes for me
-        const filtered = votes.filter((v) => (v?._id || v)?.toString() !== myId);
+        const filtered = votes.filter(
+          (v) => (v?._id || v)?.toString() !== myId,
+        );
         if (idx === optionIndex && !hasVoted) {
           filtered.push(myId);
         }
@@ -61,7 +68,10 @@ const PollCard = ({ message, loggedInUser, selectedChat }) => {
     setLocalPoll(optimisticPoll);
 
     try {
-      const updatedMsg = await messageService.votePoll(message._id, optionIndex);
+      const updatedMsg = await messageService.votePoll(
+        message._id,
+        optionIndex,
+      );
       if (updatedMsg?.poll) {
         setLocalPoll(updatedMsg.poll);
         socketAPI.emit("pollVote", {
@@ -96,7 +106,8 @@ const PollCard = ({ message, loggedInUser, selectedChat }) => {
       <div className="space-y-2">
         {currentPoll.options.map((opt, idx) => {
           const voteCount = opt.votes?.length || 0;
-          const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+          const percentage =
+            totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
           const isSelected = opt.votes?.some(
             (v) => (v?._id || v)?.toString() === myId,
           );
@@ -140,7 +151,9 @@ const PollCard = ({ message, loggedInUser, selectedChat }) => {
                   </span>
                   <span
                     className={`text-sm wrap-break-word ${
-                      isSelected ? "font-semibold text-base-content" : "text-base-content"
+                      isSelected
+                        ? "font-semibold text-base-content"
+                        : "text-base-content"
                     }`}
                   >
                     {opt.text}
@@ -151,7 +164,9 @@ const PollCard = ({ message, loggedInUser, selectedChat }) => {
                 <div className="flex-shrink-0 flex items-center gap-1.5 text-xs text-base-content/70 font-medium">
                   {voteCount > 0 && <span>{voteCount}</span>}
                   {totalVotes > 0 && (
-                    <span className="text-[11px] opacity-60">({percentage}%)</span>
+                    <span className="text-[11px] opacity-60">
+                      ({percentage}%)
+                    </span>
                   )}
                 </div>
               </div>

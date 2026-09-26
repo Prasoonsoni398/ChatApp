@@ -19,7 +19,8 @@ export async function getChannelById(channelId) {
 }
 
 export async function createChannel(channelData) {
-  const isFormData = typeof FormData !== "undefined" && channelData instanceof FormData;
+  const isFormData =
+    typeof FormData !== "undefined" && channelData instanceof FormData;
   const headers = authHeader();
   if (!isFormData) {
     headers["Content-Type"] = "application/json";
@@ -45,7 +46,8 @@ export async function toggleFollowChannel(channelId) {
 }
 
 export async function postToChannel(channelId, postData) {
-  const isFormData = typeof FormData !== "undefined" && postData instanceof FormData;
+  const isFormData =
+    typeof FormData !== "undefined" && postData instanceof FormData;
   const headers = authHeader();
   if (!isFormData) {
     headers["Content-Type"] = "application/json";
@@ -103,4 +105,3 @@ export async function toggleMuteChannel(channelId) {
 // Aliases for compatibility
 export const createChannelPost = postToChannel;
 export const reactChannelPost = reactToChannelPost;
-

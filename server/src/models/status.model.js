@@ -31,6 +31,11 @@ const statusSchema = new mongoose.Schema({
     type: String,
     default: "sans-serif",
   },
+  song: {
+    title: { type: String, default: "" },
+    artist: { type: String, default: "" },
+    audioUrl: { type: String, default: "" },
+  },
   viewers: [
     {
       userId: {

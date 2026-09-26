@@ -50,7 +50,9 @@ const ContactInfoModal = ({
 
   useEffect(() => {
     if (contact) {
-      setCustomNameInput(contact.customName || contact.displayName || contact.name || "");
+      setCustomNameInput(
+        contact.customName || contact.displayName || contact.name || "",
+      );
     }
   }, [contact]);
 
@@ -69,7 +71,7 @@ const ContactInfoModal = ({
               customName: trimmed,
               displayName: trimmed || prev.name,
             }
-          : prev
+          : prev,
       );
       contact.customName = trimmed;
       contact.displayName = trimmed || contact.name;
@@ -114,7 +116,9 @@ const ContactInfoModal = ({
         <div className="bg-base-100 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col border border-base-300">
           {/* Header */}
           <div className="px-6 py-4 border-b border-base-300 flex items-center justify-between bg-base-200/50 flex-shrink-0">
-            <h3 className="font-bold text-lg text-base-content">Contact Info</h3>
+            <h3 className="font-bold text-lg text-base-content">
+              Contact Info
+            </h3>
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
@@ -148,7 +152,10 @@ const ContactInfoModal = ({
               </div>
 
               {isEditingCustomName ? (
-                <form onSubmit={handleSaveCustomName} className="flex items-center gap-2 mt-1">
+                <form
+                  onSubmit={handleSaveCustomName}
+                  className="flex items-center gap-2 mt-1"
+                >
                   <input
                     type="text"
                     value={customNameInput}
@@ -175,7 +182,10 @@ const ContactInfoModal = ({
               ) : (
                 <div className="flex items-center gap-1.5 mt-1">
                   <h2 className="text-xl font-bold text-base-content">
-                    {profile?.displayName || profile?.customName || profile?.name || contact.name}
+                    {profile?.displayName ||
+                      profile?.customName ||
+                      profile?.name ||
+                      contact.name}
                   </h2>
                   <button
                     onClick={() => setIsEditingCustomName(true)}
@@ -187,14 +197,19 @@ const ContactInfoModal = ({
                 </div>
               )}
 
-              {Boolean(profile?.displayName && profile?.displayName !== profile?.name) && (
+              {Boolean(
+                profile?.displayName && profile?.displayName !== profile?.name,
+              ) && (
                 <p className="text-xs text-base-content/50">
                   Original: {profile?.name || contact.name}
                 </p>
               )}
 
               <p className="text-sm text-base-content/60 mt-0.5">
-                {profile?.phone || contact.phone || profile?.email || contact.email}
+                {profile?.phone ||
+                  contact.phone ||
+                  profile?.email ||
+                  contact.email}
               </p>
 
               {/* Quick Actions: Audio Call, Video Call, Search */}
@@ -252,7 +267,9 @@ const ContactInfoModal = ({
                 About
               </span>
               <p className="text-sm text-base-content leading-relaxed">
-                {profile?.about || contact.about || "Hey there! I am using ChatApp."}
+                {profile?.about ||
+                  contact.about ||
+                  "Hey there! I am using ChatApp."}
               </p>
             </div>
 
@@ -295,7 +312,8 @@ const ContactInfoModal = ({
                   Encryption
                 </span>
                 <p className="text-xs text-base-content/60 mt-0.5 leading-relaxed">
-                  Messages and calls are end-to-end encrypted. No one outside of this chat, not even ChatApp, can read or listen to them.
+                  Messages and calls are end-to-end encrypted. No one outside of
+                  this chat, not even ChatApp, can read or listen to them.
                 </p>
               </div>
             </div>
