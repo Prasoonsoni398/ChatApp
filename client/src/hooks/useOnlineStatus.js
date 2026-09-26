@@ -17,7 +17,7 @@ function useOnlineStatus() {
     };
   }, []);
 
-  return { onlineUsersMap };
+  return { onlineUsersMap, setOnlineUsersMap };
 }
 
 export default useOnlineStatus;

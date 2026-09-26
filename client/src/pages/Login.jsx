@@ -20,7 +20,7 @@ import {
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "",
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -35,16 +35,31 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const data = await loginUser(formData.email, formData.password);
+      const data = await loginUser(formData.identifier, formData.password);
       toast.success("Successfully logged in!");
       localStorage.setItem("token", data.token);
       localStorage.setItem(
         "user",
-        JSON.stringify({ name: data.name, email: data.email, _id: data._id }),
+        JSON.stringify({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          _id: data._id,
+          avatar: data.avatar,
+        }),
       );
       navigate("/chat");
     } catch (error) {
       toast.error(error.message);
+      if (error.needsVerification) {
+        navigate("/signup", {
+          state: {
+            phone: error.phone || formData.identifier,
+            devOtp: error.devOtp,
+            step: 2,
+          },
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -57,7 +72,13 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem(
         "user",
-        JSON.stringify({ name: data.name, email: data.email, _id: data._id }),
+        JSON.stringify({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          _id: data._id,
+          avatar: data.avatar,
+        }),
       );
       navigate("/chat");
     } catch (error) {
@@ -74,18 +95,18 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className={authFormControl}>
               <label className={authLabel}>
-                <span className={authLabelText}>Email</span>
+                <span className={authLabelText}>Phone Number or Email</span>
               </label>
               <div className={authInputGroup}>
                 <span className={authInputIconSpan}>
                   <BsEnvelopeFill />
                 </span>
                 <input
-                  type="email"
-                  name="email"
-                  placeholder="name@example.com"
+                  type="text"
+                  name="identifier"
+                  placeholder="+91 98765 43210 or name@example.com"
                   className={authInput}
-                  value={formData.email}
+                  value={formData.identifier}
                   onChange={handleChange}
                   required
                 />
