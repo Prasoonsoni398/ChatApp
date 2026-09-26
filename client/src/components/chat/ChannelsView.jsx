@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BsPlus, BsX, BsMegaphoneFill, BsSearch } from "react-icons/bs";
+import { BsPlus, BsX, BsMegaphoneFill, BsSearch, BsPlusCircleFill } from "react-icons/bs";
 import toast from "react-hot-toast";
 import * as channelService from "../../services/channelService.js";
 import socketAPI from "../../config/webSocket.js";
@@ -8,7 +8,7 @@ import ChannelFeedView from "./channel/ChannelFeedView.jsx";
 import CreateChannelModal from "./channel/CreateChannelModal.jsx";
 
 /**
- * ChannelsView – Guftgu Channels 1-to-many broadcast feeds (PRD Section 49).
+ * ChannelsView – Guftgu Channels 1-to-many broadcast feeds.
  */
 const ChannelsView = ({ loggedInUser }) => {
   const [channels, setChannels] = useState([]);
@@ -27,6 +27,7 @@ const ChannelsView = ({ loggedInUser }) => {
       return null;
     }
   })();
+
   const currentUserId = (
     loggedInUser?._id ||
     loggedInUser?.id ||
@@ -44,7 +45,12 @@ const ChannelsView = ({ loggedInUser }) => {
         }
       } else if (selectedChannel) {
         const refreshed = data.find((c) => c._id === selectedChannel._id);
-        if (refreshed) setSelectedChannel(refreshed);
+        if (refreshed) {
+          setSelectedChannel((prev) => ({
+            ...prev,
+            ...refreshed,
+          }));
+        }
       }
     } catch (_err) {
       console.error("Failed to fetch channels:", _err);
@@ -76,7 +82,7 @@ const ChannelsView = ({ loggedInUser }) => {
           if (exists) return prev;
           return {
             ...prev,
-            posts: [...(prev.posts || []), post],
+            posts: [post, ...(prev.posts || [])],
           };
         });
       }
@@ -100,49 +106,72 @@ const ChannelsView = ({ loggedInUser }) => {
     };
   }, [selectedChannel]);
 
-  const handleCreateChannel = async (e) => {
-    e.preventDefault();
+  const handleCreateChannel = async (e, avatarFile = null) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!channelName.trim()) return toast.error("Channel name is required");
     try {
-      const data = await channelService.createChannel({
-        name: channelName.trim(),
-        description: channelDesc.trim(),
-      });
-      toast.success("Channel created successfully!");
+      let payload;
+      if (avatarFile) {
+        payload = new FormData();
+        payload.append("name", channelName.trim());
+        payload.append("description", channelDesc.trim());
+        payload.append("file", avatarFile);
+      } else {
+        payload = {
+          name: channelName.trim(),
+          description: channelDesc.trim(),
+        };
+      }
+      const data = await channelService.createChannel(payload);
+      toast.success("Channel created successfully! You can now post updates.");
       setShowCreateModal(false);
       setChannelName("");
       setChannelDesc("");
-      setChannels((prev) => [data, ...prev]);
-      setSelectedChannel(data);
+
+      const channelWithOwnership = {
+        ...data,
+        isOwner: true,
+        followerCount: data.followerCount || 1,
+        posts: data.posts || [],
+      };
+      setChannels((prev) => [
+        channelWithOwnership,
+        ...prev.filter((c) => c._id !== data._id),
+      ]);
+      setSelectedChannel(channelWithOwnership);
     } catch (err) {
       toast.error(err.message || "Failed to create channel");
     }
   };
 
-  const handleToggleFollow = async () => {
-    if (!selectedChannel) return;
+  const handleToggleFollow = async (channelId = selectedChannel?._id) => {
+    if (!channelId) return;
     try {
-      const res = await channelService.toggleFollowChannel(selectedChannel._id);
-      setSelectedChannel((prev) => ({
-        ...prev,
-        isFollowing: res.isFollowing,
-        followersCount: res.followersCount,
-      }));
+      const res = await channelService.toggleFollowChannel(channelId);
+      const count = res.followerCount ?? res.followersCount ?? 0;
+      setSelectedChannel((prev) => {
+        if (!prev || prev._id !== channelId) return prev;
+        return {
+          ...prev,
+          isFollowing: res.isFollowing,
+          followerCount: count,
+          followersCount: count,
+        };
+      });
       setChannels((prev) =>
         prev.map((c) =>
-          c._id === selectedChannel._id
+          c._id === channelId
             ? {
                 ...c,
                 isFollowing: res.isFollowing,
-                followersCount: res.followersCount,
+                followerCount: count,
+                followersCount: count,
               }
             : c,
         ),
       );
       toast.success(
-        res.isFollowing
-          ? `Followed ${selectedChannel.name}`
-          : `Unfollowed ${selectedChannel.name}`,
+        res.isFollowing ? "Followed channel" : "Unfollowed channel",
       );
     } catch (_err) {
       toast.error("Failed to update follow status");
@@ -162,19 +191,46 @@ const ChannelsView = ({ loggedInUser }) => {
     }
   };
 
-  const handleCreatePost = async (e) => {
-    e.preventDefault();
-    if (!selectedChannel || !newPostText.trim()) return;
+  const handleCreatePost = async (e, mediaFile = null) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!selectedChannel) return;
+    if (!newPostText.trim() && !mediaFile) return;
+
     try {
-      const post = await channelService.createChannelPost(selectedChannel._id, {
-        text: newPostText.trim(),
+      let postPayload;
+      if (mediaFile) {
+        postPayload = new FormData();
+        postPayload.append("text", newPostText.trim());
+        postPayload.append("file", mediaFile);
+      } else {
+        postPayload = {
+          text: newPostText.trim(),
+        };
+      }
+
+      const res = await channelService.postToChannel(selectedChannel._id, postPayload);
+      const newPost = res.post || (Array.isArray(res.posts) ? res.posts[0] : res);
+
+      setSelectedChannel((prev) => {
+        if (!prev) return prev;
+        const exists = prev.posts?.some((p) => p._id === newPost._id);
+        if (exists) return prev;
+        return {
+          ...prev,
+          posts: [newPost, ...(prev.posts || [])],
+        };
       });
-      setSelectedChannel((prev) => ({
-        ...prev,
-        posts: [...(prev.posts || []), post],
-      }));
+
+      setChannels((prev) =>
+        prev.map((c) =>
+          c._id === selectedChannel._id
+            ? { ...c, lastPost: newPost }
+            : c,
+        ),
+      );
+
       setNewPostText("");
-      toast.success("Update broadcasted to followers");
+      toast.success("Broadcast posted to channel!");
     } catch (err) {
       toast.error(err.message || "Failed to post update");
     }
@@ -236,11 +292,18 @@ const ChannelsView = ({ loggedInUser }) => {
     }
   };
 
-  const isOwner =
-    Boolean(selectedChannel?.isOwner) ||
-    (Boolean(selectedChannel && currentUserId) &&
-      (selectedChannel.owner?._id || selectedChannel.owner)?.toString() ===
-        currentUserId);
+  const isChannelOwner = (ch) => {
+    if (!ch) return false;
+    if (ch.isOwner) return true;
+    const ownerId = (ch.owner?._id || ch.owner)?.toString();
+    return Boolean(ownerId && currentUserId && ownerId === currentUserId);
+  };
+
+  const isSelectedOwner = isChannelOwner(selectedChannel);
+
+  // Group channels into "Channels You Admin" and "Other Channels"
+  const myChannels = channels.filter((ch) => isChannelOwner(ch));
+  const otherChannels = channels.filter((ch) => !isChannelOwner(ch));
 
   return (
     <div className="flex-1 flex flex-col md:flex-row h-full bg-base-100 overflow-hidden">
@@ -259,10 +322,11 @@ const ChannelsView = ({ loggedInUser }) => {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="btn btn-sm btn-ghost btn-circle text-primary"
+            className="btn btn-sm btn-primary rounded-full px-3 gap-1 text-xs shadow-sm"
             title="Create Channel"
           >
-            <BsPlus size={24} />
+            <BsPlus size={18} />
+            <span>New Channel</span>
           </button>
         </div>
 
@@ -288,21 +352,74 @@ const ChannelsView = ({ loggedInUser }) => {
           </div>
         </div>
 
+        {/* Channels List */}
         <div className="flex-1 overflow-y-auto divide-y divide-base-200">
-          {channels.length === 0 ? (
-            <div className="p-8 text-center text-xs text-base-content/50">
-              No channels found. Create one to get started!
+          {/* Quick Creator CTA Card if user hasn't created a channel yet */}
+          {myChannels.length === 0 && (
+            <div className="p-3.5 m-3 bg-primary/5 rounded-2xl border border-primary/20 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                <BsMegaphoneFill size={13} />
+                <span>Want to post updates?</span>
+              </div>
+              <p className="text-[11px] text-base-content/70 leading-relaxed">
+                Create your own broadcast channel to share news, updates, and photos with followers.
+              </p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="btn btn-xs btn-primary rounded-full px-3 gap-1 w-full font-semibold"
+              >
+                <BsPlusCircleFill size={12} />
+                Create Your Channel
+              </button>
             </div>
-          ) : (
-            channels.map((ch) => (
-              <ChannelListItem
-                key={ch._id}
-                channel={ch}
-                isSelected={selectedChannel?._id === ch._id}
-                onClick={() => setSelectedChannel(ch)}
-              />
-            ))
           )}
+
+          {/* Section: Your Channels */}
+          {myChannels.length > 0 && (
+            <div>
+              <div className="px-4 py-2 bg-base-200/40 text-[11px] font-bold text-base-content/60 uppercase tracking-wider flex items-center justify-between">
+                <span>Channels You Manage</span>
+                <span className="badge badge-xs badge-primary font-mono">{myChannels.length}</span>
+              </div>
+              {myChannels.map((ch) => (
+                <ChannelListItem
+                  key={ch._id}
+                  channel={ch}
+                  isSelected={selectedChannel?._id === ch._id}
+                  onSelect={() => setSelectedChannel(ch)}
+                  onClick={() => setSelectedChannel(ch)}
+                  onToggleFollow={handleToggleFollow}
+                  isOwner={true}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Section: Other Channels */}
+          <div>
+            {myChannels.length > 0 && (
+              <div className="px-4 py-2 bg-base-200/40 text-[11px] font-bold text-base-content/60 uppercase tracking-wider">
+                <span>Discover & Followed Channels</span>
+              </div>
+            )}
+            {otherChannels.length === 0 && myChannels.length === 0 ? (
+              <div className="p-8 text-center text-xs text-base-content/50">
+                No channels found. Click &quot;New Channel&quot; above to create the first one!
+              </div>
+            ) : (
+              otherChannels.map((ch) => (
+                <ChannelListItem
+                  key={ch._id}
+                  channel={ch}
+                  isSelected={selectedChannel?._id === ch._id}
+                  onSelect={() => setSelectedChannel(ch)}
+                  onClick={() => setSelectedChannel(ch)}
+                  onToggleFollow={handleToggleFollow}
+                  isOwner={false}
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
 
@@ -310,9 +427,10 @@ const ChannelsView = ({ loggedInUser }) => {
       <ChannelFeedView
         selectedChannel={selectedChannel}
         setSelectedChannel={setSelectedChannel}
-        isOwner={isOwner}
+        isOwner={isSelectedOwner}
+        currentUserId={currentUserId}
         handleDeleteChannel={handleDeleteChannel}
-        handleToggleFollow={handleToggleFollow}
+        handleToggleFollow={() => handleToggleFollow(selectedChannel?._id)}
         handleToggleMute={handleToggleMute}
         activeEmojiPickerPostId={activeEmojiPickerPostId}
         setActiveEmojiPickerPostId={setActiveEmojiPickerPostId}
@@ -321,16 +439,19 @@ const ChannelsView = ({ loggedInUser }) => {
         newPostText={newPostText}
         setNewPostText={setNewPostText}
         handleCreatePost={handleCreatePost}
+        onOpenCreateModal={() => setShowCreateModal(true)}
       />
 
       {/* Create Channel Modal */}
       <CreateChannelModal
         isOpen={showCreateModal}
+        show={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         channelName={channelName}
         setChannelName={setChannelName}
         channelDesc={channelDesc}
         setChannelDesc={setChannelDesc}
+        onSubmit={handleCreateChannel}
         handleCreateChannel={handleCreateChannel}
       />
     </div>

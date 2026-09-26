@@ -1,21 +1,41 @@
 import Channel from "../models/channel.model.js";
+import cloudinary from "../config/cloudinary.js";
 
 /**
  * Create a new broadcast Channel.
  */
 export const createChannel = async (req, res) => {
   try {
-    const { name, description, avatar } = req.body;
+    let { name, description, avatar } = req.body;
     const userId = req.user._id;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: "Channel name is required" });
     }
 
+    if (req.file) {
+      try {
+        const uploadResult = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "chatapp_channels", resource_type: "image" },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+          );
+          stream.end(req.file.buffer);
+        });
+        avatar = uploadResult.secure_url;
+      } catch (uploadErr) {
+        console.warn("Avatar upload fallback to data URI:", uploadErr.message);
+        avatar = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      }
+    }
+
     const channel = new Channel({
       name: name.trim(),
       description: description || "",
-      avatar: avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${name.trim()}`,
+      avatar: avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(name.trim())}`,
       owner: userId,
       followers: [userId],
     });
@@ -26,6 +46,7 @@ export const createChannel = async (req, res) => {
     const formatted = {
       ...populated.toObject(),
       followerCount: 1,
+      followersCount: 1,
       isFollowing: true,
       isOwner: true,
     };
@@ -177,6 +198,7 @@ export const toggleFollowChannel = async (req, res) => {
     res.status(200).json({
       isFollowing,
       followerCount: channel.followers.length,
+      followersCount: channel.followers.length,
       channelId: id,
     });
   } catch (error) {
@@ -191,7 +213,7 @@ export const toggleFollowChannel = async (req, res) => {
 export const postToChannel = async (req, res) => {
   try {
     const { id } = req.params;
-    const { text, mediaUrl, mediaType } = req.body;
+    let { text, mediaUrl, mediaType } = req.body || {};
     const userId = req.user._id;
 
     const channel = await Channel.findById(id).populate("owner", "name avatar");
@@ -202,8 +224,33 @@ export const postToChannel = async (req, res) => {
       return res.status(403).json({ error: "Only the channel owner can post updates" });
     }
 
+    if (req.file) {
+      try {
+        const uploadResult = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "chatapp_channels", resource_type: "auto" },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+          );
+          stream.end(req.file.buffer);
+        });
+        mediaUrl = uploadResult.secure_url;
+        mediaType = req.file.mimetype.startsWith("image/") ? "image" : "file";
+      } catch (uploadErr) {
+        console.warn("Cloudinary upload failed, using data URI fallback:", uploadErr.message);
+        mediaUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+        mediaType = req.file.mimetype.startsWith("image/") ? "image" : "file";
+      }
+    }
+
+    if (!text?.trim() && !mediaUrl) {
+      return res.status(400).json({ error: "Post message or media attachment is required" });
+    }
+
     const newPost = {
-      text: text || "",
+      text: (text || "").trim(),
       mediaUrl: mediaUrl || "",
       mediaType: mediaType || "text",
       createdAt: new Date(),
@@ -213,22 +260,29 @@ export const postToChannel = async (req, res) => {
     channel.posts.unshift(newPost);
     await channel.save();
 
+    const createdPost = channel.posts[0];
+
     const io = req.app.get("io");
     if (io) {
       io.emit("channelPost", {
         channelId: id,
-        post: channel.posts[0],
+        post: createdPost,
       });
     }
 
     const formatted = {
       ...channel.toObject(),
       followerCount: channel.followers?.length || 0,
+      followersCount: channel.followers?.length || 0,
       isFollowing: channel.followers?.some((f) => f.toString() === userId.toString()),
       isOwner: true,
     };
 
-    res.status(201).json(formatted);
+    res.status(201).json({
+      post: createdPost,
+      channel: formatted,
+      ...formatted,
+    });
   } catch (error) {
     console.error("Error in postToChannel:", error.message);
     res.status(500).json({ error: "Internal server error" });

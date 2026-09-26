@@ -19,10 +19,15 @@ export async function getChannelById(channelId) {
 }
 
 export async function createChannel(channelData) {
+  const isFormData = typeof FormData !== "undefined" && channelData instanceof FormData;
+  const headers = authHeader();
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
   const res = await fetch(BASE, {
     method: "POST",
-    headers: { ...authHeader(), "Content-Type": "application/json" },
-    body: JSON.stringify(channelData),
+    headers,
+    body: isFormData ? channelData : JSON.stringify(channelData),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to create channel");
@@ -40,10 +45,15 @@ export async function toggleFollowChannel(channelId) {
 }
 
 export async function postToChannel(channelId, postData) {
+  const isFormData = typeof FormData !== "undefined" && postData instanceof FormData;
+  const headers = authHeader();
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
   const res = await fetch(`${BASE}/${channelId}/posts`, {
     method: "POST",
-    headers: { ...authHeader(), "Content-Type": "application/json" },
-    body: JSON.stringify(postData),
+    headers,
+    body: isFormData ? postData : JSON.stringify(postData),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to post to channel");
