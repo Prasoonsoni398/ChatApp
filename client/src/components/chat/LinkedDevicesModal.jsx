@@ -148,9 +148,9 @@ const LinkedDevicesModal = ({ isOpen, onClose, loggedInUser }) => {
 
               <div className="space-y-1.5 max-w-xs text-left text-xs text-base-content/70">
                 <p className="font-semibold text-base-content text-sm mb-2 text-center">
-                  To use Guftguon your devices:
+                  To use Guftgu your devices:
                 </p>
-                <p>1. Open Guftguon your primary phone</p>
+                <p>1. Open Guftgu your primary phone</p>
                 <p>
                   2. Tap Menu (⋮) or Settings and select{" "}
                   <strong>Linked Devices</strong>
@@ -191,7 +191,7 @@ const LinkedDevicesModal = ({ isOpen, onClose, loggedInUser }) => {
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-base-content">
-                    Use Guftguon other devices
+                    Use Guftgu other devices
                   </h4>
                   <p className="text-xs text-base-content/60 mt-0.5">
                     Link up to 4 devices to your account and send messages
