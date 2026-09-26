@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   BsArrowLeft,
   BsMegaphoneFill,
@@ -35,6 +35,14 @@ const ChannelFeedView = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    return () => {
+      if (filePreview) {
+        URL.revokeObjectURL(filePreview);
+      }
+    };
+  }, [filePreview]);
+
   if (!selectedChannel) {
     return (
       <div className="flex-1 hidden md:flex flex-col items-center justify-center p-8 text-center bg-base-200/30">
@@ -65,12 +73,18 @@ const ChannelFeedView = ({
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (filePreview) {
+        URL.revokeObjectURL(filePreview);
+      }
       setSelectedFile(file);
       setFilePreview(URL.createObjectURL(file));
     }
   };
 
   const handleClearFile = () => {
+    if (filePreview) {
+      URL.revokeObjectURL(filePreview);
+    }
     setSelectedFile(null);
     setFilePreview("");
     if (fileInputRef.current) fileInputRef.current.value = "";

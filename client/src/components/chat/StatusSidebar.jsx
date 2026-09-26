@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   BsPlus,
   BsRecordCircle,
@@ -50,6 +50,23 @@ const StatusSidebar = ({
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [imageCaption, setImageCaption] = useState("");
 
+  const handleClearImagePreview = () => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setPendingImageFile(null);
+    setImagePreviewUrl(null);
+    setImageCaption("");
+  };
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -75,6 +92,11 @@ const StatusSidebar = ({
       return;
     }
 
+    // Revoke previous object URL if any
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+
     // Open image caption preview modal
     setPendingImageFile(file);
     setImagePreviewUrl(URL.createObjectURL(file));
@@ -90,9 +112,7 @@ const StatusSidebar = ({
         formData.append("caption", imageCaption.trim());
       }
       await onUploadStatus(formData);
-      setPendingImageFile(null);
-      setImagePreviewUrl(null);
-      setImageCaption("");
+      handleClearImagePreview();
       if (onStatusUpdated) onStatusUpdated();
     } catch (_err) {
       toast.error("Failed to upload status");
@@ -357,11 +377,7 @@ const StatusSidebar = ({
             <div className="p-4 flex items-center justify-between border-b border-base-300">
               <h3 className="font-semibold text-sm">Add Status Caption</h3>
               <button
-                onClick={() => {
-                  setPendingImageFile(null);
-                  setImagePreviewUrl(null);
-                  setImageCaption("");
-                }}
+                onClick={handleClearImagePreview}
                 className="w-7 h-7 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
               >
                 <BsX size={20} />

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import * as messageService from "../services/messageService.js";
 import * as groupService from "../services/groupService.js";
 import socketAPI from "../config/webSocket.js";
@@ -9,43 +9,75 @@ import {
 
 /**
  * useChatSocketEvents – manages message fetching on chat switch
- * and registers/deregisters all real-time Socket.IO listeners.
+ * and registers stable real-time Socket.IO listeners.
  */
 export const useChatSocketEvents = ({
   state,
   handleTypingReceive,
   setOtherUserTyping,
 }) => {
+  // Keep fresh references to avoid recreating socket listeners on every re-render
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const selectedChatRef = useRef(state.selectedChat);
+  selectedChatRef.current = state.selectedChat;
+
+  const loggedInUserRef = useRef(state.loggedInUser);
+  loggedInUserRef.current = state.loggedInUser;
+
+  const handleTypingReceiveRef = useRef(handleTypingReceive);
+  handleTypingReceiveRef.current = handleTypingReceive;
+
+  const setOtherUserTypingRef = useRef(setOtherUserTyping);
+  setOtherUserTypingRef.current = setOtherUserTyping;
+
+  // 1. Fetch messages whenever the active chat changes
   useEffect(() => {
+    const currentChat = state.selectedChat;
+    const currentUser = state.loggedInUser;
+
+    if (!currentChat) {
+      state.setMessages([]);
+      state.setPinnedMessage(null);
+      return;
+    }
+
+    let isMounted = true;
+
     const fetchMessages = async () => {
-      if (!state.selectedChat) return;
       try {
         let data;
-        if (state.selectedChat.isGroup) {
-          data = await groupService.getGroupMessages(state.selectedChat.id);
+        if (currentChat.isGroup) {
+          data = await groupService.getGroupMessages(currentChat.id);
         } else {
-          data = await messageService.getMessages(state.selectedChat.id);
+          data = await messageService.getMessages(currentChat.id);
         }
 
-        const unreadIds = data
-          .filter((m) => {
-            const senderIdStr =
-              typeof m.senderId === "object" ? m.senderId?._id : m.senderId;
-            return (
-              senderIdStr !== state.loggedInUser?._id && m.status !== "read"
-            );
-          })
-          .map((m) => m._id);
+        if (!isMounted) return;
 
-        unreadIds.forEach((id) => {
+        const currentUserId = currentUser?._id?.toString();
+        const unreadSet = new Set();
+
+        data.forEach((m) => {
+          const senderIdStr = (
+            typeof m.senderId === "object" ? m.senderId?._id : m.senderId
+          )?.toString();
+          if (senderIdStr && senderIdStr !== currentUserId && m.status !== "read") {
+            unreadSet.add(m._id);
+          }
+        });
+
+        // Mark unread messages as read
+        unreadSet.forEach((id) => {
           const msg = data.find((m) => m._id === id);
           const senderIdStr =
-            typeof msg.senderId === "object" ? msg.senderId?._id : msg.senderId;
+            typeof msg?.senderId === "object" ? msg.senderId?._id : msg?.senderId;
           socketAPI.emit("messageStatus", {
             messageId: id,
             status: "read",
             senderId: senderIdStr,
-            receiverId: state.loggedInUser?._id,
+            receiverId: currentUser?._id,
           });
         });
 
@@ -53,16 +85,16 @@ export const useChatSocketEvents = ({
           const prevMap = new Map(prev.map((m) => [m._id, m.status]));
           return data.map((m) => ({
             ...m,
-            status: unreadIds.includes(m._id)
-              ? "read"
-              : prevMap.get(m._id) || m.status,
+            status: unreadSet.has(m._id) ? "read" : prevMap.get(m._id) || m.status,
           }));
         });
 
-        // Reset unread count for current open chat
+        // Reset unread badge for current open chat
         state.setChats((prev) =>
           prev.map((c) =>
-            c.id === state.selectedChat.id ? { ...c, unread: 0 } : c,
+            c.id?.toString() === currentChat.id?.toString()
+              ? { ...c, unread: 0 }
+              : c,
           ),
         );
 
@@ -70,52 +102,55 @@ export const useChatSocketEvents = ({
         if (pinned) {
           state.setPinnedMessage(pinned);
           state.setShowPinnedBanner(true);
-        } else state.setPinnedMessage(null);
+        } else {
+          state.setPinnedMessage(null);
+        }
       } catch (_e) {
         console.error("Fetch messages error:", _e);
       }
     };
 
-    if (state.selectedChat) fetchMessages();
-    else {
-      state.setMessages([]);
-      state.setPinnedMessage(null);
-    }
+    fetchMessages();
 
+    return () => {
+      isMounted = false;
+    };
+  }, [state.selectedChat?.id, state.selectedChat?.isGroup, state.loggedInUser?._id]);
+
+  // 2. Stable Socket listeners setup
+  useEffect(() => {
     const handleReceive = (msg) => {
-      const senderIdStr =
+      const currentState = stateRef.current;
+      const currentSelected = selectedChatRef.current;
+      const currentUser = loggedInUserRef.current;
+
+      const senderIdStr = (
         typeof msg.senderId === "object"
-          ? msg.senderId?._id?.toString()
-          : msg.senderId?.toString();
-      const receiverIdStr =
+          ? msg.senderId?._id
+          : msg.senderId
+      )?.toString();
+      const receiverIdStr = (
         typeof msg.receiverId === "object"
-          ? msg.receiverId?._id?.toString()
-          : msg.receiverId?.toString();
-      const isFromMe = senderIdStr === state.loggedInUser?._id?.toString();
+          ? msg.receiverId?._id
+          : msg.receiverId
+      )?.toString();
 
-      const selectedIdStr = state.selectedChat?.id?.toString();
+      const currentUserIdStr = currentUser?._id?.toString();
+      const isFromMe = senderIdStr === currentUserIdStr;
+
+      const selectedIdStr = currentSelected?.id?.toString();
       const isCurrentChat =
-        Boolean(state.selectedChat) &&
-        ((!state.selectedChat.isGroup &&
+        Boolean(currentSelected) &&
+        ((!currentSelected.isGroup &&
           (senderIdStr === selectedIdStr || receiverIdStr === selectedIdStr)) ||
-          (state.selectedChat.isGroup &&
+          (currentSelected.isGroup &&
             msg.groupId?.toString() === selectedIdStr));
-
-      // If user is currently looking at this chat, immediately mark as read
-      if (isCurrentChat && !isFromMe && msg._id) {
-        socketAPI.emit("messageStatus", {
-          messageId: msg._id,
-          status: "read",
-          senderId: senderIdStr,
-          receiverId: state.loggedInUser?._id,
-        });
-      }
 
       const lastMsgText =
         msg.text || (msg.mediaType ? `[${msg.mediaType}]` : "New message");
 
-      // Update sidebar chat item and move it to the top
-      state.setChats((prev) => {
+      // Update sidebar chat item and move to top
+      currentState.setChats((prev) => {
         const chatId = msg.groupId || (isFromMe ? receiverIdStr : senderIdStr);
         const existingIndex = prev.findIndex(
           (c) => c.id?.toString() === chatId?.toString(),
@@ -154,36 +189,39 @@ export const useChatSocketEvents = ({
             unread: isCurrentChat ? 0 : 1,
             avatar:
               msg.senderId?.avatar ||
-              `https://api.dicebear.com/7.x/avataaars/svg?seed=${senderName}`,
+              `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(senderName)}`,
           };
           return [newChat, ...prev];
         }
         return prev;
       });
 
+      // Notification sound & banner for non-active chats
       if (!isFromMe && !isCurrentChat) {
         playMessageChime();
         const senderName =
           typeof msg.senderId === "object"
             ? msg.senderId?.name
-            : state.selectedChat?.name || "New Message";
+            : currentSelected?.name || "New Message";
         triggerDesktopNotification(senderName, lastMsgText);
       }
 
+      // If viewing this chat, notify read status and append message
       if (isCurrentChat) {
-        if (!isFromMe) {
+        if (!isFromMe && msg._id) {
           socketAPI.emit("messageStatus", {
             messageId: msg._id,
             status: "read",
             senderId: senderIdStr,
-            receiverId: state.loggedInUser?._id,
+            receiverId: currentUser?._id,
           });
           msg.status = "read";
         }
 
-        state.setMessages((prev) => {
-          if (msg.isEdit)
+        currentState.setMessages((prev) => {
+          if (msg.isEdit) {
             return prev.map((m) => (m._id === msg._id ? msg : m));
+          }
           if (prev.some((m) => m._id === msg._id)) return prev;
           return [...prev, msg];
         });
@@ -191,12 +229,16 @@ export const useChatSocketEvents = ({
     };
 
     const handleDelete = (data) => {
+      const currentState = stateRef.current;
+      const currentSelected = selectedChatRef.current;
+      const currentUser = loggedInUserRef.current;
+
       if (
-        state.selectedChat &&
-        (data.groupId === state.selectedChat.id ||
-          data.receiverId === state.loggedInUser?._id)
+        currentSelected &&
+        (data.groupId === currentSelected.id ||
+          data.receiverId === currentUser?._id)
       ) {
-        state.setMessages((prev) =>
+        currentState.setMessages((prev) =>
           prev.map((m) =>
             m._id === data.messageId
               ? { ...m, isDeletedForEveryone: true, text: "", image: "" }
@@ -207,7 +249,7 @@ export const useChatSocketEvents = ({
     };
 
     const handleMessageStatus = (payload) => {
-      state.setMessages((prev) =>
+      stateRef.current.setMessages((prev) =>
         prev.map((m) =>
           m._id === payload.messageId ? { ...m, status: payload.status } : m,
         ),
@@ -215,7 +257,7 @@ export const useChatSocketEvents = ({
     };
 
     const handleReaction = (payload) => {
-      state.setMessages((prev) =>
+      stateRef.current.setMessages((prev) =>
         prev.map((m) =>
           m._id === payload.messageId
             ? { ...m, reactions: payload.reactions }
@@ -225,7 +267,7 @@ export const useChatSocketEvents = ({
     };
 
     const handlePollUpdated = (data) => {
-      state.setMessages((prev) =>
+      stateRef.current.setMessages((prev) =>
         prev.map((m) =>
           m._id === data.messageId ? { ...m, poll: data.poll } : m,
         ),
@@ -233,30 +275,38 @@ export const useChatSocketEvents = ({
     };
 
     const handleEventUpdated = (data) => {
-      state.setMessages((prev) =>
+      stateRef.current.setMessages((prev) =>
         prev.map((m) =>
           m._id === data.messageId ? { ...m, event: data.event } : m,
         ),
       );
     };
 
+    const onTyping = (data) => {
+      if (handleTypingReceiveRef.current) {
+        handleTypingReceiveRef.current(data);
+      }
+    };
+
     socketAPI.on("receive", handleReceive);
-    socketAPI.on("typing", handleTypingReceive);
+    socketAPI.on("typing", onTyping);
     socketAPI.on("deleteMessage", handleDelete);
     socketAPI.on("messageStatus", handleMessageStatus);
     socketAPI.on("reaction", handleReaction);
     socketAPI.on("pollUpdated", handlePollUpdated);
     socketAPI.on("eventUpdated", handleEventUpdated);
+
     return () => {
       socketAPI.off("receive", handleReceive);
-      socketAPI.off("typing", handleTypingReceive);
+      socketAPI.off("typing", onTyping);
       socketAPI.off("deleteMessage", handleDelete);
       socketAPI.off("messageStatus", handleMessageStatus);
       socketAPI.off("reaction", handleReaction);
       socketAPI.off("pollUpdated", handlePollUpdated);
       socketAPI.off("eventUpdated", handleEventUpdated);
-      setOtherUserTyping(false);
+      if (setOtherUserTypingRef.current) {
+        setOtherUserTypingRef.current(false);
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.selectedChat, state.loggedInUser]);
+  }, []);
 };

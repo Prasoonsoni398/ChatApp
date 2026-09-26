@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { BsX, BsCameraFill, BsMegaphoneFill } from "react-icons/bs";
 
 const CreateChannelModal = ({
@@ -17,11 +17,31 @@ const CreateChannelModal = ({
   const [avatarPreview, setAvatarPreview] = useState("");
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [visible, onClose]);
+
   if (!visible) return null;
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
     }
@@ -40,7 +60,12 @@ const CreateChannelModal = ({
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+    >
       <div className="bg-base-100 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden border border-base-300">
         <div className="px-5 py-4 border-b border-base-300 flex items-center justify-between bg-base-200/50">
           <div className="flex items-center gap-2">
