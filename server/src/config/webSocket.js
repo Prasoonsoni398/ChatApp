@@ -115,6 +115,46 @@ const WebSocket = (io) => {
       }
     });
 
+    socket.on("pollVote", async (payload) => {
+      // payload: { messageId, poll, groupId, receiverId }
+      if (payload.groupId) {
+        const group = await Group.findById(payload.groupId);
+        if (group) {
+          group.members.forEach((memberId) => {
+            const receiverSocketId = OnlineUsers[memberId];
+            if (receiverSocketId) {
+              io.to(receiverSocketId).emit("pollUpdated", payload);
+            }
+          });
+        }
+      } else if (payload.receiverId) {
+        const receiverSocketId = OnlineUsers[payload.receiverId];
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("pollUpdated", payload);
+        }
+      }
+    });
+
+    socket.on("eventUpdated", async (payload) => {
+      // payload: { messageId, event, groupId, receiverId }
+      if (payload.groupId) {
+        const group = await Group.findById(payload.groupId);
+        if (group) {
+          group.members.forEach((memberId) => {
+            const receiverSocketId = OnlineUsers[memberId];
+            if (receiverSocketId) {
+              io.to(receiverSocketId).emit("eventUpdated", payload);
+            }
+          });
+        }
+      } else if (payload.receiverId) {
+        const receiverSocketId = OnlineUsers[payload.receiverId];
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("eventUpdated", payload);
+        }
+      }
+    });
+
     socket.on("reaction", async (payload) => {
       console.log("Reaction Update", payload);
       if (payload.groupId) {

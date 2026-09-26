@@ -120,3 +120,159 @@ export async function clearChat(chatId) {
   if (!res.ok) throw new Error(data.error || "Failed to clear chat");
   return data;
 }
+
+/**
+ * Toggle star/unstar on a message (PRD Section 22).
+ * @param {string} messageId
+ * @returns {Promise<{ isStarred: boolean, messageId: string, starredBy: string[] }>}
+ */
+export async function toggleStarMessage(messageId) {
+  const res = await fetch(`${BASE}/star/${messageId}`, {
+    method: "PATCH",
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to star message");
+  return data;
+}
+
+/**
+ * Fetch all starred messages for the current user (PRD Section 22).
+ * @returns {Promise<Message[]>}
+ */
+export async function getStarredMessages() {
+  const res = await fetch(`${BASE}/starred`, {
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to fetch starred messages");
+  return data;
+}
+
+/**
+ * Create a new poll (PRD Section 47).
+ * @param {Object} pollData - { question, options, allowMultipleAnswers, receiverId, groupId }
+ * @returns {Promise<Message>}
+ */
+export async function createPoll(pollData) {
+  const res = await fetch(`${BASE}/poll`, {
+    method: "POST",
+    headers: { ...authHeader(), "Content-Type": "application/json" },
+    body: JSON.stringify(pollData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to create poll");
+  return data;
+}
+
+/**
+ * Vote on a poll option (PRD Section 47).
+ * @param {string} messageId
+ * @param {number} optionIndex
+ * @returns {Promise<Message>}
+ */
+export async function votePoll(messageId, optionIndex) {
+  const res = await fetch(`${BASE}/poll/${messageId}/vote`, {
+    method: "POST",
+    headers: { ...authHeader(), "Content-Type": "application/json" },
+    body: JSON.stringify({ optionIndex }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to vote on poll");
+  return data;
+}
+
+/**
+ * Mark a view-once message as viewed (PRD Section 34).
+ * @param {string} messageId
+ * @returns {Promise<Object>}
+ */
+export async function viewOnceMessage(messageId) {
+  const res = await fetch(`${BASE}/${messageId}/view-once`, {
+    method: "POST",
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to view message");
+  return data;
+}
+
+/**
+ * Global search across messages and media (PRD Section 35, 36).
+ * @param {string} q - Search term
+ * @param {string} type - Media filter ('all'|'photos'|'videos'|'documents'|'audio'|'polls'|'links'|'contacts')
+ * @returns {Promise<Message[]>}
+ */
+export async function searchMessages(q = "", type = "all") {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (type && type !== "all") params.set("type", type);
+  const res = await fetch(`${BASE}/search?${params.toString()}`, {
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to search messages");
+  return data;
+}
+
+/**
+ * Clear all chat messages for current user (PRD Section 73).
+ * @returns {Promise<{ message: string }>}
+ */
+export async function clearAllChats() {
+  const res = await fetch(`${BASE}/clear-all`, {
+    method: "DELETE",
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to clear all chats");
+  return data;
+}
+
+/**
+ * Create a new group event (PRD Section 47).
+ * @param {Object} eventData - { title, startDate, startTime, location, description, groupId, receiverId }
+ * @returns {Promise<Message>}
+ */
+export async function createEvent(eventData) {
+  const res = await fetch(`${BASE}/event`, {
+    method: "POST",
+    headers: { ...authHeader(), "Content-Type": "application/json" },
+    body: JSON.stringify(eventData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to create event");
+  return data;
+}
+
+/**
+ * Respond to a group event (PRD Section 47).
+ * @param {string} messageId
+ * @param {'going'|'maybe'|'not_going'} status
+ * @returns {Promise<Message>}
+ */
+export async function respondEvent(messageId, status) {
+  const res = await fetch(`${BASE}/event/${messageId}/respond`, {
+    method: "POST",
+    headers: { ...authHeader(), "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to respond to event");
+  return data;
+}
+
+/**
+ * Get storage breakdown and large files (PRD Section 81 & 82).
+ * @returns {Promise<Object>}
+ */
+export async function getStorageUsage() {
+  const res = await fetch(`${BASE}/storage-usage`, {
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to get storage usage");
+  return data;
+}
+
+

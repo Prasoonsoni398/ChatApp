@@ -7,11 +7,37 @@ export const uploadStatus = async (formData) => {
   const res = await fetch(BASE, {
     method: "POST",
     headers: authHeader(),
-    body: formData, // fetch will automatically set the correct multipart/form-data headers
+    body: formData,
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to upload status");
   return data;
+};
+
+export const uploadTextStatus = async ({ text, backgroundColor, fontFamily }) => {
+  const res = await fetch(`${BASE}/text`, {
+    method: "POST",
+    headers: {
+      ...authHeader(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text, backgroundColor, fontFamily }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to create text status");
+  return data;
+};
+
+export const markStatusViewed = async (statusId) => {
+  try {
+    const res = await fetch(`${BASE}/${statusId}/view`, {
+      method: "POST",
+      headers: authHeader(),
+    });
+    return await res.json();
+  } catch (e) {
+    console.error("Error marking status viewed:", e);
+  }
 };
 
 export const getStatuses = async () => {

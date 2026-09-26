@@ -8,10 +8,19 @@ import userRouter from "./src/routers/user.router.js";
 import messageRouter from "./src/routers/message.router.js";
 import groupRouter from "./src/routers/group.router.js";
 import statusRouter from "./src/routers/status.router.js";
+import communityRouter from "./src/routers/community.router.js";
+import channelRouter from "./src/routers/channel.router.js";
+import reportRouter from "./src/routers/report.router.js";
+import contactRouter from "./src/routers/contact.router.js";
 
 import http from "http";
+import path from "path";
+import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 import WebSocket from "./src/config/webSocket.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 connectDB();
 
@@ -31,8 +40,9 @@ const isAllowedOrigin = (origin) => {
   if (!origin) return true;
   const cleanOrigin = origin.replace(/\/$/, "");
   if (staticOrigins.includes(cleanOrigin)) return true;
-  // Match any Vercel deployment domain
+  // Match any Vercel or Render deployment domain
   if (/^https:\/\/.*\.vercel\.app$/.test(cleanOrigin)) return true;
+  if (/^https:\/\/.*\.onrender\.com$/.test(cleanOrigin)) return true;
   return false;
 };
 
@@ -56,9 +66,26 @@ app.use("/api/users", userRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/groups", groupRouter);
 app.use("/api/status", statusRouter);
+app.use("/api/communities", communityRouter);
+app.use("/api/channels", channelRouter);
+app.use("/api/reports", reportRouter);
+app.use("/api/contacts", contactRouter);
 
-app.get("/", (req, res) => {
-  res.send("Welcome to ChatApp Server");
+// Serve frontend static build if available (supports single fullstack deployment on Render)
+const clientDistPath = path.resolve(__dirname, "../client/dist");
+app.use(express.static(clientDistPath));
+
+// Fallback for SPA client routing (Express 5 compatible)
+app.use((req, res) => {
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ message: "API route not found" });
+  }
+  const indexPath = path.join(clientDistPath, "index.html");
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      res.send("Welcome to ChatApp Server (API is running)");
+    }
+  });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -69,8 +96,11 @@ const io = new Server(httpServer, {
   cors: corsOptions,
 });
 
+app.set("io", io);
+
 WebSocket(io);
 
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
