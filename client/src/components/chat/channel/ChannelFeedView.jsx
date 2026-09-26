@@ -6,7 +6,7 @@ import {
   BsTrash,
   BsBellFill,
   BsBellSlashFill,
-  BsSendFill,
+  BsFillSendFill,
   BsImage,
   BsCameraVideoFill,
   BsMusicNoteBeamed,
@@ -386,7 +386,7 @@ const ChannelFeedView = ({
 
       {/* Owner Post Composer Bar or Follower Quick-Switch Bar */}
       {isOwner ? (
-        <div className="bg-base-100 border-t border-base-300 p-3 flex-shrink-0 relative">
+        <div className="p-2 sm:p-3 bg-base-100 border-t border-base-300 relative flex-shrink-0">
           {/* Attachment Preview Card */}
           {filePreview && (
             <div className="mb-2 relative inline-flex items-center gap-3 p-2 bg-base-200/80 rounded-2xl border border-base-300 max-w-md animate-fade-in">
@@ -449,18 +449,63 @@ const ChannelFeedView = ({
             </div>
           )}
 
-          <form onSubmit={onSubmitPost} className="flex items-center gap-2">
+          {/* Hidden specialized file inputs */}
+          <input
+            ref={fileInputImageRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleSelectFile(e.target.files?.[0], "image")}
+          />
+          <input
+            ref={fileInputVideoRef}
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={(e) => handleSelectFile(e.target.files?.[0], "video")}
+          />
+          <input
+            ref={fileInputAudioRef}
+            type="file"
+            accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
+            className="hidden"
+            onChange={(e) => handleSelectFile(e.target.files?.[0], "audio")}
+          />
+          <input
+            ref={fileInputDocRef}
+            type="file"
+            className="hidden"
+            onChange={(e) => handleSelectFile(e.target.files?.[0], "document")}
+          />
+
+          <div className="flex items-end gap-1 sm:gap-2">
+            {/* Emoji Trigger */}
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker((v) => !v)}
+              className={`p-1.5 sm:p-2 transition-colors ${
+                showEmojiPicker
+                  ? "text-primary"
+                  : "text-base-content/50 hover:text-primary"
+              }`}
+              title="Insert emoji"
+            >
+              <BsEmojiSmile size={20} />
+            </button>
+
             {/* Attachment Dropdown Menu */}
             <div className="relative" ref={attachMenuRef}>
               <button
                 type="button"
                 onClick={() => setShowAttachMenu((v) => !v)}
-                className={`btn btn-sm btn-ghost btn-circle ${
-                  selectedFile ? "text-primary" : "text-base-content/70"
+                className={`p-1.5 sm:p-2 transition-colors ${
+                  showAttachMenu || selectedFile
+                    ? "text-primary"
+                    : "text-base-content/50 hover:text-primary"
                 }`}
                 title="Add attachment"
               >
-                <BsPaperclip size={19} />
+                <BsPaperclip size={20} />
               </button>
 
               {showAttachMenu && (
@@ -513,66 +558,36 @@ const ChannelFeedView = ({
               )}
             </div>
 
-            {/* Hidden specialized file inputs */}
-            <input
-              ref={fileInputImageRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => handleSelectFile(e.target.files?.[0], "image")}
-            />
-            <input
-              ref={fileInputVideoRef}
-              type="file"
-              accept="video/*"
-              className="hidden"
-              onChange={(e) => handleSelectFile(e.target.files?.[0], "video")}
-            />
-            <input
-              ref={fileInputAudioRef}
-              type="file"
-              accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
-              className="hidden"
-              onChange={(e) => handleSelectFile(e.target.files?.[0], "audio")}
-            />
-            <input
-              ref={fileInputDocRef}
-              type="file"
-              className="hidden"
-              onChange={(e) =>
-                handleSelectFile(e.target.files?.[0], "document")
-              }
-            />
-
-            {/* Emoji Trigger */}
-            <button
-              type="button"
-              onClick={() => setShowEmojiPicker((v) => !v)}
-              className="btn btn-sm btn-ghost btn-circle text-base-content/70"
-              title="Insert emoji"
-            >
-              <BsEmojiSmile size={18} />
-            </button>
-
             {/* Message input */}
-            <input
-              ref={textInputRef}
-              type="text"
-              placeholder={`Broadcast update to ${selectedChannel.name}...`}
-              value={newPostText}
-              onChange={(e) => setNewPostText(e.target.value)}
-              className="input input-sm input-bordered flex-1 rounded-full bg-base-200/50 text-xs focus:outline-none focus:border-primary"
-            />
-
-            <button
-              type="submit"
-              disabled={(!newPostText.trim() && !selectedFile) || isSubmitting}
-              className="btn btn-sm btn-circle btn-primary"
-              title="Post broadcast"
+            <form
+              onSubmit={onSubmitPost}
+              className="flex-1 flex items-end sm:items-center gap-2 relative"
             >
-              <BsSendFill size={13} />
-            </button>
-          </form>
+              <input
+                ref={textInputRef}
+                type="text"
+                placeholder={`Broadcast update to ${selectedChannel.name}…`}
+                value={newPostText}
+                onChange={(e) => setNewPostText(e.target.value)}
+                className="input input-bordered w-full rounded-xl bg-base-200 min-h-[44px] h-[44px] focus:outline-none focus:ring-1 focus:ring-primary/50 text-sm px-4"
+              />
+
+              <button
+                type="submit"
+                disabled={
+                  (!newPostText.trim() && !selectedFile) || isSubmitting
+                }
+                className="btn btn-circle btn-primary btn-sm sm:btn-md shadow-sm active:scale-95 transition-transform flex-shrink-0"
+                title="Post broadcast"
+              >
+                {isSubmitting ? (
+                  <span className="loading loading-spinner loading-xs" />
+                ) : (
+                  <BsFillSendFill size={15} className="ml-0.5" />
+                )}
+              </button>
+            </form>
+          </div>
         </div>
       ) : (
         <div className="p-3 bg-base-200/60 border-t border-base-300 flex items-center justify-between gap-3 text-xs text-base-content/70 flex-wrap flex-shrink-0">

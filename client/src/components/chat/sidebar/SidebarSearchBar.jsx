@@ -45,7 +45,7 @@ const SidebarSearchBar = ({
         <div className="relative flex items-center">
           <BsSearch
             size={14}
-            className="absolute left-3 text-base-content/40 pointer-events-none"
+            className="absolute left-3 text-base-content/40 z-20 pointer-events-none transition-colors"
           />
           <input
             type="text"

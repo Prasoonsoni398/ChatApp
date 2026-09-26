@@ -31,14 +31,14 @@ export const authLabel = "label";
 export const authLabelText = "label-text font-semibold";
 
 /** Relative wrapper for inputs that have a leading icon */
-export const authInputGroup = "input-group relative";
+export const authInputGroup = "input-group relative focus-within:text-primary";
 
 /** Absolutely positioned icon span inside an input group */
 export const authInputIconSpan =
-  "absolute inset-y-0 left-0 flex items-center pl-3 text-base-content/50";
+  "absolute inset-y-0 left-0 flex items-center pl-3.5 text-base-content/50 z-20 pointer-events-none transition-colors";
 
 /** Standard text/email/password input with left-icon padding */
-export const authInput = "input input-bordered w-full pl-10 rounded-xl";
+export const authInput = "input input-bordered w-full pl-10 rounded-xl focus:outline-none focus:border-primary";
 
 /** Full-width primary CTA button used on auth forms */
 export const primaryBtn =

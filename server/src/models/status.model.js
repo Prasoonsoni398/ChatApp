@@ -8,16 +8,41 @@ const statusSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["image", "text"],
+    enum: ["image", "text", "video"],
     default: "image",
     required: true,
   },
   image: {
     type: String,
   },
+  video: {
+    type: String,
+  },
+  mediaUrl: {
+    type: String,
+  },
   caption: {
     type: String,
     default: "",
+  },
+  privacy: {
+    type: {
+      type: String,
+      enum: ["contacts", "contacts_except", "only_share_with"],
+      default: "contacts",
+    },
+    excludedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    allowedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   text: {
     type: String,

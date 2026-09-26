@@ -10,6 +10,8 @@ import {
   BsShieldCheck,
   BsChatSquareDotsFill,
   BsWhatsapp,
+  BsEyeFill,
+  BsEyeSlashFill,
 } from "react-icons/bs";
 import toast from "react-hot-toast";
 import useAuthRedirect from "../hooks/useAuthRedirect.js";
@@ -51,6 +53,7 @@ const Register = () => {
     emailDelivered: false,
     email: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [countdown, setCountdown] = useState(step === 2 ? 60 : 0);
@@ -250,15 +253,31 @@ const Register = () => {
                     <BsLockFill />
                   </span>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     placeholder="••••••••"
-                    className={authInput}
+                    className={`${authInput} pr-10`}
                     value={formData.password}
                     onChange={handleChange}
                     required
                     minLength={6}
                   />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-base-content/50 hover:text-base-content z-20 cursor-pointer transition-colors"
+                    title={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <BsEyeSlashFill size={17} />
+                    ) : (
+                      <BsEyeFill size={17} />
+                    )}
+                  </button>
                 </div>
               </div>
 

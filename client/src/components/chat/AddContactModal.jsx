@@ -109,7 +109,7 @@ const AddContactModal = ({ isOpen, onClose, onContactAdded }) => {
           {/* Phone search form */}
           <form onSubmit={handleSearch} className="flex gap-2">
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50 z-20 pointer-events-none transition-colors">
                 <BsTelephoneFill className="text-sm" />
               </span>
               <input

@@ -67,7 +67,12 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
       let formData = input;
       if (input instanceof File) {
         formData = new FormData();
-        formData.append("image", input);
+        formData.append("file", input);
+        if (input.type.startsWith("video/")) {
+          formData.append("video", input);
+        } else {
+          formData.append("image", input);
+        }
       }
       await statusService.uploadStatus(formData);
       toast.success("Status uploaded!");

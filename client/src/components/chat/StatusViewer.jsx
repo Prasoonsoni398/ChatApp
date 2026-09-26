@@ -208,10 +208,36 @@ const StatusViewer = ({ group, loggedInUser, onClose }) => {
               {currentStatus.text}
             </p>
           </div>
+        ) : currentStatus.type === "video" ? (
+          <div className="relative w-full h-full flex flex-col items-center justify-center">
+            <video
+              src={
+                currentStatus.video ||
+                currentStatus.mediaUrl ||
+                currentStatus.image
+              }
+              autoPlay
+              playsInline
+              loop
+              muted={isMuted}
+              className="max-h-full max-w-full object-contain"
+            />
+            {currentStatus.caption && (
+              <div className="absolute bottom-12 left-0 right-0 px-6 py-3 bg-black/60 backdrop-blur-xs text-center z-10">
+                <p className="text-white text-sm sm:text-base leading-snug">
+                  {currentStatus.caption}
+                </p>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="relative w-full h-full flex flex-col items-center justify-center">
             <img
-              src={currentStatus.image}
+              src={
+                currentStatus.image ||
+                currentStatus.mediaUrl ||
+                currentStatus.video
+              }
               alt="Status"
               className="max-h-full max-w-full object-contain"
             />

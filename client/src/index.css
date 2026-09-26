@@ -90,3 +90,30 @@ button:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* ─── Ensure input icons never disappear when input is focused, active, or typed in ─── */
+.relative > svg.absolute,
+.relative > span.absolute,
+.input-group > span.absolute,
+.input-group > svg.absolute {
+  z-index: 20 !important;
+  pointer-events: none;
+}
+
+/* Retain high-contrast icon visibility on input focus */
+.relative:focus-within > svg.absolute,
+.relative:focus-within > span.absolute,
+.input-group:focus-within > span.absolute,
+.input-group:focus-within > svg.absolute {
+  color: var(--color-primary, #25d366) !important;
+  opacity: 1 !important;
+  z-index: 20 !important;
+}
+
+/* Ensure inputs never cover their own absolute sibling icons */
+input:focus,
+input:active,
+textarea:focus,
+textarea:active {
+  z-index: 1;
+}

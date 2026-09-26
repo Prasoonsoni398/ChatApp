@@ -6,6 +6,7 @@ const CreateChannelModal = ({
   show,
   isOpen,
   onClose,
+  isSaving = false,
   channelName,
   setChannelName,
   channelDesc,
@@ -16,7 +17,10 @@ const CreateChannelModal = ({
   const visible = show !== undefined ? show : isOpen;
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
+  const [internalSaving, setInternalSaving] = useState(false);
   const fileInputRef = useRef(null);
+
+  const saving = isSaving || internalSaving;
 
   useEffect(() => {
     return () => {
@@ -29,15 +33,16 @@ const CreateChannelModal = ({
   useEffect(() => {
     if (!visible) return;
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !saving) onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [visible, onClose]);
+  }, [visible, onClose, saving]);
 
   if (!visible) return null;
 
   const handleFileChange = (e) => {
+    if (saving) return;
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -53,11 +58,17 @@ const CreateChannelModal = ({
     }
   };
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
+    if (saving || !channelName.trim()) return;
     const handler = onSubmit || handleCreateChannel;
     if (handler) {
-      handler(e, avatarFile);
+      try {
+        setInternalSaving(true);
+        await handler(e, avatarFile);
+      } finally {
+        setInternalSaving(false);
+      }
     }
   };
 
@@ -68,7 +79,7 @@ const CreateChannelModal = ({
   return (
     <div
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !saving) onClose();
       }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
     >
@@ -83,7 +94,8 @@ const CreateChannelModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
+            disabled={saving}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer disabled:opacity-40"
           >
             <BsX size={20} />
           </button>
@@ -93,9 +105,15 @@ const CreateChannelModal = ({
           {/* Avatar selector */}
           <div className="flex flex-col items-center justify-center pt-1">
             <div
-              onClick={() => fileInputRef.current?.click()}
-              className="relative w-20 h-20 rounded-full border-2 border-dashed border-primary/40 hover:border-primary flex items-center justify-center cursor-pointer overflow-hidden bg-base-200 group transition-all"
-              title="Click to choose channel image"
+              onClick={() => {
+                if (!saving) fileInputRef.current?.click();
+              }}
+              className={`relative w-20 h-20 rounded-full border-2 border-dashed border-primary/40 flex items-center justify-center overflow-hidden bg-base-200 transition-all ${
+                saving
+                  ? "cursor-not-allowed opacity-60"
+                  : "hover:border-primary cursor-pointer group"
+              }`}
+              title={saving ? "Saving..." : "Click to choose channel image"}
             >
               {avatarPreview ? (
                 <img
@@ -115,15 +133,18 @@ const CreateChannelModal = ({
                   className="text-base-content/40 group-hover:text-primary transition-colors"
                 />
               )}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-medium">
-                Change
-              </div>
+              {!saving && (
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-medium">
+                  Change
+                </div>
+              )}
             </div>
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               className="hidden"
+              disabled={saving}
               onChange={handleFileChange}
             />
             <span className="text-[11px] text-base-content/50 mt-1.5">
@@ -138,10 +159,11 @@ const CreateChannelModal = ({
             <input
               type="text"
               required
+              disabled={saving}
               value={channelName}
               onChange={(e) => setChannelName(e.target.value)}
               placeholder="e.g. Daily Tech Updates"
-              className="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 text-sm focus:outline-none focus:border-primary"
+              className="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 text-sm focus:outline-none focus:border-primary disabled:opacity-60"
             />
           </div>
 
@@ -150,11 +172,12 @@ const CreateChannelModal = ({
               Description
             </label>
             <textarea
+              disabled={saving}
               value={channelDesc}
               onChange={(e) => setChannelDesc(e.target.value)}
               placeholder="Describe what broadcasts your channel shares…"
               rows={2}
-              className="textarea textarea-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 text-sm focus:outline-none focus:border-primary"
+              className="textarea textarea-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 text-sm focus:outline-none focus:border-primary disabled:opacity-60"
             />
           </div>
 
@@ -167,16 +190,24 @@ const CreateChannelModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="btn btn-sm btn-ghost rounded-xl"
+              disabled={saving}
+              className="btn btn-sm btn-ghost rounded-xl disabled:opacity-40"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={!channelName.trim()}
-              className="btn btn-sm btn-primary rounded-xl px-5 font-semibold"
+              disabled={!channelName.trim() || saving}
+              className="btn btn-sm btn-primary rounded-xl px-5 font-semibold gap-2 disabled:opacity-60"
             >
-              Create Channel
+              {saving ? (
+                <>
+                  <span className="loading loading-spinner loading-xs" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                "Create Channel"
+              )}
             </button>
           </div>
         </form>

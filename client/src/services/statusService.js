@@ -14,11 +14,59 @@ export const uploadStatus = async (formData) => {
   return data;
 };
 
+/**
+ * Upload media status with XMLHttpRequest for real progress tracking (PRD Section 9 & 14)
+ */
+export const uploadStatusWithProgress = (formData, onProgress) => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", BASE);
+
+    const token = getToken();
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
+    if (xhr.upload && onProgress) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress(percent);
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(data);
+        } else {
+          reject(new Error(data.error || "Failed to upload status"));
+        }
+      } catch (_e) {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve({});
+        } else {
+          reject(new Error("Failed to upload status"));
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Network connection error. Upload failed."));
+    };
+
+    xhr.send(formData);
+  });
+};
+
 export const uploadTextStatus = async ({
   text,
   backgroundColor,
   fontFamily,
   song,
+  privacy,
 }) => {
   const res = await fetch(`${BASE}/text`, {
     method: "POST",
@@ -26,7 +74,7 @@ export const uploadTextStatus = async ({
       ...authHeader(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text, backgroundColor, fontFamily, song }),
+    body: JSON.stringify({ text, backgroundColor, fontFamily, song, privacy }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to create text status");

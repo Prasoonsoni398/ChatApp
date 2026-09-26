@@ -70,7 +70,7 @@ const parseSongData = async (req) => {
 };
 
 /**
- * Upload Image Status
+ * Upload Media Status (Image or Video - PRD FR-03, FR-04, AC-01, AC-02)
  */
 export const uploadStatus = async (req, res) => {
   try {
@@ -84,34 +84,68 @@ export const uploadStatus = async (req, res) => {
         ? [req.file]
         : [];
 
-    const imageFile = files.find((f) => f.mimetype?.startsWith("image/"));
+    const mediaFile = files.find(
+      (f) =>
+        f.mimetype?.startsWith("image/") ||
+        f.mimetype?.startsWith("video/") ||
+        /\.(jpg|jpeg|png|webp|gif|mp4|mov|webm|mkv|avi|m4v|3gp)$/i.test(
+          f.originalname || "",
+        ),
+    );
 
-    if (!imageFile) {
+    if (!mediaFile) {
       return res
         .status(400)
-        .json({ error: "Image file is required for image status" });
+        .json({ error: "Media file (photo or video) is required for status" });
     }
+
+    const isVideo =
+      mediaFile.mimetype?.startsWith("video/") ||
+      /\.(mp4|mov|webm|mkv|avi|m4v|3gp)$/i.test(mediaFile.originalname || "");
+    const statusType = isVideo ? "video" : "image";
 
     const caption = req.body.caption || "";
     const song = await parseSongData(req);
 
+    // Parse privacy settings
+    let parsedPrivacy = {
+      type: "contacts",
+      excludedUsers: [],
+      allowedUsers: [],
+    };
+    if (req.body.privacy) {
+      try {
+        parsedPrivacy =
+          typeof req.body.privacy === "string"
+            ? JSON.parse(req.body.privacy)
+            : req.body.privacy;
+      } catch (_e) {
+        // ignore JSON parse error
+      }
+    }
+
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: "chatapp_status" },
+      {
+        folder: isVideo ? "chatapp_status_videos" : "chatapp_status",
+        resource_type: isVideo ? "video" : "image",
+      },
       async (error, result) => {
-        let imageUrl = "";
+        let mediaUrl = "";
         if (error || !result?.secure_url) {
-          // Fallback to base64 data URI if cloudinary fails
-          imageUrl = `data:${imageFile.mimetype || "image/jpeg"};base64,${imageFile.buffer.toString("base64")}`;
+          mediaUrl = `data:${mediaFile.mimetype || (isVideo ? "video/mp4" : "image/jpeg")};base64,${mediaFile.buffer.toString("base64")}`;
         } else {
-          imageUrl = result.secure_url;
+          mediaUrl = result.secure_url;
         }
 
         const newStatus = new Status({
           userId,
-          type: "image",
-          image: imageUrl,
+          type: statusType,
+          image: !isVideo ? mediaUrl : undefined,
+          video: isVideo ? mediaUrl : undefined,
+          mediaUrl,
           caption,
           song,
+          privacy: parsedPrivacy,
           viewers: [],
         });
         await newStatus.save();
@@ -120,7 +154,7 @@ export const uploadStatus = async (req, res) => {
         return res.status(201).json(newStatus);
       },
     );
-    uploadStream.end(imageFile.buffer);
+    uploadStream.end(mediaFile.buffer);
   } catch (error) {
     console.error("Error in uploadStatus:", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -128,7 +162,7 @@ export const uploadStatus = async (req, res) => {
 };
 
 /**
- * Create Text Status (PRD Section 50.1 & 50.2)
+ * Create Text Status (PRD FR-05, AC-03)
  */
 export const createTextStatus = async (req, res) => {
   try {
@@ -141,6 +175,22 @@ export const createTextStatus = async (req, res) => {
 
     const song = await parseSongData(req);
 
+    let parsedPrivacy = {
+      type: "contacts",
+      excludedUsers: [],
+      allowedUsers: [],
+    };
+    if (req.body.privacy) {
+      try {
+        parsedPrivacy =
+          typeof req.body.privacy === "string"
+            ? JSON.parse(req.body.privacy)
+            : req.body.privacy;
+      } catch (_e) {
+        // ignore JSON parse error
+      }
+    }
+
     const newStatus = new Status({
       userId,
       type: "text",
@@ -148,6 +198,7 @@ export const createTextStatus = async (req, res) => {
       backgroundColor: backgroundColor || "#075e54",
       fontFamily: fontFamily || "sans-serif",
       song,
+      privacy: parsedPrivacy,
       viewers: [],
     });
 
@@ -162,7 +213,7 @@ export const createTextStatus = async (req, res) => {
 };
 
 /**
- * Mark Status as Viewed (PRD Section 53)
+ * Mark Status as Viewed (PRD Section 12 & 21)
  */
 export const viewStatus = async (req, res) => {
   try {
@@ -192,34 +243,60 @@ export const viewStatus = async (req, res) => {
   }
 };
 
+/**
+ * Get Visible Statuses (PRD FR-08, FR-11, AC-04)
+ */
 export const getStatuses = async (req, res) => {
   try {
+    const currentUserId = req.user._id.toString();
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const statuses = await Status.find({ createdAt: { $gt: oneDayAgo } })
       .populate("userId", "name avatar")
       .populate("viewers.userId", "name avatar")
       .sort({ createdAt: 1 });
 
-    // Group statuses by user
+    // Group statuses by user, enforcing server-side privacy rules
     const groupedStatuses = {};
     statuses.forEach((status) => {
       if (!status.userId) return;
-      const uId = status.userId._id.toString();
-      if (!groupedStatuses[uId]) {
-        groupedStatuses[uId] = {
+      const ownerId = status.userId._id.toString();
+
+      // Check privacy if not own status
+      if (ownerId !== currentUserId) {
+        const privacy = status.privacy || { type: "contacts" };
+        if (privacy.type === "contacts_except") {
+          const excluded = (privacy.excludedUsers || []).map((id) =>
+            id.toString(),
+          );
+          if (excluded.includes(currentUserId)) return;
+        } else if (privacy.type === "only_share_with") {
+          const allowed = (privacy.allowedUsers || []).map((id) =>
+            id.toString(),
+          );
+          if (!allowed.includes(currentUserId)) return;
+        }
+      }
+
+      if (!groupedStatuses[ownerId]) {
+        groupedStatuses[ownerId] = {
           user: status.userId,
           statuses: [],
         };
       }
-      groupedStatuses[uId].statuses.push({
+      groupedStatuses[ownerId].statuses.push({
         _id: status._id,
         type: status.type || "image",
-        image: status.image,
+        image: status.image || (!status.video ? status.mediaUrl : undefined),
+        video:
+          status.video ||
+          (status.type === "video" ? status.mediaUrl : undefined),
+        mediaUrl: status.mediaUrl || status.image || status.video,
         caption: status.caption || "",
         text: status.text || "",
         backgroundColor: status.backgroundColor || "#075e54",
         fontFamily: status.fontFamily || "sans-serif",
         song: status.song || null,
+        privacy: status.privacy || { type: "contacts" },
         viewers: status.viewers || [],
         createdAt: status.createdAt,
       });

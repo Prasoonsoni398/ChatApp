@@ -268,7 +268,7 @@ const GroupInfoModal = ({
               {/* Search members in group */}
               {members.length > 4 && (
                 <div className="relative">
-                  <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-base-content/40" />
+                  <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-base-content/50 z-20 pointer-events-none transition-colors" />
                   <input
                     type="text"
                     placeholder="Search participants..."

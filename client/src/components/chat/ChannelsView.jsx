@@ -24,6 +24,7 @@ const ChannelsView = ({ loggedInUser }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [channelName, setChannelName] = useState("");
   const [channelDesc, setChannelDesc] = useState("");
+  const [isCreatingChannel, setIsCreatingChannel] = useState(false);
   const [activeEmojiPickerPostId, setActiveEmojiPickerPostId] = useState(null);
 
   const storedUser = (() => {
@@ -116,6 +117,7 @@ const ChannelsView = ({ loggedInUser }) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!channelName.trim()) return toast.error("Channel name is required");
     try {
+      setIsCreatingChannel(true);
       let payload;
       if (avatarFile) {
         payload = new FormData();
@@ -147,6 +149,8 @@ const ChannelsView = ({ loggedInUser }) => {
       setSelectedChannel(channelWithOwnership);
     } catch (err) {
       toast.error(err.message || "Failed to create channel");
+    } finally {
+      setIsCreatingChannel(false);
     }
   };
 
@@ -341,7 +345,7 @@ const ChannelsView = ({ loggedInUser }) => {
         {/* Search Bar */}
         <div className="p-3 border-b border-base-300 flex-shrink-0">
           <div className="relative">
-            <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-xs" />
+            <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-xs z-20 pointer-events-none transition-colors" />
             <input
               type="text"
               placeholder="Find channels..."
@@ -461,6 +465,7 @@ const ChannelsView = ({ loggedInUser }) => {
         isOpen={showCreateModal}
         show={showCreateModal}
         onClose={() => setShowCreateModal(false)}
+        isSaving={isCreatingChannel}
         channelName={channelName}
         setChannelName={setChannelName}
         channelDesc={channelDesc}

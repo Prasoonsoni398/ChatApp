@@ -119,7 +119,7 @@ const ChatMainArea = ({
                 <div className="flex-1 relative">
                   <BsSearch
                     size={14}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50 z-20 pointer-events-none transition-colors"
                   />
                   <input
                     autoFocus

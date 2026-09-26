@@ -117,18 +117,25 @@ export const playStatusTrack = (song) => {
   }
 
   if (
+    audioUrl.startsWith("blob:") ||
+    audioUrl.startsWith("data:audio") ||
     audioUrl.startsWith("http://") ||
     audioUrl.startsWith("https://") ||
-    audioUrl.startsWith("data:audio")
+    audioUrl.startsWith("/") ||
+    audioUrl.startsWith("./")
   ) {
     try {
       const audio = new Audio(audioUrl);
       audio.crossOrigin = "anonymous";
-      audio.volume = 0.8;
-      audio.play().catch(() => {
-        // Autoplay policy or CORS error fallback to preset melody
-        playPresetMelody("preset:sunset");
-      });
+      audio.loop = true;
+      audio.volume = 0.85;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((_err) => {
+          // Autoplay policy or format error fallback to preset melody
+          playPresetMelody("preset:sunset");
+        });
+      }
       activeAudioElement = audio;
     } catch (_err) {
       playPresetMelody("preset:sunset");

@@ -1,5 +1,10 @@
-import React from "react";
-import { BsShieldCheck, BsKeyFill } from "react-icons/bs";
+import React, { useState } from "react";
+import {
+  BsShieldCheck,
+  BsKeyFill,
+  BsEyeFill,
+  BsEyeSlashFill,
+} from "react-icons/bs";
 
 const SecurityTabContent = ({
   twoStepEnabled,
@@ -12,6 +17,7 @@ const SecurityTabContent = ({
   securityNotifs,
   handleToggleSecurityNotifs,
 }) => {
+  const [showPin, setShowPin] = useState(false);
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* End-to-End Encryption Banner */}
@@ -105,19 +111,35 @@ const SecurityTabContent = ({
               <label className="block text-xs font-medium text-base-content/80">
                 Create a 6-digit PIN that you can remember:
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="password"
-                  maxLength={6}
-                  placeholder="••••••"
-                  value={tempPin}
-                  onChange={(e) =>
-                    setTempPin(e.target.value.replace(/\D/g, ""))
-                  }
-                  className="input input-bordered input-sm rounded-xl font-mono tracking-widest text-center text-base font-bold flex-1"
-                  autoFocus
-                  required
-                />
+              <div className="flex gap-2 items-center">
+                <div className="relative flex-1">
+                  <input
+                    type={showPin ? "text" : "password"}
+                    maxLength={6}
+                    placeholder="••••••"
+                    value={tempPin}
+                    onChange={(e) =>
+                      setTempPin(e.target.value.replace(/\D/g, ""))
+                    }
+                    className="input input-bordered input-sm rounded-xl font-mono tracking-widest text-center text-base font-bold w-full pr-9"
+                    autoFocus
+                    required
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPin((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-base-content/50 hover:text-base-content z-20 cursor-pointer transition-colors"
+                    title={showPin ? "Hide PIN" : "Show PIN"}
+                    aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                  >
+                    {showPin ? (
+                      <BsEyeSlashFill size={15} />
+                    ) : (
+                      <BsEyeFill size={15} />
+                    )}
+                  </button>
+                </div>
                 <button
                   type="submit"
                   disabled={tempPin.length !== 6}

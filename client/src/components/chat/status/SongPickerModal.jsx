@@ -19,17 +19,22 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong }) => {
   const [customAudioFile, setCustomAudioFile] = useState(null);
   const [customTitle, setCustomTitle] = useState("");
   const [customArtist, setCustomArtist] = useState("");
+  const [customPlaying, setCustomPlaying] = useState(false);
+  const customAudioUrlRef = useRef(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     return () => {
-      stopStatusTrack();
+      if (customAudioUrlRef.current) {
+        URL.revokeObjectURL(customAudioUrlRef.current);
+      }
     };
   }, []);
 
   if (!isOpen) return null;
 
   const handleTogglePlay = (song) => {
+    setCustomPlaying(false);
     if (playingId === song.id) {
       stopStatusTrack();
       setPlayingId(null);
@@ -39,8 +44,27 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong }) => {
     }
   };
 
+  const handleToggleCustomPlay = () => {
+    if (!customAudioFile) return;
+    if (customPlaying) {
+      stopStatusTrack();
+      setCustomPlaying(false);
+      setPlayingId(null);
+    } else {
+      setPlayingId(null);
+      if (!customAudioUrlRef.current) {
+        customAudioUrlRef.current = URL.createObjectURL(customAudioFile);
+      }
+      playStatusTrack({
+        title: customTitle,
+        artist: customArtist,
+        audioUrl: customAudioUrlRef.current,
+      });
+      setCustomPlaying(true);
+    }
+  };
+
   const handleSelectPreset = (song) => {
-    stopStatusTrack();
     onSelectSong({
       title: song.title,
       artist: song.artist,
@@ -59,6 +83,14 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong }) => {
       return;
     }
 
+    if (customAudioUrlRef.current) {
+      URL.revokeObjectURL(customAudioUrlRef.current);
+      customAudioUrlRef.current = null;
+    }
+    stopStatusTrack();
+    setCustomPlaying(false);
+    setPlayingId(null);
+
     setCustomAudioFile(file);
     const cleanName = file.name.replace(/\.[^/.]+$/, "");
     setCustomTitle(cleanName);
@@ -68,12 +100,13 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong }) => {
 
   const handleConfirmCustomAudio = () => {
     if (!customAudioFile) return;
-    stopStatusTrack();
+    const url =
+      customAudioUrlRef.current || URL.createObjectURL(customAudioFile);
     onSelectSong({
       title: customTitle.trim() || customAudioFile.name,
       artist: customArtist.trim() || "Custom Audio",
       audioFile: customAudioFile,
-      audioUrl: URL.createObjectURL(customAudioFile),
+      audioUrl: url,
     });
     onClose();
   };
@@ -143,15 +176,33 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong }) => {
                     className="input input-bordered input-xs rounded-lg"
                   />
                 </div>
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] text-base-content/60 truncate max-w-[200px]">
-                    {customAudioFile.name} (
-                    {(customAudioFile.size / (1024 * 1024)).toFixed(2)} MB)
-                  </span>
+                <div className="flex items-center justify-between pt-1 gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <button
+                      type="button"
+                      onClick={handleToggleCustomPlay}
+                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform active:scale-95 flex-shrink-0 ${
+                        customPlaying
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 text-base-content hover:bg-primary/20 hover:text-primary"
+                      }`}
+                      title={customPlaying ? "Pause" : "Play preview"}
+                    >
+                      {customPlaying ? (
+                        <BsPauseFill size={15} />
+                      ) : (
+                        <BsPlayFill size={15} className="ml-0.5" />
+                      )}
+                    </button>
+                    <span className="text-[11px] text-base-content/70 truncate max-w-[170px]">
+                      {customAudioFile.name} (
+                      {(customAudioFile.size / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={handleConfirmCustomAudio}
-                    className="btn btn-xs btn-success text-white gap-1"
+                    className="btn btn-xs btn-success text-white gap-1 flex-shrink-0"
                   >
                     <BsCheck2 size={13} /> Attach
                   </button>
