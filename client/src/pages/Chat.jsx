@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BsWifiOff } from "react-icons/bs";
 import toast from "react-hot-toast";
@@ -48,6 +48,14 @@ const Chat = () => {
   const [activeTab, setActiveTab] = useState("chats");
   const [selectedFile, setSelectedFile] = useState(null);
 
+  // Unread messages count across all active chats
+  const unreadMessagesCount = useMemo(() => {
+    return (state.chats || []).reduce(
+      (sum, c) => sum + (Number(c.unread) || 0),
+      0,
+    );
+  }, [state.chats]);
+
   // Modals state bundle
   const modals = useChatModalsState(state.loggedInUser);
 
@@ -64,6 +72,23 @@ const Chat = () => {
     handleUpdateContactName,
     fetchChats,
   } = useChatLifecycle({ state, navigate, modals });
+
+  const hasUnreadStatus = useMemo(() => {
+    return (statuses || []).some(
+      (s) => s.user?._id !== state.loggedInUser?._id,
+    );
+  }, [statuses, state.loggedInUser]);
+
+  const handleTabSelect = (tabId) => {
+    modals.setShowContactInfoModal(false);
+    modals.setShowGroupInfoModal(false);
+    if (tabId === "settings") {
+      modals.setShowPrivacyModal((prev) => !prev);
+    } else {
+      modals.setShowPrivacyModal(false);
+      setActiveTab(tabId);
+    }
+  };
 
   // Socket listeners and message fetching
   useChatSocketEvents({
@@ -125,11 +150,15 @@ const Chat = () => {
         <IconSidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          onTabSelect={handleTabSelect}
+          isSettingsOpen={Boolean(modals.showPrivacyModal)}
+          unreadMessagesCount={unreadMessagesCount}
+          hasUnreadStatus={hasUnreadStatus}
           loggedInUser={state.loggedInUser}
           handleLogout={handleLogout}
           setShowEditModal={state.setShowEditModal}
           setEditName={state.setEditName}
-          onOpenPrivacySettings={() => modals.setShowPrivacyModal(true)}
+          onOpenPrivacySettings={() => handleTabSelect("settings")}
           onOpenLinkedDevices={() => modals.setShowLinkedDevicesModal(true)}
           onOpenShortcuts={() => modals.setShowShortcutsModal(true)}
         />
@@ -341,6 +370,9 @@ const Chat = () => {
         <MobileNavAndFAB
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          onTabSelect={handleTabSelect}
+          unreadMessagesCount={unreadMessagesCount}
+          hasUnreadStatus={hasUnreadStatus}
           selectedChat={state.selectedChat}
           onAddContact={() => modals.setShowAddContactModal(true)}
           allUsers={state.allUsers}

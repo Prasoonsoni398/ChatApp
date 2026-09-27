@@ -13,6 +13,9 @@ import {
 const MobileNavAndFAB = ({
   activeTab,
   setActiveTab,
+  onTabSelect,
+  unreadMessagesCount = 0,
+  hasUnreadStatus = false,
   selectedChat,
   onAddContact,
   allUsers,
@@ -20,34 +23,51 @@ const MobileNavAndFAB = ({
 }) => {
   if (selectedChat) return null;
 
+  const handleTabClick = (tabId) => {
+    if (onTabSelect) onTabSelect(tabId);
+    else setActiveTab(tabId);
+  };
+
   return (
     <>
       {/* ── MOBILE BOTTOM NAVIGATION BAR ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-base-100 border-t border-base-300 flex items-center justify-around z-40 shadow-lg px-1">
         <button
-          onClick={() => setActiveTab("chats")}
+          onClick={() => handleTabClick("chats")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
             activeTab === "chats"
               ? "text-primary font-semibold"
               : "text-base-content/60"
           }`}
         >
-          <BsChatSquareTextFill size={19} />
+          <div className="relative">
+            <BsChatSquareTextFill size={19} />
+            {unreadMessagesCount > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 bg-primary text-primary-content text-[9px] font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center shadow-sm">
+                {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+              </span>
+            )}
+          </div>
           <span className="text-[10px] mt-1">Chats</span>
         </button>
         <button
-          onClick={() => setActiveTab("status")}
+          onClick={() => handleTabClick("status")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
             activeTab === "status"
               ? "text-primary font-semibold"
               : "text-base-content/60"
           }`}
         >
-          <BsRecordCircle size={19} />
+          <div className="relative">
+            <BsRecordCircle size={19} />
+            {hasUnreadStatus && (
+              <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-primary rounded-full ring-1 ring-base-100 animate-pulse" />
+            )}
+          </div>
           <span className="text-[10px] mt-1">Updates</span>
         </button>
         <button
-          onClick={() => setActiveTab("communities")}
+          onClick={() => handleTabClick("communities")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
             activeTab === "communities"
               ? "text-primary font-semibold"
@@ -58,7 +78,7 @@ const MobileNavAndFAB = ({
           <span className="text-[10px] mt-1">Communities</span>
         </button>
         <button
-          onClick={() => setActiveTab("channels")}
+          onClick={() => handleTabClick("channels")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
             activeTab === "channels"
               ? "text-primary font-semibold"
@@ -69,7 +89,7 @@ const MobileNavAndFAB = ({
           <span className="text-[10px] mt-1">Channels</span>
         </button>
         <button
-          onClick={() => setActiveTab("calls")}
+          onClick={() => handleTabClick("calls")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
             activeTab === "calls"
               ? "text-primary font-semibold"
