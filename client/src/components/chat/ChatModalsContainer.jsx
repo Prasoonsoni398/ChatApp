@@ -23,6 +23,7 @@ const ChatModalsContainer = ({
   modals,
   activeStatusGroup,
   setActiveStatusGroup,
+  onStatusDeleted,
   handleJumpToMessage,
   handleCreatePoll,
   handlePasscodeSuccess,
@@ -46,6 +47,7 @@ const ChatModalsContainer = ({
           group={activeStatusGroup}
           loggedInUser={state.loggedInUser}
           onClose={() => setActiveStatusGroup(null)}
+          onStatusDeleted={onStatusDeleted}
         />
       )}
 

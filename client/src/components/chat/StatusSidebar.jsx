@@ -26,6 +26,7 @@ import SongPickerModal from "./status/SongPickerModal.jsx";
 import StatusPrivacyModal, {
   getStoredPrivacy,
 } from "./status/StatusPrivacyModal.jsx";
+import StatusStudioModal from "./status/StatusStudioModal.jsx";
 
 const BACKGROUND_COLORS = [
   "#075e54", // Guftgugreen
@@ -206,8 +207,10 @@ const StatusSidebar = ({
   };
 
   // Upload Media Status with Progress & Failure Handling (PRD Section 9, 10, AC-01, AC-02, AC-05)
-  const handleConfirmMediaStatus = async () => {
-    if (!pendingMediaFile) return;
+  // Upload Media Status with Progress & Failure Handling (PRD Section 9, 10, 16, 20, 22)
+  const handleConfirmMediaStatus = async (studioPayload) => {
+    const fileToUpload = studioPayload?.mediaFile || pendingMediaFile;
+    if (!fileToUpload) return;
 
     // Check offline status
     if (!navigator.onLine) {
@@ -224,28 +227,67 @@ const StatusSidebar = ({
 
     try {
       const formData = new FormData();
-      formData.append("file", pendingMediaFile);
+      formData.append("file", fileToUpload);
       if (isPendingVideo) {
-        formData.append("video", pendingMediaFile);
+        formData.append("video", fileToUpload);
       } else {
-        formData.append("image", pendingMediaFile);
+        formData.append("image", fileToUpload);
       }
 
-      if (imageCaption.trim()) {
-        formData.append("caption", imageCaption.trim());
+      const finalCaption =
+        studioPayload?.caption !== undefined
+          ? studioPayload.caption
+          : imageCaption;
+      if (finalCaption.trim()) {
+        formData.append("caption", finalCaption.trim());
       }
 
       // Privacy settings (PRD FR-08)
-      formData.append("privacy", JSON.stringify(privacyConfig));
+      const finalPrivacy = studioPayload?.privacy || privacyConfig;
+      formData.append("privacy", JSON.stringify(finalPrivacy));
 
-      // Attached song
-      if (selectedSong) {
-        if (selectedSong.audioFile) {
-          formData.append("audio", selectedSong.audioFile);
+      // Video Selection & Trimming (PRD Section 16 & 17)
+      if (studioPayload?.videoSelection) {
+        formData.append(
+          "videoSelection",
+          JSON.stringify(studioPayload.videoSelection),
+        );
+        formData.append(
+          "videoStart",
+          studioPayload.videoSelection.startTime || 0,
+        );
+        formData.append("videoEnd", studioPayload.videoSelection.endTime || 0);
+        formData.append(
+          "videoVolume",
+          studioPayload.videoSelection.volume !== undefined
+            ? studioPayload.videoSelection.volume
+            : 1,
+        );
+      }
+
+      // Filter & Overlays (PRD Section 15, 25, 26, 27, 28)
+      if (studioPayload?.filter) {
+        formData.append("filter", studioPayload.filter);
+      }
+      if (studioPayload?.overlays) {
+        formData.append("overlays", JSON.stringify(studioPayload.overlays));
+      }
+
+      // Attached song (PRD Section 18, 19, 20)
+      const songToAttach = studioPayload?.song || selectedSong;
+      if (songToAttach) {
+        if (songToAttach.audioFile) {
+          formData.append("audio", songToAttach.audioFile);
         }
-        formData.append("songTitle", selectedSong.title || "");
-        formData.append("songArtist", selectedSong.artist || "");
-        formData.append("songAudioUrl", selectedSong.audioUrl || "");
+        formData.append("songTitle", songToAttach.title || "");
+        formData.append("songArtist", songToAttach.artist || "");
+        formData.append("songAudioUrl", songToAttach.audioUrl || "");
+        formData.append("songStartTime", songToAttach.startTime || 0);
+        formData.append("songEndTime", songToAttach.endTime || 0);
+        formData.append(
+          "songVolume",
+          songToAttach.volume !== undefined ? songToAttach.volume : 1,
+        );
       }
 
       // Upload with real progress percentage
@@ -510,7 +552,7 @@ const StatusSidebar = ({
       </div>
 
       {/* Floating Action Bubbles to Add More Status (WhatsApp Style FAB) */}
-      <div className="absolute bottom-6 right-5 flex flex-col items-center gap-2.5 z-30 pointer-events-auto">
+      <div className="fixed md:absolute bottom-20 md:bottom-6 right-5 flex flex-col items-center gap-2.5 z-30 pointer-events-auto">
         {/* Floating Text Status Bubble (Pencil) */}
         <button
           type="button"
@@ -780,224 +822,21 @@ const StatusSidebar = ({
         </div>
       )}
 
-      {/* ── PHOTO & VIDEO STATUS PREVIEW MODAL (PRD FR-03, FR-04, FR-09) ── */}
-      {pendingMediaFile && mediaPreviewUrl && (
-        <div className="fixed inset-0 z-10000 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-md bg-base-100 rounded-3xl overflow-hidden shadow-2xl flex flex-col relative">
-            {/* Header */}
-            <div className="p-4 flex items-center justify-between border-b border-base-300">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-sm">
-                  {isPendingVideo ? "Add Video Status" : "Add Photo Status"}
-                </h3>
-                <span className="badge badge-xs badge-primary font-mono">
-                  {(pendingMediaFile.size / (1024 * 1024)).toFixed(2)} MB
-                </span>
-              </div>
-              <button
-                onClick={handleClearMediaPreview}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
-                title="Discard"
-              >
-                <BsX size={20} />
-              </button>
-            </div>
-
-            {/* Media Preview Box (Photo or Video - FR-03 & FR-04) */}
-            <div className="relative bg-black flex items-center justify-center max-h-80 overflow-hidden min-h-60">
-              {isPendingVideo ? (
-                <video
-                  src={mediaPreviewUrl}
-                  className="max-h-80 w-auto object-contain"
-                  autoPlay
-                  loop
-                  playsInline
-                  muted={Boolean(selectedSong && isSongPlaying)}
-                />
-              ) : (
-                <img
-                  src={mediaPreviewUrl}
-                  alt="Preview"
-                  className="max-h-80 w-auto object-contain"
-                />
-              )}
-            </div>
-
-            {/* Song Pill / Add Song Button */}
-            <div className="px-4 pt-2.5">
-              {selectedSong ? (
-                <div className="flex items-center justify-between px-3 py-2 bg-primary/10 border border-primary/25 rounded-2xl text-xs animate-fade-in shadow-xs">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => setIsSongPlaying((prev) => !prev)}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform active:scale-95 flex-shrink-0 cursor-pointer ${
-                        isSongPlaying
-                          ? "bg-primary text-primary-content"
-                          : "bg-base-300 text-base-content hover:bg-primary/20 hover:text-primary"
-                      }`}
-                      title={isSongPlaying ? "Pause preview" : "Play preview"}
-                    >
-                      {isSongPlaying ? (
-                        <BsPauseFill size={14} />
-                      ) : (
-                        <BsPlayFill size={14} className="ml-0.5" />
-                      )}
-                    </button>
-                    <div className="min-w-0 flex items-center gap-1.5 truncate">
-                      <span className="font-semibold truncate">
-                        {selectedSong.title}
-                      </span>
-                      <span className="text-base-content/60 truncate">
-                        • {selectedSong.artist}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                    {/* Audible indicator */}
-                    {isSongPlaying ? (
-                      <span className="flex items-center gap-0.5 px-2 py-0.5 bg-primary/20 text-primary rounded-full text-[10px] font-semibold tracking-wide">
-                        <span className="w-1 h-2 bg-primary rounded-full animate-pulse" />
-                        <span className="w-1 h-3.5 bg-primary rounded-full animate-bounce" />
-                        <span className="w-1 h-2 bg-primary rounded-full animate-pulse" />
-                        <span className="ml-1 hidden sm:inline">Audible</span>
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-base-content/50 px-1.5 py-0.5 bg-base-300/60 rounded-full">
-                        Paused
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        stopStatusTrack();
-                        setSelectedSong(null);
-                      }}
-                      className="hover:text-error text-base-content/60 p-1 rounded-full hover:bg-base-200 transition-colors flex-shrink-0 cursor-pointer"
-                      title="Remove song"
-                    >
-                      <BsX size={16} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowSongPicker(true)}
-                  className="btn btn-ghost btn-xs text-primary gap-1.5 font-medium cursor-pointer"
-                >
-                  <BsMusicNoteBeamed size={14} /> Add Song to Status
-                </button>
-              )}
-            </div>
-
-            {/* Uploading progress bar (PRD Section 9.2) */}
-            {uploadState === "uploading" && (
-              <div className="px-4 py-2 bg-primary/10 border-t border-primary/20 space-y-1">
-                <div className="flex items-center justify-between text-xs font-semibold text-primary">
-                  <span>Uploading {isPendingVideo ? "video" : "photo"}...</span>
-                  <span className="font-mono">{uploadProgress}%</span>
-                </div>
-                <div className="w-full bg-base-300 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="bg-primary h-full transition-all duration-150"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Upload Failure Banner with Retry (PRD Section 9.4, 10, AC-05) */}
-            {uploadState === "failed" && (
-              <div className="px-4 py-2.5 bg-error/10 border-t border-error/20 flex items-center justify-between text-xs text-error animate-fade-in">
-                <span className="truncate pr-2">
-                  {uploadErrorMessage || "Upload failed."}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleConfirmMediaStatus}
-                  className="btn btn-xs btn-error text-white rounded-xl gap-1 flex-shrink-0 cursor-pointer"
-                >
-                  <BsArrowCounterclockwise size={13} /> Retry
-                </button>
-              </div>
-            )}
-
-            {/* Emoji Popover for Media Caption */}
-            {showEmojiPickerMedia && (
-              <div className="absolute bottom-20 left-4 z-50 shadow-2xl rounded-2xl overflow-hidden animate-slide-up">
-                <EmojiPicker
-                  onEmojiClick={(emojiData) => {
-                    setImageCaption((prev) => prev + emojiData.emoji);
-                  }}
-                  width={300}
-                  height={340}
-                />
-              </div>
-            )}
-
-            {/* Caption & Send */}
-            <div className="p-4 flex items-center gap-2 border-t border-base-200">
-              <button
-                type="button"
-                onClick={() => setShowEmojiPickerMedia((prev) => !prev)}
-                className={`p-2 rounded-full transition-colors cursor-pointer ${
-                  showEmojiPickerMedia
-                    ? "text-primary bg-primary/10"
-                    : "text-base-content/60 hover:text-base-content"
-                }`}
-                title="Add emoji to caption"
-              >
-                <BsEmojiSmile size={18} />
-              </button>
-
-              <input
-                type="text"
-                value={imageCaption}
-                onChange={(e) => setImageCaption(e.target.value)}
-                placeholder="Add a caption…"
-                className="input input-bordered input-sm flex-1 rounded-xl"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && uploadState !== "uploading") {
-                    handleConfirmMediaStatus();
-                  }
-                }}
-              />
-
-              {/* Status Privacy Pill in Media Modal */}
-              <button
-                type="button"
-                onClick={() => setShowPrivacyModal(true)}
-                className="btn btn-ghost btn-xs text-base-content/70 hover:text-primary gap-1 font-normal flex-shrink-0"
-                title="Change status privacy"
-              >
-                <BsShieldLockFill size={12} className="text-primary" />
-                <span className="capitalize hidden sm:inline">
-                  {privacyConfig.type === "contacts"
-                    ? "Contacts"
-                    : privacyConfig.type === "contacts_except"
-                      ? `${privacyConfig.excludedUsers?.length || 0} Excluded`
-                      : `${privacyConfig.allowedUsers?.length || 0} Included`}
-                </span>
-              </button>
-
-              <button
-                onClick={handleConfirmMediaStatus}
-                disabled={uploadState === "uploading"}
-                className="btn btn-primary btn-sm btn-circle cursor-pointer flex-shrink-0"
-                title="Post status"
-              >
-                {uploadState === "uploading" ? (
-                  <span className="loading loading-spinner loading-xs text-white" />
-                ) : (
-                  <BsSendFill size={14} />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── PHOTO & VIDEO STATUS CREATION STUDIO (PRD Section 12, 16, 20, 22, 36) ── */}
+      <StatusStudioModal
+        isOpen={Boolean(pendingMediaFile && mediaPreviewUrl)}
+        mediaFile={pendingMediaFile}
+        mediaPreviewUrl={mediaPreviewUrl}
+        isVideo={isPendingVideo}
+        privacyConfig={privacyConfig}
+        onSavePrivacy={(cfg) => setPrivacyConfig(cfg)}
+        onClose={handleClearMediaPreview}
+        onPublish={handleConfirmMediaStatus}
+        uploadState={uploadState}
+        uploadProgress={uploadProgress}
+        uploadErrorMessage={uploadErrorMessage}
+        onRetryUpload={() => handleConfirmMediaStatus()}
+      />
 
       {/* Song Picker Modal */}
       <SongPickerModal

@@ -92,20 +92,7 @@ const MobileNavAndFAB = ({
             <BsPersonPlusFill size={20} />
           </button>
         )}
-        {activeTab === "status" && (
-          <button
-            onClick={() => {
-              const el = document.querySelector(
-                'input[type="file"][accept="image/*"]',
-              );
-              el?.click();
-            }}
-            className="btn btn-circle btn-primary shadow-xl hover:scale-110 active:scale-95 transition-transform"
-            title="Add Status"
-          >
-            <BsCameraFill size={20} />
-          </button>
-        )}
+
         {activeTab === "calls" && (
           <button
             onClick={() => {
