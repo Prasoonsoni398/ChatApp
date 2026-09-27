@@ -56,25 +56,47 @@ export const useChatSecurityAndSettings = ({ state, modals }) => {
   const handleToggleArchiveChat = () => {
     if (!state.selectedChat) return;
     const cid = state.selectedChat.id;
+    const isCurrentlyArchived = modals.archivedChatIds.includes(cid);
+    const willBeArchived = !isCurrentlyArchived;
+
     modals.setArchivedChatIds((prev) => {
-      const isArchived = prev.includes(cid);
-      const next = isArchived
-        ? prev.filter((id) => id !== cid)
-        : [...prev, cid];
-      toast.success(isArchived ? "Chat unarchived" : "Chat archived");
-      return next;
+      const exists = prev.includes(cid);
+      if (willBeArchived) {
+        return exists ? prev : [...prev, cid];
+      } else {
+        return prev.filter((id) => id !== cid);
+      }
     });
+
+    toast.dismiss("archive-toggle");
+    if (willBeArchived) {
+      toast.success("Chat archived", { id: "archive-toggle" });
+    } else {
+      toast.success("Chat unarchived", { id: "archive-toggle" });
+    }
   };
 
   const handleToggleMuteChat = (customId) => {
     const cid = customId || state.selectedChat?.id;
     if (!cid) return;
+    const isCurrentlyMuted = modals.mutedChatIds.includes(cid);
+    const willBeMuted = !isCurrentlyMuted;
+
     modals.setMutedChatIds((prev) => {
-      const isMuted = prev.includes(cid);
-      const next = isMuted ? prev.filter((id) => id !== cid) : [...prev, cid];
-      toast.success(isMuted ? "Notifications unmuted" : "Notifications muted");
-      return next;
+      const exists = prev.includes(cid);
+      if (willBeMuted) {
+        return exists ? prev : [...prev, cid];
+      } else {
+        return prev.filter((id) => id !== cid);
+      }
     });
+
+    toast.dismiss("mute-toggle");
+    if (willBeMuted) {
+      toast.success("Notifications muted", { id: "mute-toggle" });
+    } else {
+      toast.success("Notifications unmuted", { id: "mute-toggle" });
+    }
   };
 
   const handleLeaveGroup = async (groupId) => {

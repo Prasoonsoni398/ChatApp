@@ -64,6 +64,8 @@ export const uploadStatusWithProgress = (formData, onProgress) => {
 export const uploadTextStatus = async ({
   text,
   backgroundColor,
+  textColor,
+  bgPattern,
   fontFamily,
   song,
   privacy,
@@ -74,7 +76,15 @@ export const uploadTextStatus = async ({
       ...authHeader(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text, backgroundColor, fontFamily, song, privacy }),
+    body: JSON.stringify({
+      text,
+      backgroundColor,
+      textColor,
+      bgPattern,
+      fontFamily,
+      song,
+      privacy,
+    }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to create text status");

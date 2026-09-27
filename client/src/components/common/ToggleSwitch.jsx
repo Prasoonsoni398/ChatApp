@@ -79,6 +79,7 @@ const ToggleSwitch = ({
   };
 
   const handleToggle = (e) => {
+    e?.stopPropagation?.();
     if (disabled) return;
     const nextVal = !checked;
     onChange?.(nextVal, e);
@@ -117,10 +118,8 @@ const ToggleSwitch = ({
         name={name}
         checked={checked}
         disabled={disabled}
-        onChange={(e) => {
-          if (!disabled) onChange?.(e.target.checked, e);
-        }}
-        className="sr-only"
+        readOnly
+        className="sr-only pointer-events-none"
         tabIndex={-1}
         aria-hidden="true"
       />

@@ -211,7 +211,7 @@ export const uploadStatus = async (req, res) => {
 export const createTextStatus = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { text, backgroundColor, fontFamily } = req.body;
+    const { text, backgroundColor, fontFamily, textColor, bgPattern } = req.body;
 
     if (!text || !text.trim()) {
       return res.status(400).json({ error: "Status text cannot be empty" });
@@ -240,6 +240,8 @@ export const createTextStatus = async (req, res) => {
       type: "text",
       text: text.trim(),
       backgroundColor: backgroundColor || "#075e54",
+      textColor: textColor || "#ffffff",
+      bgPattern: bgPattern || "none",
       fontFamily: fontFamily || "sans-serif",
       song,
       privacy: parsedPrivacy,
@@ -347,6 +349,8 @@ export const getStatuses = async (req, res) => {
         caption: status.caption || "",
         text: status.text || "",
         backgroundColor: status.backgroundColor || "#075e54",
+        textColor: status.textColor || "#ffffff",
+        bgPattern: status.bgPattern || "none",
         fontFamily: status.fontFamily || "sans-serif",
         song: status.song || null,
         videoSelection: status.videoSelection || null,

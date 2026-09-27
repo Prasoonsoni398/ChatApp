@@ -52,6 +52,14 @@ const statusSchema = new mongoose.Schema({
     type: String,
     default: "#075e54",
   },
+  textColor: {
+    type: String,
+    default: "#ffffff",
+  },
+  bgPattern: {
+    type: String,
+    default: "none",
+  },
   fontFamily: {
     type: String,
     default: "sans-serif",

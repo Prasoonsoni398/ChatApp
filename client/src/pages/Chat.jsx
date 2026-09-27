@@ -29,6 +29,7 @@ import CallOverlay from "../components/chat/CallOverlay.jsx";
 import MobileNavAndFAB from "../components/chat/MobileNavAndFAB.jsx";
 import ContactInfoModal from "../components/chat/ContactInfoModal.jsx";
 import GroupInfoModal from "../components/chat/GroupInfoModal.jsx";
+import PrivacySettingsModal from "../components/chat/PrivacySettingsModal.jsx";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -181,6 +182,18 @@ const Chat = () => {
             onOpenWallpaperModal={() => modals.setShowWallpaperModal(true)}
             onLeaveGroup={() => securityActions.handleLeaveGroup(state.selectedChat?.id)}
             onOpenReport={() => modals.setShowReportModal(true)}
+          />
+        ) : modals.showPrivacyModal ? (
+          <PrivacySettingsModal
+            isOpen={modals.showPrivacyModal}
+            onClose={() => modals.setShowPrivacyModal(false)}
+            loggedInUser={state.loggedInUser}
+            onUserUpdated={(updated) => {
+              state.setLoggedInUser(updated);
+            }}
+            onAllChatsCleared={() => {
+              state.setMessages([]);
+            }}
           />
         ) : activeTab === "chats" ? (
           <ChatSidebar
