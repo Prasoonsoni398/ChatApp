@@ -8,12 +8,15 @@ import {
   BsPersonPlusFill,
   BsCameraFill,
   BsTelephonePlusFill,
+  BsGear,
+  BsGearFill,
 } from "react-icons/bs";
 
 const MobileNavAndFAB = ({
   activeTab,
   setActiveTab,
   onTabSelect,
+  isSettingsOpen = false,
   unreadMessagesCount = 0,
   hasUnreadStatus = false,
   selectedChat,
@@ -33,9 +36,10 @@ const MobileNavAndFAB = ({
       {/* ── MOBILE BOTTOM NAVIGATION BAR ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-base-100 border-t border-base-300 flex items-center justify-around z-40 shadow-lg px-1">
         <button
+          type="button"
           onClick={() => handleTabClick("chats")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-            activeTab === "chats"
+            !isSettingsOpen && activeTab === "chats"
               ? "text-primary font-semibold"
               : "text-base-content/60"
           }`}
@@ -50,10 +54,12 @@ const MobileNavAndFAB = ({
           </div>
           <span className="text-[10px] mt-1">Chats</span>
         </button>
+
         <button
+          type="button"
           onClick={() => handleTabClick("status")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-            activeTab === "status"
+            !isSettingsOpen && activeTab === "status"
               ? "text-primary font-semibold"
               : "text-base-content/60"
           }`}
@@ -66,10 +72,12 @@ const MobileNavAndFAB = ({
           </div>
           <span className="text-[10px] mt-1">Updates</span>
         </button>
+
         <button
+          type="button"
           onClick={() => handleTabClick("communities")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-            activeTab === "communities"
+            !isSettingsOpen && activeTab === "communities"
               ? "text-primary font-semibold"
               : "text-base-content/60"
           }`}
@@ -77,10 +85,12 @@ const MobileNavAndFAB = ({
           <BsPeopleFill size={19} />
           <span className="text-[10px] mt-1">Communities</span>
         </button>
+
         <button
+          type="button"
           onClick={() => handleTabClick("channels")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-            activeTab === "channels"
+            !isSettingsOpen && activeTab === "channels"
               ? "text-primary font-semibold"
               : "text-base-content/60"
           }`}
@@ -88,16 +98,38 @@ const MobileNavAndFAB = ({
           <BsMegaphoneFill size={18} />
           <span className="text-[10px] mt-1">Channels</span>
         </button>
+
         <button
+          type="button"
           onClick={() => handleTabClick("calls")}
           className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-            activeTab === "calls"
+            !isSettingsOpen && activeTab === "calls"
               ? "text-primary font-semibold"
               : "text-base-content/60"
           }`}
         >
           <BsTelephoneFill size={18} />
           <span className="text-[10px] mt-1">Calls</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabClick("settings")}
+          className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+            isSettingsOpen
+              ? "text-primary font-semibold"
+              : "text-base-content/60"
+          }`}
+        >
+          {isSettingsOpen ? (
+            <BsGearFill
+              size={18}
+              className="rotate-90 transition-transform duration-300"
+            />
+          ) : (
+            <BsGear size={18} />
+          )}
+          <span className="text-[10px] mt-1">Settings</span>
         </button>
       </div>
 

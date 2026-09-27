@@ -116,7 +116,9 @@ const StatusPrivacyModal = ({ isOpen, onClose, onSavePrivacy }) => {
               <BsShieldLockFill size={17} />
             </div>
             <div>
-              <h3 className="font-bold text-base text-white leading-tight">Status Privacy</h3>
+              <h3 className="font-bold text-base text-white leading-tight">
+                Status Privacy
+              </h3>
               <p className="text-[11px] text-[#8696A0] mt-0.5">
                 Who can see your status updates
               </p>

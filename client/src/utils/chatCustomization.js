@@ -105,7 +105,8 @@ export const WALLPAPER_PRESETS = [
     type: "preset",
     url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&auto=format&fit=crop&q=80",
     showDoodle: false,
-    thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=160&auto=format&fit=crop&q=60",
+    thumbnail:
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=160&auto=format&fit=crop&q=60",
   },
   {
     id: "cosmic_stars",
@@ -113,7 +114,8 @@ export const WALLPAPER_PRESETS = [
     type: "preset",
     url: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=1080&auto=format&fit=crop&q=80",
     showDoodle: false,
-    thumbnail: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=160&auto=format&fit=crop&q=60",
+    thumbnail:
+      "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=160&auto=format&fit=crop&q=60",
   },
   {
     id: "minimal_waves",
@@ -121,7 +123,8 @@ export const WALLPAPER_PRESETS = [
     type: "preset",
     url: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=1080&auto=format&fit=crop&q=80",
     showDoodle: false,
-    thumbnail: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=160&auto=format&fit=crop&q=60",
+    thumbnail:
+      "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=160&auto=format&fit=crop&q=60",
   },
   {
     id: "mountain_dawn",
@@ -129,7 +132,8 @@ export const WALLPAPER_PRESETS = [
     type: "preset",
     url: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1080&auto=format&fit=crop&q=80",
     showDoodle: false,
-    thumbnail: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=160&auto=format&fit=crop&q=60",
+    thumbnail:
+      "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=160&auto=format&fit=crop&q=60",
   },
 ];
 
@@ -177,10 +181,7 @@ export function getChatCustomization(chatId) {
 export function setChatCustomization(chatId, config) {
   if (!chatId) return;
   try {
-    localStorage.setItem(
-      `${STORAGE_PREFIX}${chatId}`,
-      JSON.stringify(config),
-    );
+    localStorage.setItem(`${STORAGE_PREFIX}${chatId}`, JSON.stringify(config));
     window.dispatchEvent(
       new CustomEvent("chat-customization-changed", {
         detail: { chatId, config },

@@ -1,8 +1,9 @@
 import { io } from "socket.io-client";
 
-// Use the env variable. In dev it points to http://localhost:4500.
-// In production builds it should be set to the deployed API URL.
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4500";
+// Use the env variable. Falls back to deployed backend if not set.
+// In production builds VITE_BACKEND_URL must be set to the deployed API URL.
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://guftgu-fsrp.onrender.com";
 
 const socketAPI = io(BACKEND_URL, {
   transports: ["websocket", "polling"],

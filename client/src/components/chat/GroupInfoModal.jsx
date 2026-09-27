@@ -54,7 +54,12 @@ const GroupInfoModal = ({
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen && !showPhotoViewer && !showAddMemberModal) {
+      if (
+        e.key === "Escape" &&
+        isOpen &&
+        !showPhotoViewer &&
+        !showAddMemberModal
+      ) {
         onClose();
       }
     };
@@ -164,208 +169,208 @@ const GroupInfoModal = ({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto divide-y divide-base-200 pb-16 md:pb-4">
-            {/* Group Banner / Avatar & Name */}
-            <div className="p-6 flex flex-col items-center text-center bg-base-100">
-              <div
-                className="relative group cursor-pointer mb-3"
-                onClick={() => setShowPhotoViewer(true)}
-                title="Click to view full photo"
-              >
-                <div className="avatar">
-                  <div className="w-24 h-24 rounded-full ring ring-primary/20 ring-offset-base-100 ring-offset-2 overflow-hidden shadow-lg">
-                    <img
-                      src={avatarSrc}
-                      alt={details?.name || group.name}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                </div>
-                <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
-                  <BsArrowsFullscreen size={20} />
-                </div>
-              </div>
-
-              <h2 className="text-xl font-bold text-base-content">
-                {details?.name || group.name}
-              </h2>
-              <p className="text-xs text-base-content/60 mt-1">
-                Group • {members.length} participants
-              </p>
-
-              {details?.description && (
-                <div className="mt-3 p-3 bg-base-200/60 rounded-xl text-xs text-base-content/80 text-left w-full border border-base-300/50">
-                  <span className="font-semibold text-primary block mb-0.5">
-                    Description:
-                  </span>
-                  {details.description}
-                </div>
-              )}
-
-              {details?.createdAt && (
-                <p className="text-[11px] text-base-content/40 mt-2">
-                  Created{" "}
-                  {new Date(details.createdAt).toLocaleDateString([], {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                  {details.creator?.name ? ` by ${details.creator.name}` : ""}
-                </p>
-              )}
-            </div>
-
-            {/* Quick Settings: Mute & Invite Link */}
-            <div className="p-4 bg-base-100 space-y-3">
-              {/* Mute toggle */}
-              <div className="flex items-center justify-between py-1">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-base-content/70">
-                    <BsBellFill size={15} />
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-base-content block">
-                      Mute notifications
-                    </span>
-                    <span className="text-xs text-base-content/50">
-                      Silence alerts from this group
-                    </span>
-                  </div>
-                </div>
-                <ToggleSwitch
-                  checked={Boolean(isMuted)}
-                  onChange={() => onToggleMute?.()}
-                  size="sm"
-                />
-              </div>
-
-              {/* Invite via Link */}
-              <div
-                className="flex items-center justify-between py-2 cursor-pointer hover:bg-base-200/50 rounded-xl p-2 -mx-2 transition-colors"
-                onClick={() => onOpenInviteLink?.()}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                    <BsLink45Deg size={18} />
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-base-content block">
-                      Invite via link
-                    </span>
-                    <span className="text-xs text-base-content/50">
-                      Share link to join this group
-                    </span>
-                  </div>
-                </div>
-                <span className="text-xs text-base-content/50">›</span>
-              </div>
-
-              {/* Wallpaper & Theme */}
-              <div
-                className="flex items-center justify-between py-2 cursor-pointer hover:bg-base-200/50 rounded-xl p-2 -mx-2 transition-colors"
-                onClick={() => {
-                  onClose();
-                  onOpenWallpaperModal?.();
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                    <BsPaletteFill size={16} />
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-base-content block">
-                      Wallpaper & Theme
-                    </span>
-                    <span className="text-xs text-base-content/50">
-                      Customize group appearance & wallpaper
-                    </span>
-                  </div>
-                </div>
-                <span className="text-xs text-base-content/50">›</span>
-              </div>
-            </div>
-
-            {/* Participants Section */}
-            <div className="p-4 bg-base-100 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-                  {members.length} Participants
-                </span>
-
-                {isAdmin && (
-                  <button
-                    onClick={() => setShowAddMemberModal(true)}
-                    className="btn btn-xs btn-primary rounded-xl flex items-center gap-1.5"
-                  >
-                    <BsPersonPlusFill size={13} />
-                    Add Member
-                  </button>
-                )}
-              </div>
-
-              {/* Search members in group */}
-              {members.length > 4 && (
-                <div className="relative">
-                  <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-base-content/50 z-20 pointer-events-none transition-colors" />
-                  <input
-                    type="text"
-                    placeholder="Search participants..."
-                    value={memberSearch}
-                    onChange={(e) => setMemberSearch(e.target.value)}
-                    className="input input-bordered input-xs w-full pl-8 rounded-lg"
+          {/* Group Banner / Avatar & Name */}
+          <div className="p-6 flex flex-col items-center text-center bg-base-100">
+            <div
+              className="relative group cursor-pointer mb-3"
+              onClick={() => setShowPhotoViewer(true)}
+              title="Click to view full photo"
+            >
+              <div className="avatar">
+                <div className="w-24 h-24 rounded-full ring ring-primary/20 ring-offset-base-100 ring-offset-2 overflow-hidden shadow-lg">
+                  <img
+                    src={avatarSrc}
+                    alt={details?.name || group.name}
+                    className="object-cover w-full h-full"
                   />
                 </div>
-              )}
-
-              {/* Member list */}
-              <div className="space-y-1.5 mt-2">
-                {filteredMembers.map((member) => {
-                  const mId = (member._id || member).toString();
-                  const isMemberAdmin =
-                    mId === adminId?.toString() ||
-                    (details?.admins || []).some(
-                      (a) => (a._id || a).toString() === mId,
-                    );
-                  const isSelf = mId === currentUserId?.toString();
-                  const whoAddedText = getWhoAddedInfo(member);
-
-                  return (
-                    <GroupParticipantItem
-                      key={mId}
-                      member={member}
-                      isMemberAdmin={isMemberAdmin}
-                      isSelf={isSelf}
-                      whoAddedText={whoAddedText}
-                    />
-                  );
-                })}
+              </div>
+              <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                <BsArrowsFullscreen size={20} />
               </div>
             </div>
 
-            {/* Danger Actions: Leave Group, Report Group */}
-            <div className="p-4 bg-base-100 space-y-2">
-              <RemoveActionButton
-                onClick={() => {
-                  onClose();
-                  onLeaveGroup?.();
-                }}
-                fullWidth
-                variant="row"
-                size="md"
-                icon={<BsBoxArrowRight size={17} />}
-                label="Exit group"
-              />
+            <h2 className="text-xl font-bold text-base-content">
+              {details?.name || group.name}
+            </h2>
+            <p className="text-xs text-base-content/60 mt-1">
+              Group • {members.length} participants
+            </p>
 
-              <RemoveActionButton
-                onClick={() => onOpenReport?.()}
-                fullWidth
-                variant="row"
-                size="md"
-                icon={<BsShieldExclamation size={17} />}
-                label="Report group"
+            {details?.description && (
+              <div className="mt-3 p-3 bg-base-200/60 rounded-xl text-xs text-base-content/80 text-left w-full border border-base-300/50">
+                <span className="font-semibold text-primary block mb-0.5">
+                  Description:
+                </span>
+                {details.description}
+              </div>
+            )}
+
+            {details?.createdAt && (
+              <p className="text-[11px] text-base-content/40 mt-2">
+                Created{" "}
+                {new Date(details.createdAt).toLocaleDateString([], {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                {details.creator?.name ? ` by ${details.creator.name}` : ""}
+              </p>
+            )}
+          </div>
+
+          {/* Quick Settings: Mute & Invite Link */}
+          <div className="p-4 bg-base-100 space-y-3">
+            {/* Mute toggle */}
+            <div className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-base-content/70">
+                  <BsBellFill size={15} />
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-base-content block">
+                    Mute notifications
+                  </span>
+                  <span className="text-xs text-base-content/50">
+                    Silence alerts from this group
+                  </span>
+                </div>
+              </div>
+              <ToggleSwitch
+                checked={Boolean(isMuted)}
+                onChange={() => onToggleMute?.()}
+                size="sm"
               />
             </div>
+
+            {/* Invite via Link */}
+            <div
+              className="flex items-center justify-between py-2 cursor-pointer hover:bg-base-200/50 rounded-xl p-2 -mx-2 transition-colors"
+              onClick={() => onOpenInviteLink?.()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <BsLink45Deg size={18} />
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-base-content block">
+                    Invite via link
+                  </span>
+                  <span className="text-xs text-base-content/50">
+                    Share link to join this group
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs text-base-content/50">›</span>
+            </div>
+
+            {/* Wallpaper & Theme */}
+            <div
+              className="flex items-center justify-between py-2 cursor-pointer hover:bg-base-200/50 rounded-xl p-2 -mx-2 transition-colors"
+              onClick={() => {
+                onClose();
+                onOpenWallpaperModal?.();
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <BsPaletteFill size={16} />
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-base-content block">
+                    Wallpaper & Theme
+                  </span>
+                  <span className="text-xs text-base-content/50">
+                    Customize group appearance & wallpaper
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs text-base-content/50">›</span>
+            </div>
+          </div>
+
+          {/* Participants Section */}
+          <div className="p-4 bg-base-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                {members.length} Participants
+              </span>
+
+              {isAdmin && (
+                <button
+                  onClick={() => setShowAddMemberModal(true)}
+                  className="btn btn-xs btn-primary rounded-xl flex items-center gap-1.5"
+                >
+                  <BsPersonPlusFill size={13} />
+                  Add Member
+                </button>
+              )}
+            </div>
+
+            {/* Search members in group */}
+            {members.length > 4 && (
+              <div className="relative">
+                <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-base-content/50 z-20 pointer-events-none transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search participants..."
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  className="input input-bordered input-xs w-full pl-8 rounded-lg"
+                />
+              </div>
+            )}
+
+            {/* Member list */}
+            <div className="space-y-1.5 mt-2">
+              {filteredMembers.map((member) => {
+                const mId = (member._id || member).toString();
+                const isMemberAdmin =
+                  mId === adminId?.toString() ||
+                  (details?.admins || []).some(
+                    (a) => (a._id || a).toString() === mId,
+                  );
+                const isSelf = mId === currentUserId?.toString();
+                const whoAddedText = getWhoAddedInfo(member);
+
+                return (
+                  <GroupParticipantItem
+                    key={mId}
+                    member={member}
+                    isMemberAdmin={isMemberAdmin}
+                    isSelf={isSelf}
+                    whoAddedText={whoAddedText}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Danger Actions: Leave Group, Report Group */}
+          <div className="p-4 bg-base-100 space-y-2">
+            <RemoveActionButton
+              onClick={() => {
+                onClose();
+                onLeaveGroup?.();
+              }}
+              fullWidth
+              variant="row"
+              size="md"
+              icon={<BsBoxArrowRight size={17} />}
+              label="Exit group"
+            />
+
+            <RemoveActionButton
+              onClick={() => onOpenReport?.()}
+              fullWidth
+              variant="row"
+              size="md"
+              icon={<BsShieldExclamation size={17} />}
+              label="Report group"
+            />
           </div>
         </div>
+      </div>
 
       {/* Add Member Modal */}
       <AddGroupMembersModal

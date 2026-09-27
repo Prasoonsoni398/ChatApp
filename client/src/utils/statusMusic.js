@@ -138,10 +138,16 @@ const playPresetMelody = (presetId, options = {}) => {
   };
 
   const notes = notesByPreset[presetId] || notesByPreset["preset:sunset"];
-  const volume = typeof options.volume === "number" ? Math.max(0, Math.min(1, options.volume)) : 0.8;
+  const volume =
+    typeof options.volume === "number"
+      ? Math.max(0, Math.min(1, options.volume))
+      : 0.8;
   const startTime = options.startTime || 0;
   const songDuration = options.duration || 60;
-  const endTime = options.endTime && options.endTime > startTime ? Math.min(options.endTime, songDuration) : songDuration;
+  const endTime =
+    options.endTime && options.endTime > startTime
+      ? Math.min(options.endTime, songDuration)
+      : songDuration;
   const portionLength = Math.max(1, endTime - startTime);
 
   let virtualElapsed = 0;
@@ -159,7 +165,10 @@ const playPresetMelody = (presetId, options = {}) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc.type = presetId === "preset:neon" || presetId === "preset:party" ? "sawtooth" : "triangle";
+      osc.type =
+        presetId === "preset:neon" || presetId === "preset:party"
+          ? "sawtooth"
+          : "triangle";
       osc.frequency.setValueAtTime(freq, now);
 
       const targetGain = 0.08 * volume;
@@ -197,9 +206,18 @@ export const playStatusTrack = (song, options = {}) => {
   if (!song) return;
 
   const audioUrl = song.audioUrl || "";
-  const volume = typeof options.volume === "number" ? Math.max(0, Math.min(1, options.volume)) : (song.volume !== undefined ? song.volume : 0.85);
-  const startTime = Number(options.startTime !== undefined ? options.startTime : (song.startTime || 0));
-  const endTime = Number(options.endTime !== undefined ? options.endTime : (song.endTime || 0));
+  const volume =
+    typeof options.volume === "number"
+      ? Math.max(0, Math.min(1, options.volume))
+      : song.volume !== undefined
+        ? song.volume
+        : 0.85;
+  const startTime = Number(
+    options.startTime !== undefined ? options.startTime : song.startTime || 0,
+  );
+  const endTime = Number(
+    options.endTime !== undefined ? options.endTime : song.endTime || 0,
+  );
 
   if (audioUrl.startsWith("preset:")) {
     playPresetMelody(audioUrl, {
@@ -248,15 +266,30 @@ export const playStatusTrack = (song, options = {}) => {
       if (playPromise !== undefined) {
         playPromise.catch((_err) => {
           // Autoplay policy or format error fallback
-          playPresetMelody("preset:sunset", { ...options, volume, startTime, endTime });
+          playPresetMelody("preset:sunset", {
+            ...options,
+            volume,
+            startTime,
+            endTime,
+          });
         });
       }
       activeAudioElement = audio;
     } catch (_err) {
-      playPresetMelody("preset:sunset", { ...options, volume, startTime, endTime });
+      playPresetMelody("preset:sunset", {
+        ...options,
+        volume,
+        startTime,
+        endTime,
+      });
     }
   } else {
-    playPresetMelody("preset:sunset", { ...options, volume, startTime, endTime });
+    playPresetMelody("preset:sunset", {
+      ...options,
+      volume,
+      startTime,
+      endTime,
+    });
   }
 };
 

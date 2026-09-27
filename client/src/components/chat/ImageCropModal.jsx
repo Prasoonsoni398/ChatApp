@@ -106,13 +106,10 @@ const ImageCropModal = ({
       setDispSize({ width: dw, height: dh });
 
       // Calculate initial crop box based on selected aspect ratio
-      let targetRatio = null;
-      if (aspectId === "original") {
-        targetRatio = bBoxW / bBoxH;
-      } else {
-        const opt = aspectOptions.find((a) => a.id === aspectId);
-        targetRatio = opt?.value || null;
-      }
+      const targetRatio =
+        aspectId === "original"
+          ? bBoxW / bBoxH
+          : aspectOptions.find((a) => a.id === aspectId)?.value || null;
 
       let cw = dw;
       let ch = dh;
@@ -269,18 +266,33 @@ const ImageCropModal = ({
       // Free Mode vs Locked Aspect Ratio Mode
       if (!targetRatio) {
         if (handle.includes("r")) {
-          width = Math.max(minSize, Math.min(dispW - startRect.x, startRect.width + dx));
+          width = Math.max(
+            minSize,
+            Math.min(dispW - startRect.x, startRect.width + dx),
+          );
         }
         if (handle.includes("l")) {
-          const newX = Math.max(0, Math.min(startRect.x + startRect.width - minSize, startRect.x + dx));
+          const newX = Math.max(
+            0,
+            Math.min(startRect.x + startRect.width - minSize, startRect.x + dx),
+          );
           width = startRect.width - (newX - startRect.x);
           x = newX;
         }
         if (handle.includes("b")) {
-          height = Math.max(minSize, Math.min(dispH - startRect.y, startRect.height + dy));
+          height = Math.max(
+            minSize,
+            Math.min(dispH - startRect.y, startRect.height + dy),
+          );
         }
         if (handle.includes("t")) {
-          const newY = Math.max(0, Math.min(startRect.y + startRect.height - minSize, startRect.y + dy));
+          const newY = Math.max(
+            0,
+            Math.min(
+              startRect.y + startRect.height - minSize,
+              startRect.y + dy,
+            ),
+          );
           height = startRect.height - (newY - startRect.y);
           y = newY;
         }
@@ -356,7 +368,10 @@ const ImageCropModal = ({
           width = Math.max(minSize, rawW);
           height = Math.max(minSize / ar, rawH);
         } else if (handle === "r" || handle === "l") {
-          let rawW = Math.max(minSize, Math.min(dispW - startRect.x, startRect.width + dx));
+          let rawW = Math.max(
+            minSize,
+            Math.min(dispW - startRect.x, startRect.width + dx),
+          );
           let rawH = rawW / ar;
           if (startRect.y + rawH > dispH) {
             rawH = dispH - startRect.y;
@@ -365,7 +380,10 @@ const ImageCropModal = ({
           width = rawW;
           height = rawH;
         } else if (handle === "t" || handle === "b") {
-          let rawH = Math.max(minSize, Math.min(dispH - startRect.y, startRect.height + dy));
+          let rawH = Math.max(
+            minSize,
+            Math.min(dispH - startRect.y, startRect.height + dy),
+          );
           let rawW = rawH * ar;
           if (startRect.x + rawW > dispW) {
             rawW = dispW - startRect.x;
@@ -432,7 +450,10 @@ const ImageCropModal = ({
         x: Math.max(0, Math.min(bBoxW - 1, Math.round(cropRect.x * scale))),
         y: Math.max(0, Math.min(bBoxH - 1, Math.round(cropRect.y * scale))),
         width: Math.max(1, Math.min(bBoxW, Math.round(cropRect.width * scale))),
-        height: Math.max(1, Math.min(bBoxH, Math.round(cropRect.height * scale))),
+        height: Math.max(
+          1,
+          Math.min(bBoxH, Math.round(cropRect.height * scale)),
+        ),
       };
 
       const croppedBlob = await getCroppedImg(imageSrc, pixelCrop, rotation);
@@ -442,14 +463,10 @@ const ImageCropModal = ({
         return;
       }
 
-      const croppedFile = new File(
-        [croppedBlob],
-        `crop_${Date.now()}.jpg`,
-        {
-          type: "image/jpeg",
-          lastModified: Date.now(),
-        },
-      );
+      const croppedFile = new File([croppedBlob], `crop_${Date.now()}.jpg`, {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
       const croppedUrl = URL.createObjectURL(croppedBlob);
 
       onCropComplete?.(croppedFile, croppedUrl);
@@ -465,9 +482,7 @@ const ImageCropModal = ({
   if (!isOpen || !imageSrc) return null;
 
   const modalContent = (
-    <div
-      className="fixed inset-0 z-[10005] bg-[#0B141A] flex flex-col justify-between overflow-hidden text-white select-none animate-fade-in"
-    >
+    <div className="fixed inset-0 z-[10005] bg-[#0B141A] flex flex-col justify-between overflow-hidden text-white select-none animate-fade-in">
       {/* ── TOP HEADER ── */}
       <div className="h-14 px-4 flex items-center justify-between border-b border-white/10 bg-[#0B141A]/95 backdrop-blur-md z-30 flex-shrink-0">
         <button

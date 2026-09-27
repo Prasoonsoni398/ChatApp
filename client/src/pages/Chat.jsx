@@ -30,6 +30,7 @@ import MobileNavAndFAB from "../components/chat/MobileNavAndFAB.jsx";
 import ContactInfoModal from "../components/chat/ContactInfoModal.jsx";
 import GroupInfoModal from "../components/chat/GroupInfoModal.jsx";
 import PrivacySettingsModal from "../components/chat/PrivacySettingsModal.jsx";
+import NewChatSidebar from "../components/chat/NewChatSidebar.jsx";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -74,20 +75,49 @@ const Chat = () => {
   } = useChatLifecycle({ state, navigate, modals });
 
   const hasUnreadStatus = useMemo(() => {
+    let viewedIds = new Set();
+    try {
+      viewedIds = new Set(
+        JSON.parse(localStorage.getItem("viewed_status_group_ids") || "[]"),
+      );
+    } catch (_) {}
     return (statuses || []).some(
-      (s) => s.user?._id !== state.loggedInUser?._id,
+      (s) =>
+        s.user?._id !== state.loggedInUser?._id && !viewedIds.has(s.user?._id),
     );
   }, [statuses, state.loggedInUser]);
 
   const handleTabSelect = (tabId) => {
     modals.setShowContactInfoModal(false);
     modals.setShowGroupInfoModal(false);
+    modals.setShowNewChatSidebar(false);
     if (tabId === "settings") {
       modals.setShowPrivacyModal((prev) => !prev);
     } else {
       modals.setShowPrivacyModal(false);
       setActiveTab(tabId);
     }
+  };
+
+  // Handler: user selected from NewChatSidebar
+  const handleNewChatSelectUser = (user) => {
+    modals.setShowNewChatSidebar(false);
+    if (!user) return;
+    // Build a chat-like object
+    const chatObj = state.chats.find(
+      (c) => !c.isGroup && c.id === (user._id || user.id),
+    ) || {
+      id: user._id || user.id,
+      name: user.name,
+      avatar: user.avatar,
+      isGroup: false,
+      lastMessage: "",
+      time: "",
+      unread: 0,
+      phone: user.phone,
+    };
+    handleSelectChat(chatObj);
+    setActiveTab("chats");
   };
 
   // Socket listeners and message fetching
@@ -164,7 +194,9 @@ const Chat = () => {
         />
 
         {/* Main Sidebar Slot */}
-        {modals.showContactInfoModal && state.selectedChat && !state.selectedChat.isGroup ? (
+        {modals.showContactInfoModal &&
+        state.selectedChat &&
+        !state.selectedChat.isGroup ? (
           <ContactInfoModal
             isOpen={modals.showContactInfoModal}
             onClose={() => modals.setShowContactInfoModal(false)}
@@ -175,17 +207,23 @@ const Chat = () => {
               state.selectedChat &&
               modals.mutedChatIds.includes(state.selectedChat.id),
             )}
-            onToggleMute={() => securityActions.handleToggleMuteChat(state.selectedChat?.id)}
+            onToggleMute={() =>
+              securityActions.handleToggleMuteChat(state.selectedChat?.id)
+            }
             isLocked={Boolean(
               state.selectedChat &&
               modals.lockedChatIds.includes(state.selectedChat.id),
             )}
-            onToggleLock={() => securityActions.handleToggleLockChat(state.selectedChat?.id)}
+            onToggleLock={() =>
+              securityActions.handleToggleLockChat(state.selectedChat?.id)
+            }
             isBlocked={Boolean(
               state.selectedChat &&
               modals.blockedUserIds.includes(state.selectedChat.id),
             )}
-            onToggleBlock={() => securityActions.handleToggleBlockContact(state.selectedChat?.id)}
+            onToggleBlock={() =>
+              securityActions.handleToggleBlockContact(state.selectedChat?.id)
+            }
             onOpenReport={() => modals.setShowReportModal(true)}
             onOpenStarred={() => modals.setShowStarredModal(true)}
             onOpenWallpaperModal={() => modals.setShowWallpaperModal(true)}
@@ -206,10 +244,14 @@ const Chat = () => {
               state.selectedChat &&
               modals.mutedChatIds.includes(state.selectedChat.id),
             )}
-            onToggleMute={() => securityActions.handleToggleMuteChat(state.selectedChat?.id)}
+            onToggleMute={() =>
+              securityActions.handleToggleMuteChat(state.selectedChat?.id)
+            }
             onOpenInviteLink={() => modals.setShowGroupInviteModal(true)}
             onOpenWallpaperModal={() => modals.setShowWallpaperModal(true)}
-            onLeaveGroup={() => securityActions.handleLeaveGroup(state.selectedChat?.id)}
+            onLeaveGroup={() =>
+              securityActions.handleLeaveGroup(state.selectedChat?.id)
+            }
             onOpenReport={() => modals.setShowReportModal(true)}
           />
         ) : modals.showPrivacyModal ? (
@@ -222,6 +264,26 @@ const Chat = () => {
             }}
             onAllChatsCleared={() => {
               state.setMessages([]);
+            }}
+          />
+        ) : modals.showNewChatSidebar ? (
+          <NewChatSidebar
+            isOpen={modals.showNewChatSidebar}
+            onClose={() => modals.setShowNewChatSidebar(false)}
+            loggedInUser={state.loggedInUser}
+            allUsers={state.allUsers}
+            onSelectUser={handleNewChatSelectUser}
+            onNewGroup={() => {
+              modals.setShowNewChatSidebar(false);
+              state.setShowCreateGroup(true);
+            }}
+            onNewContact={() => {
+              modals.setShowNewChatSidebar(false);
+              modals.setShowAddContactModal(true);
+            }}
+            onNewCommunity={() => {
+              modals.setShowNewChatSidebar(false);
+              setActiveTab("communities");
             }}
           />
         ) : activeTab === "chats" ? (
@@ -242,11 +304,12 @@ const Chat = () => {
             lockedChatIds={modals.lockedChatIds}
             isLockedSectionUnlocked={modals.isLockedSectionUnlocked}
             onOpenLockedChats={securityActions.handleOpenLockedChats}
-            onOpenPrivacySettings={() => modals.setShowPrivacyModal(true)}
+            onOpenPrivacySettings={() => handleTabSelect("settings")}
             onOpenChannels={() => setActiveTab("channels")}
             onOpenLinkedDevices={() => modals.setShowLinkedDevicesModal(true)}
             onOpenShortcuts={() => modals.setShowShortcutsModal(true)}
             onAddContact={() => modals.setShowAddContactModal(true)}
+            onOpenNewChat={() => modals.setShowNewChatSidebar(true)}
             archivedChatIds={modals.archivedChatIds}
             isArchivedViewOpen={modals.isArchivedViewOpen}
             setIsArchivedViewOpen={modals.setIsArchivedViewOpen}
@@ -371,6 +434,7 @@ const Chat = () => {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onTabSelect={handleTabSelect}
+          isSettingsOpen={Boolean(modals.showPrivacyModal)}
           unreadMessagesCount={unreadMessagesCount}
           hasUnreadStatus={hasUnreadStatus}
           selectedChat={state.selectedChat}

@@ -18,6 +18,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 import WebSocket from "./src/config/webSocket.js";
+import { scheduleMediaCleanup } from "./src/utils/mediaCleanup.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -99,6 +100,9 @@ const io = new Server(httpServer, {
 app.set("io", io);
 
 WebSocket(io);
+
+// Start the 48-hour media expiry cron job
+scheduleMediaCleanup();
 
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

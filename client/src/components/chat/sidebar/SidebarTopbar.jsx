@@ -2,12 +2,12 @@ import {
   BsPeopleFill,
   BsThreeDotsVertical,
   BsPersonCircle,
-  BsShieldLockFill,
+  BsGearFill,
   BsLaptop,
   BsKeyboardFill,
-  BsBoxArrowRight,
   BsArrowLeft,
   BsMegaphoneFill,
+  BsPersonPlusFill,
 } from "react-icons/bs";
 import { hoverPrimary } from "../../../constants/styles.js";
 
@@ -16,6 +16,7 @@ const SidebarTopbar = ({
   setIsArchivedViewOpen,
   archivedChatsCount,
   loggedInUser,
+  onOpenNewChat,
   setShowCreateGroup,
   showProfileMenu,
   setShowProfileMenu,
@@ -50,8 +51,12 @@ const SidebarTopbar = ({
 
   return (
     <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-b-theme-soothing relative z-50">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-primary/20 p-0.5 overflow-hidden">
+      <div
+        className="flex items-center gap-3 cursor-pointer group select-none"
+        onClick={() => onOpenPrivacySettings?.()}
+        title="Open Settings"
+      >
+        <div className="w-10 h-10 rounded-full bg-primary/20 p-0.5 overflow-hidden transition-transform duration-200 group-hover:scale-105 active:scale-95 group-hover:ring-2 group-hover:ring-primary/60">
           <img
             src={
               loggedInUser?.avatar ||
@@ -62,7 +67,7 @@ const SidebarTopbar = ({
           />
         </div>
         <div>
-          <span className="font-semibold block leading-tight text-sm">
+          <span className="font-semibold block leading-tight text-sm group-hover:text-primary transition-colors">
             {loggedInUser?.name}
           </span>
           <span className="text-[11px] text-base-content/50">Online</span>
@@ -70,13 +75,13 @@ const SidebarTopbar = ({
       </div>
 
       <div className="flex items-center gap-2 text-base-content/60">
-        {/* New Group */}
+        {/* New Chat — add-person icon */}
         <button
-          onClick={() => setShowCreateGroup(true)}
+          onClick={() => onOpenNewChat?.()}
           className={hoverPrimary}
-          title="New Group"
+          title="New chat"
         >
-          <BsPeopleFill size={18} />
+          <BsPersonPlusFill size={18} />
         </button>
 
         {/* Profile Menu */}
@@ -89,16 +94,17 @@ const SidebarTopbar = ({
             <BsThreeDotsVertical size={18} />
           </button>
           {showProfileMenu && (
-            <ul className="absolute right-0 z-50 menu p-2 shadow-xl text-sm bg-base-100 rounded-2xl w-48 border border-base-300 mt-2 animate-slide-up origin-top-right">
+            <ul className="absolute right-0 z-50 menu p-2 shadow-xl text-sm bg-base-100 rounded-2xl w-52 border border-base-300 mt-2 animate-slide-up origin-top-right">
+              {/* Primary actions */}
               <li>
                 <a
                   onClick={() => {
                     setShowProfileMenu(false);
-                    onOpenChannels?.();
+                    onOpenNewChat?.();
                   }}
                   className="flex items-center gap-2 py-2 text-primary font-medium"
                 >
-                  <BsMegaphoneFill size={15} /> Channels & Broadcast
+                  <BsPersonPlusFill size={15} /> New Chat
                 </a>
               </li>
               <li>
@@ -112,7 +118,8 @@ const SidebarTopbar = ({
                   <BsPeopleFill size={15} /> New Group
                 </a>
               </li>
-              <div className="divider my-1"></div>
+              <div className="divider my-1" />
+              {/* Profile & account */}
               <li>
                 <a
                   onClick={() => {
@@ -123,17 +130,6 @@ const SidebarTopbar = ({
                   className="flex items-center gap-2 py-2"
                 >
                   <BsPersonCircle size={15} /> Edit Profile
-                </a>
-              </li>
-              <li>
-                <a
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    onOpenPrivacySettings?.();
-                  }}
-                  className="flex items-center gap-2 py-2"
-                >
-                  <BsShieldLockFill size={15} /> Privacy
                 </a>
               </li>
               <li>
@@ -158,13 +154,28 @@ const SidebarTopbar = ({
                   <BsKeyboardFill size={15} /> Shortcuts
                 </a>
               </li>
-              <div className="divider my-1"></div>
+              <div className="divider my-1" />
+              {/* Navigation */}
               <li>
                 <a
-                  onClick={handleLogout}
-                  className="text-error flex items-center gap-2 py-2"
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    onOpenPrivacySettings?.();
+                  }}
+                  className="flex items-center gap-2 py-2 font-medium"
                 >
-                  <BsBoxArrowRight size={15} /> Log Out
+                  <BsGearFill size={15} className="text-primary" /> Settings
+                </a>
+              </li>
+              <li>
+                <a
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    onOpenChannels?.();
+                  }}
+                  className="flex items-center gap-2 py-2 text-primary font-medium"
+                >
+                  <BsMegaphoneFill size={15} /> Channels &amp; Broadcast
                 </a>
               </li>
             </ul>

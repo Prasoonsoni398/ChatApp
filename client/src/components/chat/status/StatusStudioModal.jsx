@@ -38,12 +38,20 @@ import {
 
 export const STATUS_FILTERS = [
   { id: "none", name: "Original", css: "none" },
-  { id: "warm", name: "Warm", css: "sepia(0.35) saturate(1.4) brightness(1.05)" },
+  {
+    id: "warm",
+    name: "Warm",
+    css: "sepia(0.35) saturate(1.4) brightness(1.05)",
+  },
   { id: "cool", name: "Cool", css: "hue-rotate(185deg) saturate(1.2)" },
   { id: "bright", name: "Bright", css: "brightness(1.2) contrast(1.1)" },
   { id: "mono", name: "Mono", css: "grayscale(1) contrast(1.2)" },
   { id: "vintage", name: "Vintage", css: "sepia(0.6) contrast(0.95)" },
-  { id: "sunset", name: "Sunset", css: "sepia(0.4) saturate(1.8) hue-rotate(-20deg)" },
+  {
+    id: "sunset",
+    name: "Sunset",
+    css: "sepia(0.4) saturate(1.8) hue-rotate(-20deg)",
+  },
 ];
 
 const PEN_COLORS = [
@@ -92,7 +100,11 @@ const StatusStudioModal = ({
   // Clean up object URLs created during cropping
   useEffect(() => {
     return () => {
-      if (workingMediaUrl && workingMediaUrl !== mediaPreviewUrl && workingMediaUrl.startsWith("blob:")) {
+      if (
+        workingMediaUrl &&
+        workingMediaUrl !== mediaPreviewUrl &&
+        workingMediaUrl.startsWith("blob:")
+      ) {
         URL.revokeObjectURL(workingMediaUrl);
       }
     };
@@ -192,7 +204,7 @@ const StatusStudioModal = ({
     if (selectedSong && !isMusicMuted && isVideoPlaying) {
       playStatusTrack(selectedSong, {
         startTime: selectedSong.startTime || 0,
-        endTime: selectedSong.endTime || (selectedSong.duration || 60),
+        endTime: selectedSong.endTime || selectedSong.duration || 60,
         volume: musicVolume,
       });
     } else {
@@ -408,7 +420,10 @@ const StatusStudioModal = ({
     const textBeforeCursor = caption.slice(0, cursor);
     const textAfterCursor = caption.slice(cursor);
 
-    const replacedBefore = textBeforeCursor.replace(/@\w*$/, `@${contactName} `);
+    const replacedBefore = textBeforeCursor.replace(
+      /@\w*$/,
+      `@${contactName} `,
+    );
     setCaption(replacedBefore + textAfterCursor);
     setMentionSuggestions([]);
     captionInputRef.current?.focus();
@@ -423,7 +438,8 @@ const StatusStudioModal = ({
     selectedFilter !== "none" ||
     rotation !== 0 ||
     caption.trim().length > 0 ||
-    (isVideo && (videoStart > 0 || (videoDuration > 30 && videoEnd < videoDuration)));
+    (isVideo &&
+      (videoStart > 0 || (videoDuration > 30 && videoEnd < videoDuration)));
 
   const handleAttemptClose = () => {
     if (uploadState === "uploading") {
@@ -496,11 +512,19 @@ const StatusStudioModal = ({
           {/* Close button */}
           <button
             type="button"
-            onClick={activeTool === "draw" ? () => setActiveTool(null) : handleAttemptClose}
+            onClick={
+              activeTool === "draw"
+                ? () => setActiveTool(null)
+                : handleAttemptClose
+            }
             className="w-10 h-10 rounded-full flex items-center justify-center text-white/95 hover:bg-white/20 active:scale-95 transition-all cursor-pointer shadow-xs"
             title={activeTool === "draw" ? "Done Drawing" : "Close"}
           >
-            {activeTool === "draw" ? <BsCheck2 size={24} className="text-primary font-bold" /> : <BsX size={28} />}
+            {activeTool === "draw" ? (
+              <BsCheck2 size={24} className="text-primary font-bold" />
+            ) : (
+              <BsX size={28} />
+            )}
           </button>
 
           {/* WhatsApp Action Icons on Right */}
@@ -533,7 +557,9 @@ const StatusStudioModal = ({
                     if (!isVideo) {
                       setShowCropModal(true);
                     } else {
-                      setActiveTool((prev) => (prev === "crop" ? null : "crop"));
+                      setActiveTool((prev) =>
+                        prev === "crop" ? null : "crop",
+                      );
                     }
                   }}
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
@@ -549,7 +575,11 @@ const StatusStudioModal = ({
                 {/* Stickers / Emojis */}
                 <button
                   type="button"
-                  onClick={() => setActiveTool((prev) => (prev === "sticker" ? null : "sticker"))}
+                  onClick={() =>
+                    setActiveTool((prev) =>
+                      prev === "sticker" ? null : "sticker",
+                    )
+                  }
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     activeTool === "sticker"
                       ? "bg-primary text-white shadow-md scale-105"
@@ -563,7 +593,9 @@ const StatusStudioModal = ({
                 {/* Text Tool 'T' */}
                 <button
                   type="button"
-                  onClick={() => setActiveTool((prev) => (prev === "text" ? null : "text"))}
+                  onClick={() =>
+                    setActiveTool((prev) => (prev === "text" ? null : "text"))
+                  }
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     activeTool === "text"
                       ? "bg-primary text-white shadow-md scale-105"
@@ -571,13 +603,17 @@ const StatusStudioModal = ({
                   }`}
                   title="Add Text"
                 >
-                  <span className="font-serif font-black text-xl leading-none">T</span>
+                  <span className="font-serif font-black text-xl leading-none">
+                    T
+                  </span>
                 </button>
 
                 {/* Pen Drawing */}
                 <button
                   type="button"
-                  onClick={() => setActiveTool((prev) => (prev === "draw" ? null : "draw"))}
+                  onClick={() =>
+                    setActiveTool((prev) => (prev === "draw" ? null : "draw"))
+                  }
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     activeTool === "draw"
                       ? "bg-primary text-white shadow-md scale-105"
@@ -591,7 +627,11 @@ const StatusStudioModal = ({
                 {/* Filter Palette */}
                 <button
                   type="button"
-                  onClick={() => setActiveTool((prev) => (prev === "filter" ? null : "filter"))}
+                  onClick={() =>
+                    setActiveTool((prev) =>
+                      prev === "filter" ? null : "filter",
+                    )
+                  }
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     activeTool === "filter" || selectedFilter !== "none"
                       ? "bg-primary text-white shadow-md scale-105"
@@ -623,7 +663,9 @@ const StatusStudioModal = ({
                 {(isVideo || selectedSong) && (
                   <button
                     type="button"
-                    onClick={() => setActiveTool((prev) => (prev === "mix" ? null : "mix"))}
+                    onClick={() =>
+                      setActiveTool((prev) => (prev === "mix" ? null : "mix"))
+                    }
                     className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                       activeTool === "mix"
                         ? "bg-primary text-white shadow-md scale-105"
@@ -649,7 +691,11 @@ const StatusStudioModal = ({
                   onClick={togglePlayPause}
                   className="hover:text-primary transition-colors cursor-pointer"
                 >
-                  {isVideoPlaying ? <BsPauseFill size={13} /> : <BsPlayFill size={13} />}
+                  {isVideoPlaying ? (
+                    <BsPauseFill size={13} />
+                  ) : (
+                    <BsPlayFill size={13} />
+                  )}
                 </button>
                 <span>{formatTimestamp(videoCurrentTime)}</span>
               </div>
@@ -668,7 +714,8 @@ const StatusStudioModal = ({
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setVideoStart(val);
-                  if (val >= videoEnd) setVideoEnd(Math.min(videoDuration, val + 5));
+                  if (val >= videoEnd)
+                    setVideoEnd(Math.min(videoDuration, val + 5));
                   if (videoRef.current) videoRef.current.currentTime = val;
                 }}
                 className="range range-xs range-primary flex-1"
@@ -756,7 +803,11 @@ const StatusStudioModal = ({
               <div
                 key={item.id}
                 className="absolute z-20 group cursor-move select-none p-2"
-                style={{ top: `${item.y}%`, left: `${item.x}%`, transform: "translate(-50%, -50%)" }}
+                style={{
+                  top: `${item.y}%`,
+                  left: `${item.x}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
               >
                 <div
                   className={`relative font-semibold cursor-pointer select-none transition-all ${
@@ -796,7 +847,9 @@ const StatusStudioModal = ({
                   type="button"
                   onClick={() => setPenColor(col)}
                   className={`w-6 h-6 rounded-full transition-transform border border-white/40 cursor-pointer ${
-                    penColor === col ? "scale-130 ring-2 ring-white" : "hover:scale-110"
+                    penColor === col
+                      ? "scale-130 ring-2 ring-white"
+                      : "hover:scale-110"
                   }`}
                   style={{ backgroundColor: col }}
                 />
@@ -827,7 +880,9 @@ const StatusStudioModal = ({
 
               {/* Text Color Picker Palette */}
               <div className="flex flex-col items-center gap-1.5 mb-4 w-full max-w-sm">
-                <span className="text-xs text-white/70 font-medium">Text Color</span>
+                <span className="text-xs text-white/70 font-medium">
+                  Text Color
+                </span>
                 <div className="flex items-center gap-2 overflow-x-auto py-1 px-2 no-scrollbar max-w-full">
                   {STATUS_TEXT_COLORS.map((col) => (
                     <button
@@ -836,7 +891,9 @@ const StatusStudioModal = ({
                       onClick={() => setNewTextColor(col.value)}
                       title={col.label}
                       className={`w-7 h-7 rounded-full border border-white/30 transition-transform cursor-pointer flex-shrink-0 ${
-                        newTextColor === col.value ? "scale-125 ring-2 ring-white shadow-lg" : "hover:scale-110"
+                        newTextColor === col.value
+                          ? "scale-125 ring-2 ring-white shadow-lg"
+                          : "hover:scale-110"
                       }`}
                       style={{ backgroundColor: col.value }}
                     />
@@ -846,7 +903,9 @@ const StatusStudioModal = ({
 
               {/* Background Creativity Styles */}
               <div className="flex flex-col items-center gap-1.5 mb-6 w-full max-w-sm">
-                <span className="text-xs text-white/70 font-medium">Background Creativity</span>
+                <span className="text-xs text-white/70 font-medium">
+                  Background Creativity
+                </span>
                 <div className="flex items-center gap-1.5 overflow-x-auto py-1 px-1 no-scrollbar max-w-full">
                   {TEXT_OVERLAY_BG_STYLES.map((style) => (
                     <button
@@ -888,7 +947,11 @@ const StatusStudioModal = ({
           {/* Stickers Popover */}
           {activeTool === "sticker" && (
             <div className="absolute bottom-20 inset-x-2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 shadow-2xl rounded-3xl overflow-hidden animate-slide-up pointer-events-auto">
-              <EmojiPicker onEmojiClick={handleAddEmojiOverlay} width={320} height={340} />
+              <EmojiPicker
+                onEmojiClick={handleAddEmojiOverlay}
+                width={320}
+                height={340}
+              />
             </div>
           )}
 
@@ -896,8 +959,13 @@ const StatusStudioModal = ({
           {activeTool === "filter" && (
             <div className="absolute bottom-24 inset-x-3 z-35 bg-black/85 backdrop-blur-md rounded-2xl p-3 border border-white/20 animate-slide-up pointer-events-auto">
               <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-xs font-semibold text-white/90">Filter</span>
-                <button onClick={() => setActiveTool(null)} className="text-white/60 hover:text-white">
+                <span className="text-xs font-semibold text-white/90">
+                  Filter
+                </span>
+                <button
+                  onClick={() => setActiveTool(null)}
+                  className="text-white/60 hover:text-white"
+                >
                   <BsX size={18} />
                 </button>
               </div>
@@ -927,7 +995,10 @@ const StatusStudioModal = ({
                 <span className="text-xs font-bold text-white/90 flex items-center gap-1.5">
                   <BsCrop className="text-primary" /> Crop & Aspect Ratio
                 </span>
-                <button onClick={() => setActiveTool(null)} className="text-white/60 hover:text-white">
+                <button
+                  onClick={() => setActiveTool(null)}
+                  className="text-white/60 hover:text-white"
+                >
                   <BsX size={18} />
                 </button>
               </div>
@@ -938,7 +1009,9 @@ const StatusStudioModal = ({
                     type="button"
                     onClick={() => setAspectRatio(ratio.id)}
                     className={`btn btn-xs rounded-xl ${
-                      aspectRatio === ratio.id ? "btn-primary text-white font-bold" : "btn-ghost text-white/70"
+                      aspectRatio === ratio.id
+                        ? "btn-primary text-white font-bold"
+                        : "btn-ghost text-white/70"
                     }`}
                   >
                     {ratio.label}
@@ -965,7 +1038,10 @@ const StatusStudioModal = ({
                 <span className="text-xs font-bold text-white/90 flex items-center gap-1.5">
                   <BsSliders className="text-primary" /> Audio Volume Mix
                 </span>
-                <button onClick={() => setActiveTool(null)} className="text-white/60 hover:text-white">
+                <button
+                  onClick={() => setActiveTool(null)}
+                  className="text-white/60 hover:text-white"
+                >
                   <BsX size={18} />
                 </button>
               </div>
@@ -978,12 +1054,18 @@ const StatusStudioModal = ({
                         onClick={() => setIsVideoMuted((prev) => !prev)}
                         className="text-primary hover:opacity-80 cursor-pointer"
                       >
-                        {isVideoMuted || videoVolume === 0 ? <BsVolumeMuteFill /> : <BsVolumeUpFill />}
+                        {isVideoMuted || videoVolume === 0 ? (
+                          <BsVolumeMuteFill />
+                        ) : (
+                          <BsVolumeUpFill />
+                        )}
                       </button>
                       Video Sound
                     </span>
                     <span className="font-mono text-[10px]">
-                      {isVideoMuted ? "Muted" : `${Math.round(videoVolume * 100)}%`}
+                      {isVideoMuted
+                        ? "Muted"
+                        : `${Math.round(videoVolume * 100)}%`}
                     </span>
                   </div>
                   <input
@@ -1009,12 +1091,18 @@ const StatusStudioModal = ({
                         onClick={() => setIsMusicMuted((prev) => !prev)}
                         className="text-secondary hover:opacity-80 cursor-pointer"
                       >
-                        {isMusicMuted || musicVolume === 0 ? <BsVolumeMuteFill /> : <BsVolumeUpFill />}
+                        {isMusicMuted || musicVolume === 0 ? (
+                          <BsVolumeMuteFill />
+                        ) : (
+                          <BsVolumeUpFill />
+                        )}
                       </button>
                       Music Sound
                     </span>
                     <span className="font-mono text-[10px]">
-                      {isMusicMuted ? "Muted" : `${Math.round(musicVolume * 100)}%`}
+                      {isMusicMuted
+                        ? "Muted"
+                        : `${Math.round(musicVolume * 100)}%`}
                     </span>
                   </div>
                   <input
@@ -1048,7 +1136,9 @@ const StatusStudioModal = ({
           {/* Upload Failed Banner with Retry */}
           {uploadState === "failed" && (
             <div className="bg-error/20 backdrop-blur-md rounded-2xl p-2.5 border border-error/30 flex items-center justify-between text-xs text-error mb-1">
-              <span className="truncate pr-2">{uploadErrorMessage || "Upload failed."}</span>
+              <span className="truncate pr-2">
+                {uploadErrorMessage || "Upload failed."}
+              </span>
               <button
                 type="button"
                 onClick={onRetryUpload}
@@ -1083,7 +1173,10 @@ const StatusStudioModal = ({
             {/* Attached Song Pill */}
             {selectedSong && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/20 backdrop-blur-md border border-primary/40 text-white text-[11px] max-w-[200px] truncate shadow-md">
-                <BsMusicNoteBeamed className="text-primary flex-shrink-0" size={11} />
+                <BsMusicNoteBeamed
+                  className="text-primary flex-shrink-0"
+                  size={11}
+                />
                 <span className="truncate">{selectedSong.title}</span>
                 <button
                   type="button"
@@ -1112,8 +1205,12 @@ const StatusStudioModal = ({
                     className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-white/10 text-xs transition-colors cursor-pointer"
                   >
                     <BsAt className="text-primary" />
-                    <span className="font-semibold">{c.customName || c.name}</span>
-                    <span className="text-white/40 text-[10px] ml-auto">{c.phone}</span>
+                    <span className="font-semibold">
+                      {c.customName || c.name}
+                    </span>
+                    <span className="text-white/40 text-[10px] ml-auto">
+                      {c.phone}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1185,9 +1282,12 @@ const StatusStudioModal = ({
               <BsTrash3 size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-base text-white">Discard status changes?</h3>
+              <h3 className="font-bold text-base text-white">
+                Discard status changes?
+              </h3>
               <p className="text-xs text-[#8696A0] mt-1.5 leading-relaxed">
-                If you go back now, all adjustments, drawings, and music will be lost.
+                If you go back now, all adjustments, drawings, and music will be
+                lost.
               </p>
             </div>
             <div className="flex items-center justify-center gap-3 pt-2">

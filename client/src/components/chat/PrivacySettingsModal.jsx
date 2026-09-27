@@ -120,7 +120,9 @@ const PrivacySettingsModal = ({
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={selectedCategory ? () => setSelectedCategory(null) : onClose}
+            onClick={
+              selectedCategory ? () => setSelectedCategory(null) : onClose
+            }
             className="w-9 h-9 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
             title={selectedCategory ? "Back to Settings" : "Back to Chats"}
           >
@@ -159,173 +161,173 @@ const PrivacySettingsModal = ({
         </button>
       </div>
 
-        {/* Settings Body */}
-        {selectedCategory === null ? (
-          <SettingsMainList
-            currentUser={currentUser}
-            settingCategories={settingCategories}
-            onSelectCategory={(catId) => {
-              setSelectedCategory(catId);
-              setActiveTab(catId);
-            }}
-          />
-        ) : (
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
-            {activeTab === "privacy" && (
-              <PrivacyTabContent
-                settings={settings}
-                handleChange={handleChange}
-                blockedUsers={blockedUsers}
-                loadingBlocked={loadingBlocked}
-                handleUnblock={handleUnblock}
-              />
-            )}
-
-            {activeTab === "notifications" && (
-              <NotificationsTabContent
-                soundEnabled={soundEnabled}
-                handleToggleSound={handleToggleSound}
-                notificationSound={notificationSound}
-                handleSelectNotificationSound={handleSelectNotificationSound}
-                ringtoneSound={ringtoneSound}
-                handleSelectRingtoneSound={handleSelectRingtoneSound}
-                reactionsAlerts={reactionsAlerts}
-                handleToggleReactionsAlerts={handleToggleReactionsAlerts}
-                notifPermission={notifPermission}
-                handleRequestPermission={handleRequestPermission}
-                notifsEnabled={notifsEnabled}
-                handleToggleNotifications={handleToggleNotifications}
-              />
-            )}
-
-            {activeTab === "theme" && (
-              <ThemeTabContent
-                appTheme={appTheme}
-                handleThemeChange={handleThemeChange}
-              />
-            )}
-
-            {activeTab === "storage" && (
-              <StorageTabContent
-                storageData={storageData}
-                isLoadingStorage={isLoadingStorage}
-                loadStorageData={loadStorageData}
-                autoDownload={autoDownload}
-                handleAutoDownloadChange={handleAutoDownloadChange}
-              />
-            )}
-
-            {activeTab === "chats" && (
-              <ChatsTabContent
-                onOpenClearConfirm={() => setShowClearConfirm(true)}
-              />
-            )}
-
-            {activeTab === "profile" && (
-              <ProfileTabContent
-                profileAvatarPreview={profileAvatarPreview}
-                currentUser={currentUser}
-                profileName={profileName}
-                handleAvatarChange={handleAvatarChange}
-                handleSaveProfile={handleSaveProfile}
-                setProfileName={setProfileName}
-                profileAbout={profileAbout}
-                setProfileAbout={setProfileAbout}
-                isSavingProfile={isSavingProfile}
-              />
-            )}
-
-            {activeTab === "account" && (
-              <AccountTabContent
-                securityNotifs={securityNotifs}
-                handleToggleSecurityNotifs={handleToggleSecurityNotifs}
-                handleExportAccountData={handleExportAccountData}
-                isExportingData={isExportingData}
-                onOpenDeleteAccountModal={() => {
-                  setDeleteConfirmText("");
-                  setShowDeleteAccountModal(true);
-                }}
-              />
-            )}
-
-            {activeTab === "security" && (
-              <SecurityTabContent
-                twoStepEnabled={twoStepEnabled}
-                showPinSetup={showPinSetup}
-                handleToggleTwoStep={handleToggleTwoStep}
-                handleSavePin={handleSavePin}
-                tempPin={tempPin}
-                setTempPin={setTempPin}
-                setShowPinSetup={setShowPinSetup}
-                securityNotifs={securityNotifs}
-                handleToggleSecurityNotifs={handleToggleSecurityNotifs}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Confirmation Modal for Clearing All Chats */}
-        <ClearChatsConfirmModal
-          isOpen={showClearConfirm}
-          onClose={() => setShowClearConfirm(false)}
-          onConfirm={handleClearAllChats}
-          isClearingAll={isClearingAll}
-        />
-
-        {/* Confirmation Modal for Deleting Account Permanently */}
-        <DeleteAccountConfirmModal
-          isOpen={showDeleteAccountModal}
-          onClose={() => {
-            setShowDeleteAccountModal(false);
-            setDeleteConfirmText("");
+      {/* Settings Body */}
+      {selectedCategory === null ? (
+        <SettingsMainList
+          currentUser={currentUser}
+          settingCategories={settingCategories}
+          onSelectCategory={(catId) => {
+            setSelectedCategory(catId);
+            setActiveTab(catId);
           }}
-          deleteConfirmText={deleteConfirmText}
-          setDeleteConfirmText={setDeleteConfirmText}
-          handleDeleteAccount={handleDeleteAccount}
-          isDeletingAccount={isDeletingAccount}
         />
+      ) : (
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          {activeTab === "privacy" && (
+            <PrivacyTabContent
+              settings={settings}
+              handleChange={handleChange}
+              blockedUsers={blockedUsers}
+              loadingBlocked={loadingBlocked}
+              handleUnblock={handleUnblock}
+            />
+          )}
 
-        {/* Footer (Only shown in Privacy category where Save Changes is required) */}
-        {selectedCategory === "privacy" && (
-          <div className="px-4 py-2.5 border-t border-base-300 flex justify-end items-center gap-2 bg-base-200/40 flex-shrink-0">
-            <button
-              type="button"
-              onClick={() => setSelectedCategory(null)}
-              className="btn btn-sm btn-ghost rounded-xl"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="btn btn-sm btn-primary rounded-xl px-5"
-            >
-              {isSaving ? (
-                <span className="loading loading-spinner loading-xs"></span>
-              ) : (
-                "Save Changes"
-              )}
-            </button>
-          </div>
-        )}
+          {activeTab === "notifications" && (
+            <NotificationsTabContent
+              soundEnabled={soundEnabled}
+              handleToggleSound={handleToggleSound}
+              notificationSound={notificationSound}
+              handleSelectNotificationSound={handleSelectNotificationSound}
+              ringtoneSound={ringtoneSound}
+              handleSelectRingtoneSound={handleSelectRingtoneSound}
+              reactionsAlerts={reactionsAlerts}
+              handleToggleReactionsAlerts={handleToggleReactionsAlerts}
+              notifPermission={notifPermission}
+              handleRequestPermission={handleRequestPermission}
+              notifsEnabled={notifsEnabled}
+              handleToggleNotifications={handleToggleNotifications}
+            />
+          )}
 
-        {/* Profile Picture Cropper Modal Overlay */}
-        {cropImageSrc && (
-          <ImageCropView
-            imageSrc={cropImageSrc}
-            title="Crop Profile Photo"
-            cropShape="round"
-            initialAspect="1:1"
-            onCropComplete={(croppedFile) => {
-              setProfileAvatarFile(croppedFile);
-              setProfileAvatarPreview(URL.createObjectURL(croppedFile));
-              setCropImageSrc(null);
-            }}
-            onCancel={() => setCropImageSrc(null)}
-          />
-        )}
-      </div>
+          {activeTab === "theme" && (
+            <ThemeTabContent
+              appTheme={appTheme}
+              handleThemeChange={handleThemeChange}
+            />
+          )}
+
+          {activeTab === "storage" && (
+            <StorageTabContent
+              storageData={storageData}
+              isLoadingStorage={isLoadingStorage}
+              loadStorageData={loadStorageData}
+              autoDownload={autoDownload}
+              handleAutoDownloadChange={handleAutoDownloadChange}
+            />
+          )}
+
+          {activeTab === "chats" && (
+            <ChatsTabContent
+              onOpenClearConfirm={() => setShowClearConfirm(true)}
+            />
+          )}
+
+          {activeTab === "profile" && (
+            <ProfileTabContent
+              profileAvatarPreview={profileAvatarPreview}
+              currentUser={currentUser}
+              profileName={profileName}
+              handleAvatarChange={handleAvatarChange}
+              handleSaveProfile={handleSaveProfile}
+              setProfileName={setProfileName}
+              profileAbout={profileAbout}
+              setProfileAbout={setProfileAbout}
+              isSavingProfile={isSavingProfile}
+            />
+          )}
+
+          {activeTab === "account" && (
+            <AccountTabContent
+              securityNotifs={securityNotifs}
+              handleToggleSecurityNotifs={handleToggleSecurityNotifs}
+              handleExportAccountData={handleExportAccountData}
+              isExportingData={isExportingData}
+              onOpenDeleteAccountModal={() => {
+                setDeleteConfirmText("");
+                setShowDeleteAccountModal(true);
+              }}
+            />
+          )}
+
+          {activeTab === "security" && (
+            <SecurityTabContent
+              twoStepEnabled={twoStepEnabled}
+              showPinSetup={showPinSetup}
+              handleToggleTwoStep={handleToggleTwoStep}
+              handleSavePin={handleSavePin}
+              tempPin={tempPin}
+              setTempPin={setTempPin}
+              setShowPinSetup={setShowPinSetup}
+              securityNotifs={securityNotifs}
+              handleToggleSecurityNotifs={handleToggleSecurityNotifs}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Confirmation Modal for Clearing All Chats */}
+      <ClearChatsConfirmModal
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={handleClearAllChats}
+        isClearingAll={isClearingAll}
+      />
+
+      {/* Confirmation Modal for Deleting Account Permanently */}
+      <DeleteAccountConfirmModal
+        isOpen={showDeleteAccountModal}
+        onClose={() => {
+          setShowDeleteAccountModal(false);
+          setDeleteConfirmText("");
+        }}
+        deleteConfirmText={deleteConfirmText}
+        setDeleteConfirmText={setDeleteConfirmText}
+        handleDeleteAccount={handleDeleteAccount}
+        isDeletingAccount={isDeletingAccount}
+      />
+
+      {/* Footer (Only shown in Privacy category where Save Changes is required) */}
+      {selectedCategory === "privacy" && (
+        <div className="px-4 py-2.5 border-t border-base-300 flex justify-end items-center gap-2 bg-base-200/40 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory(null)}
+            className="btn btn-sm btn-ghost rounded-xl"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="btn btn-sm btn-primary rounded-xl px-5"
+          >
+            {isSaving ? (
+              <span className="loading loading-spinner loading-xs"></span>
+            ) : (
+              "Save Changes"
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Profile Picture Cropper Modal Overlay */}
+      {cropImageSrc && (
+        <ImageCropView
+          imageSrc={cropImageSrc}
+          title="Crop Profile Photo"
+          cropShape="round"
+          initialAspect="1:1"
+          onCropComplete={(croppedFile) => {
+            setProfileAvatarFile(croppedFile);
+            setProfileAvatarPreview(URL.createObjectURL(croppedFile));
+            setCropImageSrc(null);
+          }}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
+    </div>
   );
 };
 

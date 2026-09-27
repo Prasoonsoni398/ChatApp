@@ -169,7 +169,10 @@ const ChatWallpaperModal = ({
     if (wallpaperType === "color" && wallpaperValue) {
       return { backgroundColor: wallpaperValue };
     }
-    if ((wallpaperType === "preset" || wallpaperType === "custom") && wallpaperValue) {
+    if (
+      (wallpaperType === "preset" || wallpaperType === "custom") &&
+      wallpaperValue
+    ) {
       return {
         backgroundImage: `url('${wallpaperValue}')`,
         backgroundSize: "cover",
@@ -195,7 +198,8 @@ const ChatWallpaperModal = ({
                 Wallpaper & Chat Theme
               </h3>
               <p className="text-[11px] text-[#8696A0] mt-0.5 truncate max-w-xs sm:max-w-md">
-                Customizing for <span className="text-white font-medium">{chatName}</span>
+                Customizing for{" "}
+                <span className="text-white font-medium">{chatName}</span>
               </p>
             </div>
           </div>
@@ -219,7 +223,9 @@ const ChatWallpaperModal = ({
             {/* Mock Phone Frame */}
             <div
               data-theme={
-                customization.theme !== "default" ? customization.theme : undefined
+                customization.theme !== "default"
+                  ? customization.theme
+                  : undefined
               }
               className="w-full max-w-[280px] sm:max-w-[300px] h-[380px] rounded-3xl overflow-hidden border border-white/20 shadow-2xl relative flex flex-col"
             >
@@ -278,7 +284,9 @@ const ChatWallpaperModal = ({
                         Looks incredible! Custom colors and themes are working.
                       </p>
                       <div className="flex items-center gap-1 justify-end mt-1">
-                        <span className="text-[9px] text-white/70">12:31 PM</span>
+                        <span className="text-[9px] text-white/70">
+                          12:31 PM
+                        </span>
                         <BsCheck2 size={12} className="text-[#53BDEB]" />
                       </div>
                     </div>
@@ -290,7 +298,9 @@ const ChatWallpaperModal = ({
                   <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-white/60 text-xs">
                     +
                   </div>
-                  <span className="text-[11px] text-[#8696A0] flex-1">Type a message</span>
+                  <span className="text-[11px] text-[#8696A0] flex-1">
+                    Type a message
+                  </span>
                   <div className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center text-black font-bold text-xs">
                     ➤
                   </div>
@@ -336,7 +346,8 @@ const ChatWallpaperModal = ({
                 <div className="p-3.5 rounded-2xl bg-[#202C33]/80 border border-white/10 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <BsUpload className="text-[#25D366]" /> Custom Photo Wallpaper
+                      <BsUpload className="text-[#25D366]" /> Custom Photo
+                      Wallpaper
                     </span>
                     {customization.wallpaperType === "custom" && (
                       <span className="text-[10px] bg-[#25D366]/20 text-[#25D366] px-2 py-0.5 rounded-full font-medium">
@@ -395,7 +406,10 @@ const ChatWallpaperModal = ({
                   {/* Image URL input */}
                   <div className="flex items-center gap-2 pt-1">
                     <div className="relative flex-1">
-                      <BsGlobe2 className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8696A0]" size={12} />
+                      <BsGlobe2
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8696A0]"
+                        size={12}
+                      />
                       <input
                         type="url"
                         value={urlInput}
@@ -418,7 +432,9 @@ const ChatWallpaperModal = ({
                 {/* Solid Colors */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white">Solid Colors</span>
+                    <span className="text-xs font-bold text-white">
+                      Solid Colors
+                    </span>
                     <label className="flex items-center gap-1.5 text-[11px] text-[#8696A0] cursor-pointer hover:text-white">
                       <span>Custom Color:</span>
                       <input
@@ -437,7 +453,8 @@ const ChatWallpaperModal = ({
                     {SOLID_COLORS.map((col) => {
                       const isSelected =
                         customization.wallpaperType === "color" &&
-                        customization.wallpaperValue.toLowerCase() === col.hex.toLowerCase();
+                        customization.wallpaperValue.toLowerCase() ===
+                          col.hex.toLowerCase();
                       return (
                         <button
                           key={col.hex}
@@ -455,7 +472,8 @@ const ChatWallpaperModal = ({
                             <BsCheck2
                               size={16}
                               className={`drop-shadow-md ${
-                                col.hex.startsWith("#E") || col.hex.startsWith("#F")
+                                col.hex.startsWith("#E") ||
+                                col.hex.startsWith("#F")
                                   ? "text-black"
                                   : "text-[#25D366]"
                               }`}
@@ -469,7 +487,9 @@ const ChatWallpaperModal = ({
 
                 {/* Scenic Presets */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-white">Curated Presets</span>
+                  <span className="text-xs font-bold text-white">
+                    Curated Presets
+                  </span>
                   <div className="grid grid-cols-4 gap-2">
                     {WALLPAPER_PRESETS.map((preset) => {
                       const isSelected =
@@ -541,7 +561,10 @@ const ChatWallpaperModal = ({
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-white/90 flex items-center gap-1.5">
-                        <BsBrightnessHigh size={13} className="text-[#25D366]" />
+                        <BsBrightnessHigh
+                          size={13}
+                          className="text-[#25D366]"
+                        />
                         <span>Wallpaper Dimming</span>
                       </span>
                       <span className="text-[#8696A0] font-mono text-[11px]">
@@ -600,7 +623,9 @@ const ChatWallpaperModal = ({
             {/* TAB 2: CHAT THEME CONTROLS */}
             {activeTab === "theme" && (
               <div className="space-y-3 flex-1 overflow-y-auto pr-1">
-                <span className="text-xs font-bold text-white">Select Theme for this Chat</span>
+                <span className="text-xs font-bold text-white">
+                  Select Theme for this Chat
+                </span>
                 <div className="grid grid-cols-2 gap-2.5">
                   {CHAT_THEMES.map((th) => {
                     const isSelected = customization.theme === th.id;
@@ -623,7 +648,12 @@ const ChatWallpaperModal = ({
                         <span
                           className={`w-6 h-6 rounded-full ${th.bg} border border-white/20 flex-shrink-0 flex items-center justify-center`}
                         >
-                          {isSelected && <BsCheck2 size={13} className="text-white stroke-[1.5]" />}
+                          {isSelected && (
+                            <BsCheck2
+                              size={13}
+                              className="text-white stroke-[1.5]"
+                            />
+                          )}
                         </span>
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-white truncate leading-tight">

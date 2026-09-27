@@ -1,5 +1,7 @@
+import React, { useState } from "react";
 import {
   BsDownload,
+  BsClockHistory,
   BsFileEarmarkPdfFill,
   BsFileEarmarkTextFill,
   BsFileEarmarkZipFill,
@@ -38,6 +40,30 @@ const MessageMediaContent = ({
   isSearchMatch,
   msgSearchQuery,
 }) => {
+  const [mediaLoadError, setMediaLoadError] = useState(false);
+  const [isExpired] = useState(() =>
+    Boolean(
+      msg.createdAt &&
+      Date.now() - new Date(msg.createdAt).getTime() >= 48 * 60 * 60 * 1000,
+    ),
+  );
+
+  if (mediaLoadError) {
+    return (
+      <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-base-200/80 border border-base-300 text-base-content/80 text-xs mb-2 select-none">
+        <div className="w-8 h-8 rounded-xl bg-warning/15 flex items-center justify-center flex-shrink-0 text-warning">
+          <BsClockHistory size={16} />
+        </div>
+        <div>
+          <p className="font-bold text-xs text-base-content">Media Expired</p>
+          <p className="text-[10px] text-base-content/60">
+            Permanently deleted after 48 hours as per storage policy
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* 0. View-Once Media Pill */}
@@ -107,6 +133,7 @@ const MessageMediaContent = ({
             controls
             preload="metadata"
             src={msg.mediaUrl || msg.image}
+            onError={() => setMediaLoadError(true)}
             className="max-h-72 w-full object-contain"
           />
         </div>
@@ -145,6 +172,7 @@ const MessageMediaContent = ({
           <img
             src={msg.mediaUrl || msg.image}
             alt="Attachment"
+            onError={() => setMediaLoadError(true)}
             className="max-w-full rounded-xl mb-2 object-cover max-h-80"
           />
         )}

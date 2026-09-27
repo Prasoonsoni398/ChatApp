@@ -157,7 +157,10 @@ export function getPatternStyle(patternId) {
 /**
  * Computes exact text overlay style for media status overlays
  */
-export function getTextOverlayStyle(color = "#ffffff", bgStyle = "transparent") {
+export function getTextOverlayStyle(
+  color = "#ffffff",
+  bgStyle = "transparent",
+) {
   const isDarkColor =
     color.toLowerCase() === "#000000" ||
     color.toLowerCase() === "#0b141a" ||

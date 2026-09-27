@@ -21,7 +21,12 @@ import {
 
 const DEFAULT_PORTION_DURATION = 15; // 15 seconds portion default per PRD
 
-const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) => {
+const SongPickerModal = ({
+  isOpen,
+  onClose,
+  onSelectSong,
+  initialSong = null,
+}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [activeSong, setActiveSong] = useState(initialSong || null);
@@ -48,7 +53,10 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
     if (isOpen && initialSong) {
       setActiveSong(initialSong);
       setPortionStart(initialSong.startTime || 0);
-      setPortionEnd(initialSong.endTime || (initialSong.startTime || 0) + DEFAULT_PORTION_DURATION);
+      setPortionEnd(
+        initialSong.endTime ||
+          (initialSong.startTime || 0) + DEFAULT_PORTION_DURATION,
+      );
       if (initialSong.volume !== undefined) setSongVolume(initialSong.volume);
     }
   }, [isOpen, initialSong]);
@@ -161,8 +169,12 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
 
     stopStatusTrack();
     onSelectSong({
-      title: customAudioFile ? customTitle.trim() || activeSong.title : activeSong.title,
-      artist: customAudioFile ? customArtist.trim() || activeSong.artist : activeSong.artist,
+      title: customAudioFile
+        ? customTitle.trim() || activeSong.title
+        : activeSong.title,
+      artist: customAudioFile
+        ? customArtist.trim() || activeSong.artist
+        : activeSong.artist,
       audioUrl: activeSong.audioUrl,
       audioFile: customAudioFile || undefined,
       duration: activeSong.duration || customDuration,
@@ -175,7 +187,9 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
 
   // Filter songs
   const filteredSongs = PRESET_SONGS.filter((s) => {
-    const matchesGenre = selectedGenre === "All" || s.genre.toLowerCase() === selectedGenre.toLowerCase();
+    const matchesGenre =
+      selectedGenre === "All" ||
+      s.genre.toLowerCase() === selectedGenre.toLowerCase();
     const query = searchQuery.toLowerCase().trim();
     const matchesQuery =
       !query ||
@@ -195,8 +209,12 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
               <BsMusicNoteBeamed size={18} />
             </div>
             <div>
-              <h3 className="font-bold text-base text-white leading-tight">Music Library</h3>
-              <p className="text-[11px] text-[#8696A0] mt-0.5">Search, preview & trim music segment</p>
+              <h3 className="font-bold text-base text-white leading-tight">
+                Music Library
+              </h3>
+              <p className="text-[11px] text-[#8696A0] mt-0.5">
+                Search, preview & trim music segment
+              </p>
             </div>
           </div>
           <button
@@ -215,7 +233,10 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
         <div className="p-4 border-b border-white/10 space-y-3 bg-[#111B21]">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <BsSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8696A0]" size={14} />
+              <BsSearch
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8696A0]"
+                size={14}
+              />
               <input
                 type="text"
                 value={searchQuery}
@@ -239,7 +260,8 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#25D366]/50 text-[#25D366] hover:bg-[#25D366]/15 text-xs font-medium transition-colors cursor-pointer flex-shrink-0"
               title="Upload your own song (max 5MB)"
             >
-              <BsUpload size={12} /> <span className="hidden sm:inline">Upload</span>
+              <BsUpload size={12} />{" "}
+              <span className="hidden sm:inline">Upload</span>
             </button>
             <input
               ref={fileInputRef}
@@ -341,7 +363,8 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
                           {song.title}
                         </p>
                         <p className="text-[11px] text-[#8696A0] truncate mt-0.5">
-                          {song.artist} • {song.genre} • {formatTimestamp(song.duration)}
+                          {song.artist} • {song.genre} •{" "}
+                          {formatTimestamp(song.duration)}
                         </p>
                       </div>
                     </div>
@@ -380,7 +403,8 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
                   <BsSliders className="text-[#25D366]" /> Song Portion
                 </span>
                 <span className="text-[11px] text-[#8696A0]">
-                  {formatTimestamp(portionStart)} – {formatTimestamp(portionEnd)} ({currentLength}s)
+                  {formatTimestamp(portionStart)} –{" "}
+                  {formatTimestamp(portionEnd)} ({currentLength}s)
                 </span>
               </div>
 
@@ -389,7 +413,9 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
                   type="button"
                   onClick={() => {
                     setPortionStart(0);
-                    setPortionEnd(Math.min(totalDuration, DEFAULT_PORTION_DURATION));
+                    setPortionEnd(
+                      Math.min(totalDuration, DEFAULT_PORTION_DURATION),
+                    );
                   }}
                   className="text-white/60 hover:text-white text-[11px] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                   title="Reset to beginning"
@@ -405,7 +431,11 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
                       : "bg-[#25D366] text-black hover:bg-[#1EBE5D]"
                   }`}
                 >
-                  {isPlaying ? <BsPauseFill size={13} /> : <BsPlayFill size={13} />}
+                  {isPlaying ? (
+                    <BsPauseFill size={13} />
+                  ) : (
+                    <BsPlayFill size={13} />
+                  )}
                   <span>{isPlaying ? "Pause" : "Test Portion"}</span>
                 </button>
               </div>
@@ -429,7 +459,12 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
                     const newStart = Number(e.target.value);
                     setPortionStart(newStart);
                     if (newStart >= portionEnd) {
-                      setPortionEnd(Math.min(totalDuration, newStart + DEFAULT_PORTION_DURATION));
+                      setPortionEnd(
+                        Math.min(
+                          totalDuration,
+                          newStart + DEFAULT_PORTION_DURATION,
+                        ),
+                      );
                     }
                   }}
                   className="w-full accent-[#25D366] cursor-pointer"
@@ -445,9 +480,13 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
                     max={totalDuration - 1}
                     value={portionStart}
                     onChange={(e) => {
-                      const val = Math.max(0, Math.min(totalDuration - 1, Number(e.target.value)));
+                      const val = Math.max(
+                        0,
+                        Math.min(totalDuration - 1, Number(e.target.value)),
+                      );
                       setPortionStart(val);
-                      if (val >= portionEnd) setPortionEnd(Math.min(totalDuration, val + 5));
+                      if (val >= portionEnd)
+                        setPortionEnd(Math.min(totalDuration, val + 5));
                     }}
                     className="w-14 bg-[#111B21] border border-white/20 text-white text-center rounded-lg font-mono text-xs py-0.5 focus:border-[#25D366] focus:outline-none"
                   />
@@ -462,7 +501,10 @@ const SongPickerModal = ({ isOpen, onClose, onSelectSong, initialSong = null }) 
                     max={totalDuration}
                     value={portionEnd}
                     onChange={(e) => {
-                      const val = Math.max(portionStart + 1, Math.min(totalDuration, Number(e.target.value)));
+                      const val = Math.max(
+                        portionStart + 1,
+                        Math.min(totalDuration, Number(e.target.value)),
+                      );
                       setPortionEnd(val);
                     }}
                     className="w-14 bg-[#111B21] border border-white/20 text-white text-center rounded-lg font-mono text-xs py-0.5 focus:border-[#25D366] focus:outline-none"

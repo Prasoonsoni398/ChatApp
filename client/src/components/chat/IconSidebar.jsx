@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   BsChatSquareTextFill,
   BsChatSquareText,
+  BsRecordCircleFill,
   BsRecordCircle,
   BsTelephoneFill,
   BsTelephone,
@@ -68,8 +69,9 @@ const IconSidebar = ({
     {
       id: "status",
       label: "Status",
-      iconActive: BsRecordCircle,
+      iconActive: BsRecordCircleFill,
       iconInactive: BsRecordCircle,
+      // dot only shows when there are genuinely unseen statuses
       badgeDot: hasUnreadStatus,
     },
     {
@@ -104,7 +106,10 @@ const IconSidebar = ({
           const Icon = isActive ? item.iconActive : item.iconInactive;
 
           return (
-            <div key={item.id} className="relative w-full flex justify-center group">
+            <div
+              key={item.id}
+              className="relative w-full flex justify-center group"
+            >
               {/* WhatsApp-style Active Indicator Bar */}
               {isActive && (
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 bg-primary rounded-r-full shadow-sm animate-fade-in" />
@@ -125,9 +130,7 @@ const IconSidebar = ({
 
                 {/* Unread message count badge */}
                 {item.badgeCount > 0 && (
-                  <span
-                    className="absolute -top-1 -right-1 bg-primary text-primary-content text-[10px] font-bold min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center shadow-md border-2 border-base-200 animate-scale-in"
-                  >
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-content text-[10px] font-bold min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center shadow-md border-2 border-base-200 animate-scale-in">
                     {item.badgeCount > 99 ? "99+" : item.badgeCount}
                   </span>
                 )}
@@ -172,9 +175,15 @@ const IconSidebar = ({
             aria-label="Settings"
           >
             {isSettingsOpen ? (
-              <BsGearFill size={21} className="rotate-90 transition-transform duration-300" />
+              <BsGearFill
+                size={21}
+                className="rotate-90 transition-transform duration-300"
+              />
             ) : (
-              <BsGear size={21} className="group-hover:rotate-45 transition-transform duration-300" />
+              <BsGear
+                size={21}
+                className="group-hover:rotate-45 transition-transform duration-300"
+              />
             )}
           </button>
 
@@ -185,7 +194,10 @@ const IconSidebar = ({
         </div>
 
         {/* Profile Avatar & Options Menu */}
-        <div className="relative w-full flex justify-center" ref={settingsMenuRef}>
+        <div
+          className="relative w-full flex justify-center"
+          ref={settingsMenuRef}
+        >
           <button
             type="button"
             onClick={() => setShowSettingsMenu((v) => !v)}
@@ -225,7 +237,8 @@ const IconSidebar = ({
                   }}
                   className="py-2 active:scale-95 transition-transform flex items-center gap-2.5"
                 >
-                  <BsPersonCircle size={15} className="text-primary" /> Edit Profile
+                  <BsPersonCircle size={15} className="text-primary" /> Edit
+                  Profile
                 </a>
               </li>
               <li>

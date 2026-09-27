@@ -55,6 +55,36 @@ const StatusSidebar = ({
   const fileInputRef = useRef(null);
   const textInputRef = useRef(null);
 
+  // Track which status groups have been viewed (persisted)
+  const [viewedGroupIds, setViewedGroupIds] = useState(() => {
+    try {
+      return new Set(
+        JSON.parse(localStorage.getItem("viewed_status_group_ids") || "[]"),
+      );
+    } catch {
+      return new Set();
+    }
+  });
+
+  // Wrapper: mark group as viewed then open the viewer
+  const handleViewStatus = (group) => {
+    const gid = group?.user?._id;
+    if (gid) {
+      setViewedGroupIds((prev) => {
+        const next = new Set(prev);
+        next.add(gid);
+        try {
+          localStorage.setItem(
+            "viewed_status_group_ids",
+            JSON.stringify([...next]),
+          );
+        } catch (_) {}
+        return next;
+      });
+    }
+    onViewStatus(group);
+  };
+
   // Modals state
   const [showTextStatusModal, setShowTextStatusModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -364,7 +394,8 @@ const StatusSidebar = ({
     const bgList = useGradient ? GRADIENT_BACKGROUNDS : SOLID_BACKGROUNDS;
     const randomBg = bgList[Math.floor(Math.random() * bgList.length)].value;
     const randomPattern =
-      CREATIVE_PATTERNS[Math.floor(Math.random() * CREATIVE_PATTERNS.length)].id;
+      CREATIVE_PATTERNS[Math.floor(Math.random() * CREATIVE_PATTERNS.length)]
+        .id;
     const randomTextColor =
       STATUS_TEXT_COLORS[
         Math.floor(Math.random() * (STATUS_TEXT_COLORS.length - 1))
@@ -379,6 +410,14 @@ const StatusSidebar = ({
   const myStatusGroup = statuses.find((s) => s.user._id === loggedInUser?._id);
   const otherStatuses = statuses.filter(
     (s) => s.user._id !== loggedInUser?._id,
+  );
+
+  // Split into unseen vs seen
+  const unseenStatuses = otherStatuses.filter(
+    (s) => !viewedGroupIds.has(s.user._id),
+  );
+  const seenStatuses = otherStatuses.filter((s) =>
+    viewedGroupIds.has(s.user._id),
   );
 
   const isUploading = parentIsUploading || uploadState === "uploading";
@@ -405,56 +444,56 @@ const StatusSidebar = ({
         </div>
       )}
 
-      {/* Header */}
-      <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-b-theme-soothing flex-shrink-0">
-        <h2 className="text-xl font-bold">Status</h2>
+      {/* Header — compact, no duplicate buttons */}
+      <div className="h-12 px-4 flex items-center justify-between bg-base-200/50 border-b border-b-theme-soothing flex-shrink-0">
+        <h2 className="text-lg font-bold">Status</h2>
         <div className="flex items-center gap-1 text-base-content/70">
-          {/* Status Privacy Settings (PRD FR-08) */}
+          {/* Status Privacy Settings */}
           <button
             onClick={() => setShowPrivacyModal(true)}
             className="p-2 hover:bg-base-300 rounded-full transition-colors"
             title="Status Privacy Settings"
           >
-            <BsShieldLockFill size={17} />
+            <BsShieldLockFill size={16} />
           </button>
-          {/* Create Text Status Button (PRD FR-05) */}
+          {/* Pencil — text status (compact header only) */}
           <button
             onClick={() => {
               setSelectedSong(null);
               setShowTextStatusModal(true);
             }}
             className="p-2 hover:bg-base-300 rounded-full transition-colors"
-            title="Type text status"
+            title="Create text status"
           >
-            <BsPencilFill size={16} />
+            <BsPencilFill size={15} />
           </button>
-          {/* Add Photo/Video Status Button (PRD FR-03, FR-04) */}
+          {/* Camera — photo/video status */}
           <button
             onClick={() => fileInputRef.current?.click()}
             className="p-2 hover:bg-base-300 text-primary rounded-full transition-colors"
             title="Add photo or video status"
             disabled={isUploading}
           >
-            <BsCameraFill size={19} />
+            <BsCameraFill size={17} />
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-28">
-        {/* My Status (PRD FR-12) */}
+      <div className="flex-1 overflow-y-auto pb-4">
+        {/* My Status */}
         <div
-          className="flex items-center gap-4 p-4 hover:bg-base-200 cursor-pointer transition-all duration-300 hover:px-5 active:scale-[0.98]"
+          className="flex items-center gap-3 px-4 py-3 hover:bg-base-200 cursor-pointer transition-all duration-200 active:scale-[0.98]"
           onClick={() => {
             if (myStatusGroup && myStatusGroup.statuses.length > 0) {
-              onViewStatus(myStatusGroup);
+              handleViewStatus(myStatusGroup);
             } else {
               fileInputRef.current?.click();
             }
           }}
         >
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <div
-              className={`w-12 h-12 rounded-full p-0.5 ${
+              className={`w-12 h-12 rounded-full ${
                 myStatusGroup && myStatusGroup.statuses.length > 0
                   ? "ring-2 ring-primary ring-offset-2 ring-offset-base-100"
                   : ""
@@ -478,7 +517,7 @@ const StatusSidebar = ({
               disabled={isUploading}
               title="Add status update"
             >
-              <BsPlus size={16} />
+              <BsPlus size={14} />
             </button>
             <input
               type="file"
@@ -489,12 +528,12 @@ const StatusSidebar = ({
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-[15px]">My status</h3>
+            <h3 className="font-semibold text-[14px]">My status</h3>
             <p className="text-xs text-base-content/60 truncate">
               {isUploading
                 ? `Uploading ${uploadProgress}%...`
                 : myStatusGroup && myStatusGroup.statuses.length > 0
-                  ? `${myStatusGroup.statuses.length} status update${
+                  ? `${myStatusGroup.statuses.length} update${
                       myStatusGroup.statuses.length > 1 ? "s" : ""
                     } · Tap to view`
                   : "Tap or drop media to add update"}
@@ -502,111 +541,141 @@ const StatusSidebar = ({
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="px-4 py-2 bg-base-200/30 flex items-center justify-between">
-          <h4 className="text-xs font-semibold text-base-content/60 uppercase tracking-wider">
-            Recent updates
-          </h4>
-          <span className="text-[10px] text-base-content/40">
-            Expires in 24h
-          </span>
-        </div>
-
-        {/* Other Users' Statuses */}
-        <div className="flex flex-col">
-          {otherStatuses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-base-content/40 text-center gap-2">
-              <BsRecordCircle size={32} />
-              <p className="text-sm font-medium">No recent updates</p>
-              <p className="text-xs text-base-content/40 max-w-[220px]">
-                Status updates from your contacts will appear here for 24 hours.
-              </p>
+        {/* ── RECENT UPDATES (unseen) ── */}
+        {unseenStatuses.length > 0 && (
+          <>
+            <div className="px-4 py-1.5 bg-base-200/30 flex items-center justify-between">
+              <h4 className="text-[11px] font-semibold text-base-content/60 uppercase tracking-wider">
+                Recent updates
+              </h4>
+              <span className="text-[10px] text-base-content/40">
+                Expires in 24h
+              </span>
             </div>
-          ) : (
-            otherStatuses.map((group) => {
-              const lastStatus = group.statuses[group.statuses.length - 1];
-              return (
-                <div
-                  key={group.user._id}
-                  className="flex items-center gap-4 p-4 hover:bg-base-200 cursor-pointer transition-all duration-300 hover:px-5 active:scale-[0.98] border-b border-base-200/50"
-                  onClick={() => onViewStatus(group)}
-                >
-                  <div className="w-12 h-12 rounded-full p-0.5 ring-2 ring-primary ring-offset-2 ring-offset-base-100 flex-shrink-0">
-                    <img
-                      src={
-                        group.user.avatar ||
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.user.name}`
-                      }
-                      alt={group.user.name}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="font-semibold text-[15px] truncate">
-                        {group.user.name}
-                      </h3>
-                      {lastStatus.song && (
-                        <BsMusicNoteBeamed
-                          className="text-primary flex-shrink-0"
-                          size={12}
-                          title={`Song: ${lastStatus.song.title}`}
-                        />
-                      )}
+            <div className="flex flex-col">
+              {unseenStatuses.map((group) => {
+                const lastStatus = group.statuses[group.statuses.length - 1];
+                return (
+                  <div
+                    key={group.user._id}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-base-200 cursor-pointer transition-all duration-200 active:scale-[0.98] border-b border-base-200/40"
+                    onClick={() => handleViewStatus(group)}
+                  >
+                    {/* Green ring (unseen) */}
+                    <div className="w-12 h-12 rounded-full ring-2 ring-primary ring-offset-2 ring-offset-base-100 flex-shrink-0">
+                      <img
+                        src={
+                          group.user.avatar ||
+                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.user.name}`
+                        }
+                        alt={group.user.name}
+                        className="w-full h-full rounded-full object-cover"
+                      />
                     </div>
-                    <p className="text-xs text-base-content/60">
-                      {lastStatus.type === "text"
-                        ? `"${lastStatus.text?.substring(0, 24)}..."`
-                        : lastStatus.type === "video"
-                          ? "Video"
-                          : "Photo"}
-                      {" · "}
-                      {new Date(lastStatus.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-semibold text-[14px] truncate">
+                          {group.user.name}
+                        </h3>
+                        {lastStatus.song && (
+                          <BsMusicNoteBeamed
+                            className="text-primary flex-shrink-0"
+                            size={11}
+                          />
+                        )}
+                      </div>
+                      <p className="text-xs text-base-content/60">
+                        {lastStatus.type === "text"
+                          ? `"${lastStatus.text?.substring(0, 22)}..."`
+                          : lastStatus.type === "video"
+                            ? "Video"
+                            : "Photo"}
+                        {" · "}
+                        {new Date(lastStatus.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+                );
+              })}
+            </div>
+          </>
+        )}
 
-      {/* Floating Action Bubbles to Add More Status (WhatsApp Style FAB) */}
-      <div className="fixed md:absolute bottom-20 md:bottom-6 right-5 flex flex-col items-center gap-2.5 z-30 pointer-events-auto">
-        {/* Floating Text Status Bubble (Pencil) */}
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedSong(null);
-            setShowTextStatusModal(true);
-          }}
-          className="w-10 h-10 rounded-full bg-base-200/95 hover:bg-base-300 text-base-content/80 hover:text-base-content shadow-md hover:shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 border border-base-300 cursor-pointer group relative backdrop-blur-xs"
-          title="Create text status"
-          aria-label="Create text status"
-        >
-          <BsPencilFill size={15} />
-          <span className="absolute right-full mr-2.5 px-2.5 py-1 bg-neutral text-neutral-content text-[11px] rounded-lg shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-medium">
-            Text status
-          </span>
-        </button>
+        {/* ── Empty state (no updates at all) ── */}
+        {unseenStatuses.length === 0 && seenStatuses.length === 0 && (
+          <div className="flex flex-col items-center justify-center p-8 text-base-content/40 text-center gap-2">
+            <BsRecordCircle size={30} />
+            <p className="text-sm font-medium text-base-content/60">
+              No recent updates
+            </p>
+            <p className="text-xs max-w-[200px]">
+              Status updates from your contacts will appear here for 24 hours.
+            </p>
+          </div>
+        )}
 
-        {/* Floating Media Status Bubble (Camera / Photo & Video) */}
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
-          className="w-13 h-13 rounded-full bg-primary text-primary-content shadow-lg hover:shadow-xl hover:bg-primary/90 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer group relative"
-          title="Add photo or video status"
-          aria-label="Add photo or video status"
-        >
-          <BsCameraFill size={21} />
-          <span className="absolute right-full mr-2.5 px-2.5 py-1 bg-neutral text-neutral-content text-[11px] rounded-lg shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-medium">
-            Photo or Video
-          </span>
-        </button>
+        {/* ── VIEWED (seen) ── */}
+        {seenStatuses.length > 0 && (
+          <>
+            <div className="px-4 py-1.5 bg-base-200/30 flex items-center justify-between mt-1">
+              <h4 className="text-[11px] font-semibold text-base-content/60 uppercase tracking-wider">
+                Viewed
+              </h4>
+            </div>
+            <div className="flex flex-col">
+              {seenStatuses.map((group) => {
+                const lastStatus = group.statuses[group.statuses.length - 1];
+                return (
+                  <div
+                    key={group.user._id}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-base-200 cursor-pointer transition-all duration-200 active:scale-[0.98] border-b border-base-200/40"
+                    onClick={() => handleViewStatus(group)}
+                  >
+                    {/* Gray ring (seen) — no green dot */}
+                    <div className="w-12 h-12 rounded-full ring-2 ring-base-content/20 ring-offset-2 ring-offset-base-100 flex-shrink-0">
+                      <img
+                        src={
+                          group.user.avatar ||
+                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.user.name}`
+                        }
+                        alt={group.user.name}
+                        className="w-full h-full rounded-full object-cover opacity-80"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-medium text-[14px] truncate text-base-content/70">
+                          {group.user.name}
+                        </h3>
+                        {lastStatus.song && (
+                          <BsMusicNoteBeamed
+                            className="text-base-content/40 flex-shrink-0"
+                            size={11}
+                          />
+                        )}
+                      </div>
+                      <p className="text-xs text-base-content/40">
+                        {lastStatus.type === "text"
+                          ? `"${lastStatus.text?.substring(0, 22)}..."`
+                          : lastStatus.type === "video"
+                            ? "Video"
+                            : "Photo"}
+                        {" · "}
+                        {new Date(lastStatus.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── TEXT STATUS COMPOSER MODAL (PRD FR-05 & FR-06) ── */}
@@ -728,7 +797,9 @@ const StatusSidebar = ({
                   onClick={() => {
                     setShowEmojiPickerText(false);
                     setBgDrawerTab("text_color");
-                    setShowBgDrawer((prev) => !prev || bgDrawerTab !== "text_color");
+                    setShowBgDrawer(
+                      (prev) => !prev || bgDrawerTab !== "text_color",
+                    );
                   }}
                   className={`p-1.5 rounded-full transition-all cursor-pointer flex items-center justify-center ${
                     showBgDrawer && bgDrawerTab === "text_color"
@@ -926,11 +997,18 @@ const StatusSidebar = ({
                           onClick={() => setSelectedBg(g.value)}
                           title={g.label}
                           className={`w-9 h-9 rounded-xl flex-shrink-0 transition-transform cursor-pointer flex items-center justify-center border border-white/20 ${
-                            isSelected ? "scale-110 ring-2 ring-white shadow-lg" : "hover:scale-105"
+                            isSelected
+                              ? "scale-110 ring-2 ring-white shadow-lg"
+                              : "hover:scale-105"
                           }`}
                           style={{ background: g.value }}
                         >
-                          {isSelected && <BsCheck2 size={16} className="text-white drop-shadow-md stroke-[1]" />}
+                          {isSelected && (
+                            <BsCheck2
+                              size={16}
+                              className="text-white drop-shadow-md stroke-[1]"
+                            />
+                          )}
                         </button>
                       );
                     })}
@@ -949,11 +1027,18 @@ const StatusSidebar = ({
                           onClick={() => setSelectedBg(c.value)}
                           title={c.label}
                           className={`w-8 h-8 rounded-full flex-shrink-0 transition-transform cursor-pointer flex items-center justify-center border border-white/20 ${
-                            isSelected ? "scale-115 ring-2 ring-white shadow-lg" : "hover:scale-105"
+                            isSelected
+                              ? "scale-115 ring-2 ring-white shadow-lg"
+                              : "hover:scale-105"
                           }`}
                           style={{ backgroundColor: c.value }}
                         >
-                          {isSelected && <BsCheck2 size={15} className="text-white drop-shadow-md stroke-[1]" />}
+                          {isSelected && (
+                            <BsCheck2
+                              size={15}
+                              className="text-white drop-shadow-md stroke-[1]"
+                            />
+                          )}
                         </button>
                       );
                     })}
@@ -995,14 +1080,22 @@ const StatusSidebar = ({
                           onClick={() => setSelectedTextColor(tc.value)}
                           title={tc.label}
                           className={`w-8 h-8 rounded-full flex-shrink-0 transition-transform cursor-pointer flex items-center justify-center border border-white/20 ${
-                            isSelected ? "scale-115 ring-2 ring-white shadow-lg" : "hover:scale-105"
+                            isSelected
+                              ? "scale-115 ring-2 ring-white shadow-lg"
+                              : "hover:scale-105"
                           }`}
                           style={{ backgroundColor: tc.value }}
                         >
                           {isSelected && (
                             <BsCheck2
                               size={15}
-                              className={tc.value === "#ffffff" || tc.value === "#ffeb3b" || tc.value === "#00e5ff" ? "text-black stroke-[1]" : "text-white stroke-[1]"}
+                              className={
+                                tc.value === "#ffffff" ||
+                                tc.value === "#ffeb3b" ||
+                                tc.value === "#00e5ff"
+                                  ? "text-black stroke-[1]"
+                                  : "text-white stroke-[1]"
+                              }
                             />
                           )}
                         </button>

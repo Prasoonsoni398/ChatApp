@@ -1,11 +1,18 @@
 import Status from "../models/status.model.js";
-import cloudinary from "../config/cloudinary.js";
+import { uploadWithExpiry } from "../utils/cloudinaryUpload.js";
 
 /**
  * Helper to parse and upload song attachments for status
  */
 const parseSongData = async (req) => {
-  let song = { title: "", artist: "", audioUrl: "", startTime: 0, endTime: 0, volume: 1 };
+  let song = {
+    title: "",
+    artist: "",
+    audioUrl: "",
+    startTime: 0,
+    endTime: 0,
+    volume: 1,
+  };
   if (req.body.song) {
     try {
       song =
@@ -19,9 +26,12 @@ const parseSongData = async (req) => {
   if (req.body.songTitle) song.title = req.body.songTitle;
   if (req.body.songArtist) song.artist = req.body.songArtist;
   if (req.body.songAudioUrl) song.audioUrl = req.body.songAudioUrl;
-  if (req.body.songStartTime !== undefined) song.startTime = Number(req.body.songStartTime) || 0;
-  if (req.body.songEndTime !== undefined) song.endTime = Number(req.body.songEndTime) || 0;
-  if (req.body.songVolume !== undefined) song.volume = Number(req.body.songVolume);
+  if (req.body.songStartTime !== undefined)
+    song.startTime = Number(req.body.songStartTime) || 0;
+  if (req.body.songEndTime !== undefined)
+    song.endTime = Number(req.body.songEndTime) || 0;
+  if (req.body.songVolume !== undefined)
+    song.volume = Number(req.body.songVolume);
 
   const files = req.files
     ? Array.isArray(req.files)
@@ -39,15 +49,9 @@ const parseSongData = async (req) => {
 
   if (audioFile) {
     try {
-      const uploadAudioResult = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "chatapp_status_songs", resource_type: "auto" },
-          (err, result) => {
-            if (err) return reject(err);
-            resolve(result);
-          },
-        );
-        stream.end(audioFile.buffer);
+      const uploadAudioResult = await uploadWithExpiry(audioFile.buffer, {
+        folder: "chatapp_status_songs",
+        resource_type: "auto",
       });
       song.audioUrl = uploadAudioResult.secure_url;
       if (!song.title) {
@@ -125,7 +129,9 @@ export const uploadStatus = async (req, res) => {
             ? JSON.parse(req.body.videoSelection)
             : req.body.videoSelection;
         videoSelection = { ...videoSelection, ...parsed };
-      } catch (_e) {}
+      } catch (_e) {
+        /* ignore parse error */
+      }
     }
 
     const filter = req.body.filter || "none";
@@ -136,7 +142,9 @@ export const uploadStatus = async (req, res) => {
           typeof req.body.overlays === "string"
             ? JSON.parse(req.body.overlays)
             : req.body.overlays;
-      } catch (_e) {}
+      } catch (_e) {
+        /* ignore parse error */
+      }
     }
 
     // Parse privacy settings
@@ -156,49 +164,47 @@ export const uploadStatus = async (req, res) => {
       }
     }
 
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
+    let uploadResult;
+    try {
+      uploadResult = await uploadWithExpiry(mediaFile.buffer, {
         folder: isVideo ? "chatapp_status_videos" : "chatapp_status",
         resource_type: isVideo ? "video" : "image",
-      },
-      async (error, result) => {
-        let mediaUrl = "";
-        if (error || !result?.secure_url) {
-          mediaUrl = `data:${mediaFile.mimetype || (isVideo ? "video/mp4" : "image/jpeg")};base64,${mediaFile.buffer.toString("base64")}`;
-        } else {
-          mediaUrl = result.secure_url;
-        }
+      });
+    } catch (_uploadErr) {
+      uploadResult = null;
+    }
 
-        const newStatus = new Status({
-          userId,
-          type: statusType,
-          image: !isVideo ? mediaUrl : undefined,
-          video: isVideo ? mediaUrl : undefined,
-          mediaUrl,
-          caption,
-          song,
-          videoSelection: isVideo ? videoSelection : undefined,
-          filter,
-          overlays,
-          privacy: parsedPrivacy,
-          viewers: [],
-        });
-        await newStatus.save();
-        await newStatus.populate("userId", "name avatar");
+    const mediaUrl = uploadResult?.secure_url
+      ? uploadResult.secure_url
+      : `data:${mediaFile.mimetype || (isVideo ? "video/mp4" : "image/jpeg")};base64,${mediaFile.buffer.toString("base64")}`;
 
-        const io = req.app.get("io");
-        if (io) {
-          io.emit("statusUpdated", {
-            type: "create",
-            userId: userId.toString(),
-            statusId: newStatus._id,
-          });
-        }
+    const newStatus = new Status({
+      userId,
+      type: statusType,
+      image: !isVideo ? mediaUrl : undefined,
+      video: isVideo ? mediaUrl : undefined,
+      mediaUrl,
+      caption,
+      song,
+      videoSelection: isVideo ? videoSelection : undefined,
+      filter,
+      overlays,
+      privacy: parsedPrivacy,
+      viewers: [],
+    });
+    await newStatus.save();
+    await newStatus.populate("userId", "name avatar");
 
-        return res.status(201).json(newStatus);
-      },
-    );
-    uploadStream.end(mediaFile.buffer);
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("statusUpdated", {
+        type: "create",
+        userId: userId.toString(),
+        statusId: newStatus._id,
+      });
+    }
+
+    return res.status(201).json(newStatus);
   } catch (error) {
     console.error("Error in uploadStatus:", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -211,7 +217,8 @@ export const uploadStatus = async (req, res) => {
 export const createTextStatus = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { text, backgroundColor, fontFamily, textColor, bgPattern } = req.body;
+    const { text, backgroundColor, fontFamily, textColor, bgPattern } =
+      req.body;
 
     if (!text || !text.trim()) {
       return res.status(400).json({ error: "Status text cannot be empty" });

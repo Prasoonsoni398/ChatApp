@@ -35,6 +35,7 @@ const ChatSidebar = ({
   onOpenLinkedDevices,
   onOpenShortcuts,
   onAddContact,
+  onOpenNewChat,
   archivedChatIds = [],
   isArchivedViewOpen = false,
   setIsArchivedViewOpen,
@@ -165,6 +166,7 @@ const ChatSidebar = ({
         setIsArchivedViewOpen={setIsArchivedViewOpen}
         archivedChatsCount={archivedChats.length}
         loggedInUser={loggedInUser}
+        onOpenNewChat={onOpenNewChat}
         setShowCreateGroup={setShowCreateGroup}
         showProfileMenu={showProfileMenu}
         setShowProfileMenu={setShowProfileMenu}

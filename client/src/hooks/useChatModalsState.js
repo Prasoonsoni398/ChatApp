@@ -47,6 +47,7 @@ export const useChatModalsState = (loggedInUser) => {
   const [showContactInfoModal, setShowContactInfoModal] = useState(false);
   const [showGroupInfoModal, setShowGroupInfoModal] = useState(false);
   const [showWallpaperModal, setShowWallpaperModal] = useState(false);
+  const [showNewChatSidebar, setShowNewChatSidebar] = useState(false);
   const [activeViewOnceMsg, setActiveViewOnceMsg] = useState(null);
 
   const [blockedUserIds, setBlockedUserIds] = useState(() => {
@@ -117,6 +118,8 @@ export const useChatModalsState = (loggedInUser) => {
     setShowGroupInfoModal,
     showWallpaperModal,
     setShowWallpaperModal,
+    showNewChatSidebar,
+    setShowNewChatSidebar,
     activeViewOnceMsg,
     setActiveViewOnceMsg,
     blockedUserIds,

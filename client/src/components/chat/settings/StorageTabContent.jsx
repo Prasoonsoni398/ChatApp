@@ -1,6 +1,8 @@
 import React from "react";
 import {
   BsDownload,
+  BsClockHistory,
+  BsShieldFillExclamation,
   BsImageFill,
   BsCameraVideoFill,
   BsMicFill,
@@ -17,6 +19,34 @@ const StorageTabContent = ({
 }) => {
   return (
     <div className="space-y-5 animate-fadeIn">
+      {/* 48-Hour Media Deletion Policy Banner */}
+      <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2.5 min-w-0">
+          <BsClockHistory
+            className="text-amber-500 flex-shrink-0 mt-0.5"
+            size={18}
+          />
+          <div>
+            <h5 className="text-xs font-bold text-base-content">
+              48-Hour Media Auto-Deletion Policy
+            </h5>
+            <p className="text-[11px] text-base-content/70 leading-snug mt-0.5">
+              All photos, videos, audio, and documents are permanently deleted
+              from Cloudinary 48 hours after upload.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() =>
+            window.dispatchEvent(new CustomEvent("open-media-expiry-modal"))
+          }
+          className="btn btn-xs btn-outline border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 rounded-lg flex-shrink-0 text-[11px]"
+        >
+          View Policy
+        </button>
+      </div>
+
       {/* Storage Overview */}
       <div>
         <div className="flex items-center justify-between mb-3">

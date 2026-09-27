@@ -120,9 +120,21 @@ textarea:active {
 
 /* ─── Soothing Theme-Aware Borders for Chat Sidebar & Main Chat Area ─── */
 :root {
-  --theme-border-soothing: color-mix(in srgb, var(--color-primary, #00a884) 18%, transparent);
-  --theme-border-subtle: color-mix(in srgb, var(--color-primary, #00a884) 10%, transparent);
-  --theme-border-divider: color-mix(in srgb, var(--color-primary, #00a884) 14%, transparent);
+  --theme-border-soothing: color-mix(
+    in srgb,
+    var(--color-primary, #00a884) 18%,
+    transparent
+  );
+  --theme-border-subtle: color-mix(
+    in srgb,
+    var(--color-primary, #00a884) 10%,
+    transparent
+  );
+  --theme-border-divider: color-mix(
+    in srgb,
+    var(--color-primary, #00a884) 14%,
+    transparent
+  );
 }
 
 .border-theme-soothing {
@@ -161,4 +173,3 @@ textarea:active {
 .chat-input-bar {
   border-top: 1px solid var(--theme-border-soothing) !important;
 }
-

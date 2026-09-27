@@ -8,12 +8,15 @@ import Register from "./pages/Register";
 import Chat from "./pages/Chat";
 import ForgotPassword from "./pages/ForgotPassword";
 import JoinGroupPage from "./pages/JoinGroupPage";
+import MediaExpiryNoticeModal from "./components/common/MediaExpiryNoticeModal";
 
 const App = () => {
   return (
     <BrowserRouter>
       {/* Global Toaster for notifications */}
       <Toaster position="top-right" reverseOrder={false} />
+      {/* 48-Hour Media Deletion Informational Notice Modal */}
+      <MediaExpiryNoticeModal />
 
       <Routes>
         <Route

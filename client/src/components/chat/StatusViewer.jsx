@@ -30,7 +30,7 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
 
   const videoRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const progressStartTimeRef = useRef(Date.now());
+  const progressStartTimeRef = useRef(0);
   const elapsedBeforePauseRef = useRef(0);
 
   const currentStatus = statuses[currentIndex];
@@ -61,7 +61,10 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
       playStatusTrack(currentStatus.song, {
         startTime: currentStatus.song.startTime || 0,
         endTime: currentStatus.song.endTime || 0,
-        volume: currentStatus.song.volume !== undefined ? currentStatus.song.volume : 0.85,
+        volume:
+          currentStatus.song.volume !== undefined
+            ? currentStatus.song.volume
+            : 0.85,
       });
     } else {
       stopStatusTrack();
@@ -69,7 +72,8 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
 
     if (videoRef.current) {
       if (currentStatus.videoSelection) {
-        videoRef.current.currentTime = currentStatus.videoSelection.startTime || 0;
+        videoRef.current.currentTime =
+          currentStatus.videoSelection.startTime || 0;
         const targetVol =
           currentStatus.videoSelection.volume !== undefined
             ? currentStatus.videoSelection.volume
@@ -86,7 +90,13 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
     return () => {
       stopStatusTrack();
     };
-  }, [currentIndex, currentStatus?._id, currentStatus?.song, isMuted, isPaused]);
+  }, [
+    currentIndex,
+    currentStatus?._id,
+    currentStatus?.song,
+    isMuted,
+    isPaused,
+  ]);
 
   // Video loop handling within trim bounds
   const handleVideoTimeUpdate = () => {
@@ -101,7 +111,8 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
   // Progress Bar Animation
   useEffect(() => {
     if (!currentStatus || isPaused || showDeleteConfirm || showViewersSheet) {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current);
       return;
     }
 
@@ -131,9 +142,18 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
 
     animationFrameRef.current = requestAnimationFrame(animate);
     return () => {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [currentIndex, statuses.length, currentDuration, isPaused, showDeleteConfirm, showViewersSheet, onClose]);
+  }, [
+    currentIndex,
+    statuses.length,
+    currentDuration,
+    isPaused,
+    showDeleteConfirm,
+    showViewersSheet,
+    onClose,
+  ]);
 
   // Navigation handlers
   const handleNext = () => {
@@ -206,7 +226,8 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
   if (!currentStatus) return null;
 
   const filterObj =
-    STATUS_FILTERS.find((f) => f.id === currentStatus.filter) || STATUS_FILTERS[0];
+    STATUS_FILTERS.find((f) => f.id === currentStatus.filter) ||
+    STATUS_FILTERS[0];
 
   return (
     <div
@@ -274,7 +295,11 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
               className="p-2 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
               title={isMuted ? "Unmute Sound" : "Mute Sound"}
             >
-              {isMuted ? <BsVolumeMuteFill size={19} /> : <BsVolumeUpFill size={19} />}
+              {isMuted ? (
+                <BsVolumeMuteFill size={19} />
+              ) : (
+                <BsVolumeUpFill size={19} />
+              )}
             </button>
           )}
 
@@ -372,7 +397,11 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
           <div className="relative w-full h-full flex flex-col items-center justify-center">
             <video
               ref={videoRef}
-              src={currentStatus.video || currentStatus.mediaUrl || currentStatus.image}
+              src={
+                currentStatus.video ||
+                currentStatus.mediaUrl ||
+                currentStatus.image
+              }
               autoPlay
               playsInline
               loop={false}
@@ -386,7 +415,11 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
               <div
                 key={item.id}
                 className="absolute z-20 pointer-events-none"
-                style={{ top: `${item.y}%`, left: `${item.x}%`, transform: "translate(-50%, -50%)" }}
+                style={{
+                  top: `${item.y}%`,
+                  left: `${item.x}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
               >
                 <div
                   className={`relative select-none font-semibold ${
@@ -415,7 +448,11 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
         ) : (
           <div className="relative w-full h-full flex flex-col items-center justify-center">
             <img
-              src={currentStatus.image || currentStatus.mediaUrl || currentStatus.video}
+              src={
+                currentStatus.image ||
+                currentStatus.mediaUrl ||
+                currentStatus.video
+              }
               alt="Status"
               style={{ filter: filterObj.css }}
               className="max-h-full max-w-full object-contain pointer-events-none"
@@ -425,7 +462,11 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
               <div
                 key={item.id}
                 className="absolute z-20 pointer-events-none"
-                style={{ top: `${item.y}%`, left: `${item.x}%`, transform: "translate(-50%, -50%)" }}
+                style={{
+                  top: `${item.y}%`,
+                  left: `${item.x}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
               >
                 <div
                   className={`relative select-none font-semibold ${
@@ -534,9 +575,12 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
               <BsTrash3 size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-base text-white">Delete this status update?</h3>
+              <h3 className="font-bold text-base text-white">
+                Delete this status update?
+              </h3>
               <p className="text-xs text-[#8696A0] mt-1.5 leading-relaxed">
-                It will be deleted for everyone who received it across all your devices.
+                It will be deleted for everyone who received it across all your
+                devices.
               </p>
             </div>
             <div className="flex items-center justify-center gap-3 pt-2">

@@ -1,6 +1,6 @@
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
-import cloudinary from "../config/cloudinary.js";
+import { uploadWithExpiry } from "../utils/cloudinaryUpload.js";
 
 // Re-export modular controllers for full backward compatibility
 export * from "./poll.controller.js";
@@ -81,40 +81,36 @@ export const sendMessage = async (req, res) => {
         });
       }
 
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
+      let uploadResult;
+      try {
+        uploadResult = await uploadWithExpiry(req.file.buffer, {
           folder: "chatapp_messages",
           resource_type: "auto",
-        },
-        async (error, result) => {
-          if (error) {
-            console.error("Cloudinary upload error:", error);
-            return res.status(500).json({ error: "Media upload failed" });
-          }
+        });
+      } catch (uploadErr) {
+        console.error("Cloudinary upload error:", uploadErr);
+        return res.status(500).json({ error: "Media upload failed" });
+      }
 
-          const newMessage = new Message({
-            senderId,
-            receiverId,
-            text: text || "",
-            image: result.secure_url,
-            mediaType,
-            mediaUrl: result.secure_url,
-            fileName: req.file.originalname || "attachment",
-            fileSize: req.file.size || 0,
-            duration: Number(duration) || 0,
-            isForwarded: Boolean(isForwarded),
-            isViewOnce: isViewOnceFlag,
-            replyTo: replyToId || null,
-            replyToText: replyToText || null,
-            replyToSender: replyToSender || null,
-          });
+      const newMessage = new Message({
+        senderId,
+        receiverId,
+        text: text || "",
+        image: uploadResult.secure_url,
+        mediaType,
+        mediaUrl: uploadResult.secure_url,
+        fileName: req.file.originalname || "attachment",
+        fileSize: req.file.size || 0,
+        duration: Number(duration) || 0,
+        isForwarded: Boolean(isForwarded),
+        isViewOnce: isViewOnceFlag,
+        replyTo: replyToId || null,
+        replyToText: replyToText || null,
+        replyToSender: replyToSender || null,
+      });
 
-          await newMessage.save();
-          return res.status(201).json(newMessage);
-        },
-      );
-      uploadStream.end(req.file.buffer);
-      return;
+      await newMessage.save();
+      return res.status(201).json(newMessage);
     }
 
     let parsedLocation = null;

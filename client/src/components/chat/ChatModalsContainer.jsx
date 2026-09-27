@@ -205,7 +205,6 @@ const ChatModalsContainer = ({
         }}
       />
 
-
       <ChatWallpaperModal
         isOpen={modals.showWallpaperModal}
         onClose={() => modals.setShowWallpaperModal(false)}

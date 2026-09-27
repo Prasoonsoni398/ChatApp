@@ -73,24 +73,17 @@ export default async function getCroppedImg(
   const targetW = Math.max(1, Math.round(pixelCrop.width));
   const targetH = Math.max(1, Math.round(pixelCrop.height));
   const srcX = Math.max(0, Math.min(canvas.width - 1, Math.round(pixelCrop.x)));
-  const srcY = Math.max(0, Math.min(canvas.height - 1, Math.round(pixelCrop.y)));
+  const srcY = Math.max(
+    0,
+    Math.min(canvas.height - 1, Math.round(pixelCrop.y)),
+  );
   const srcW = Math.min(targetW, canvas.width - srcX);
   const srcH = Math.min(targetH, canvas.height - srcY);
 
   croppedCanvas.width = targetW;
   croppedCanvas.height = targetH;
 
-  croppedCtx.drawImage(
-    canvas,
-    srcX,
-    srcY,
-    srcW,
-    srcH,
-    0,
-    0,
-    targetW,
-    targetH,
-  );
+  croppedCtx.drawImage(canvas, srcX, srcY, srcW, srcH, 0, 0, targetW, targetH);
 
   return new Promise((resolve, reject) => {
     croppedCanvas.toBlob(

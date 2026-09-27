@@ -38,7 +38,8 @@ export const authInputIconSpan =
   "absolute inset-y-0 left-0 flex items-center pl-3.5 text-base-content/50 z-20 pointer-events-none transition-colors";
 
 /** Standard text/email/password input with left-icon padding */
-export const authInput = "input input-bordered w-full pl-10 rounded-xl focus:outline-none focus:border-primary";
+export const authInput =
+  "input input-bordered w-full pl-10 rounded-xl focus:outline-none focus:border-primary";
 
 /** Full-width primary CTA button used on auth forms */
 export const primaryBtn =
