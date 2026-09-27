@@ -5,7 +5,7 @@ import cloudinary from "../config/cloudinary.js";
  * Helper to parse and upload song attachments for status
  */
 const parseSongData = async (req) => {
-  let song = { title: "", artist: "", audioUrl: "" };
+  let song = { title: "", artist: "", audioUrl: "", startTime: 0, endTime: 0, volume: 1 };
   if (req.body.song) {
     try {
       song =
@@ -19,6 +19,9 @@ const parseSongData = async (req) => {
   if (req.body.songTitle) song.title = req.body.songTitle;
   if (req.body.songArtist) song.artist = req.body.songArtist;
   if (req.body.songAudioUrl) song.audioUrl = req.body.songAudioUrl;
+  if (req.body.songStartTime !== undefined) song.startTime = Number(req.body.songStartTime) || 0;
+  if (req.body.songEndTime !== undefined) song.endTime = Number(req.body.songEndTime) || 0;
+  if (req.body.songVolume !== undefined) song.volume = Number(req.body.songVolume);
 
   const files = req.files
     ? Array.isArray(req.files)
@@ -107,6 +110,35 @@ export const uploadStatus = async (req, res) => {
     const caption = req.body.caption || "";
     const song = await parseSongData(req);
 
+    // Video selection & trim settings
+    let videoSelection = {
+      startTime: Number(req.body.videoStart || req.body.videoStartTime || 0),
+      endTime: Number(req.body.videoEnd || req.body.videoEndTime || 0),
+      originalDuration: Number(req.body.videoOriginalDuration || 0),
+      volume:
+        req.body.videoVolume !== undefined ? Number(req.body.videoVolume) : 1,
+    };
+    if (req.body.videoSelection) {
+      try {
+        const parsed =
+          typeof req.body.videoSelection === "string"
+            ? JSON.parse(req.body.videoSelection)
+            : req.body.videoSelection;
+        videoSelection = { ...videoSelection, ...parsed };
+      } catch (_e) {}
+    }
+
+    const filter = req.body.filter || "none";
+    let overlays = [];
+    if (req.body.overlays) {
+      try {
+        overlays =
+          typeof req.body.overlays === "string"
+            ? JSON.parse(req.body.overlays)
+            : req.body.overlays;
+      } catch (_e) {}
+    }
+
     // Parse privacy settings
     let parsedPrivacy = {
       type: "contacts",
@@ -145,11 +177,23 @@ export const uploadStatus = async (req, res) => {
           mediaUrl,
           caption,
           song,
+          videoSelection: isVideo ? videoSelection : undefined,
+          filter,
+          overlays,
           privacy: parsedPrivacy,
           viewers: [],
         });
         await newStatus.save();
         await newStatus.populate("userId", "name avatar");
+
+        const io = req.app.get("io");
+        if (io) {
+          io.emit("statusUpdated", {
+            type: "create",
+            userId: userId.toString(),
+            statusId: newStatus._id,
+          });
+        }
 
         return res.status(201).json(newStatus);
       },
@@ -204,6 +248,15 @@ export const createTextStatus = async (req, res) => {
 
     await newStatus.save();
     await newStatus.populate("userId", "name avatar");
+
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("statusUpdated", {
+        type: "create",
+        userId: userId.toString(),
+        statusId: newStatus._id,
+      });
+    }
 
     return res.status(201).json(newStatus);
   } catch (error) {
@@ -296,6 +349,9 @@ export const getStatuses = async (req, res) => {
         backgroundColor: status.backgroundColor || "#075e54",
         fontFamily: status.fontFamily || "sans-serif",
         song: status.song || null,
+        videoSelection: status.videoSelection || null,
+        filter: status.filter || "none",
+        overlays: status.overlays || [],
         privacy: status.privacy || { type: "contacts" },
         viewers: status.viewers || [],
         createdAt: status.createdAt,
@@ -326,6 +382,16 @@ export const deleteStatus = async (req, res) => {
     }
 
     await Status.deleteOne({ _id: id });
+
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("statusUpdated", {
+        type: "delete",
+        userId: req.user._id.toString(),
+        statusId: id,
+      });
+    }
+
     res
       .status(200)
       .json({ message: "Status deleted successfully", deletedStatusId: id });

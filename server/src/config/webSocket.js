@@ -54,6 +54,11 @@ const WebSocket = (io) => {
       io.emit("onlineUsers", OnlineUsers);
     });
 
+    // Real-time Status updates across devices & contacts (PRD Section 42)
+    socket.on("statusUpdated", (data) => {
+      io.emit("statusUpdated", data);
+    });
+
     socket.on("send", async (payload) => {
       console.log("Message Pack", payload);
       if (payload.groupId) {

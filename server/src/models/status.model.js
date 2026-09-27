@@ -60,6 +60,23 @@ const statusSchema = new mongoose.Schema({
     title: { type: String, default: "" },
     artist: { type: String, default: "" },
     audioUrl: { type: String, default: "" },
+    startTime: { type: Number, default: 0 },
+    endTime: { type: Number, default: 0 },
+    volume: { type: Number, default: 1 },
+  },
+  videoSelection: {
+    startTime: { type: Number, default: 0 },
+    endTime: { type: Number, default: 0 },
+    originalDuration: { type: Number, default: 0 },
+    volume: { type: Number, default: 1 },
+  },
+  filter: {
+    type: String,
+    default: "none",
+  },
+  overlays: {
+    type: Array,
+    default: [],
   },
   viewers: [
     {
