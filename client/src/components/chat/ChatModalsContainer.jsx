@@ -1,7 +1,6 @@
 import React from "react";
 import StarredMessagesModal from "./StarredMessagesModal.jsx";
 import CreatePollModal from "./CreatePollModal.jsx";
-import PrivacySettingsModal from "./PrivacySettingsModal.jsx";
 import PasscodeModal from "./PasscodeModal.jsx";
 import LocationShareModal from "./LocationShareModal.jsx";
 import ContactShareModal from "./ContactShareModal.jsx";
@@ -113,18 +112,6 @@ const ChatModalsContainer = ({
         isOpen={modals.showCreatePollModal}
         onClose={() => modals.setShowCreatePollModal(false)}
         onCreatePoll={handleCreatePoll}
-      />
-
-      <PrivacySettingsModal
-        isOpen={modals.showPrivacyModal}
-        onClose={() => modals.setShowPrivacyModal(false)}
-        loggedInUser={state.loggedInUser}
-        onUserUpdated={(updated) => {
-          state.setLoggedInUser(updated);
-        }}
-        onAllChatsCleared={() => {
-          state.setMessages([]);
-        }}
       />
 
       <PasscodeModal

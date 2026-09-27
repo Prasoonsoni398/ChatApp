@@ -51,9 +51,9 @@ const CallsSidebar = ({ allUsers = [], startCall, onOpenNewCallModal }) => {
   );
 
   return (
-    <div className="w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-base-300 h-full">
+    <div className="w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-r-theme-soothing chat-sidebar-panel h-full">
       {/* ── Header ── */}
-      <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-base-300">
+      <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-b-theme-soothing">
         <h2 className="text-xl font-bold">Calls</h2>
         <button
           onClick={onOpenNewCallModal}

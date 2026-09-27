@@ -155,7 +155,7 @@ const ChatSidebar = ({
 
   return (
     <div
-      className={`w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-base-300 h-full ${
+      className={`w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-r-theme-soothing chat-sidebar-panel h-full ${
         selectedChat ? "hidden md:flex" : "flex"
       }`}
     >

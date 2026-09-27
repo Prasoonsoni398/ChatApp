@@ -114,52 +114,50 @@ const PrivacySettingsModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-4 p-0 sm:bg-black/60 bg-base-100 sm:backdrop-blur-sm animate-fade-in">
-      <div className="bg-base-100 sm:rounded-2xl rounded-none w-full max-w-lg shadow-2xl overflow-hidden sm:border border-base-300 flex flex-col h-full sm:max-h-[90vh]">
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-base-300 flex items-center justify-between bg-base-200/50">
-          <div className="flex items-center gap-2.5">
-            {selectedCategory ? (
-              <button
-                type="button"
-                onClick={() => setSelectedCategory(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer mr-0.5"
-                title="Back to all settings"
-              >
-                <BsArrowLeft size={18} />
-              </button>
-            ) : null}
+    <div className="fixed inset-0 z-50 md:relative md:inset-auto md:z-auto w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-r-theme-soothing chat-sidebar-panel h-full overflow-hidden animate-slide-up md:animate-fade-in select-none">
+      {/* Header — WhatsApp style with Back Arrow and Title */}
+      <div className="h-16 px-4 border-b border-b-theme-soothing flex items-center justify-between bg-base-100 flex-shrink-0 z-10">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={selectedCategory ? () => setSelectedCategory(null) : onClose}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
+            title={selectedCategory ? "Back to Settings" : "Back to Chats"}
+          >
+            <BsArrowLeft size={19} />
+          </button>
 
-            <div className="w-8 h-8 rounded-lg bg-primary/20 text-primary flex items-center justify-center flex-shrink-0">
-              {!selectedCategory && <BsGearFill size={17} />}
-              {selectedCategory === "profile" && <BsPersonCircle size={16} />}
-              {selectedCategory === "privacy" && <BsShieldLockFill size={16} />}
-              {selectedCategory === "security" && <BsKeyFill size={16} />}
-              {selectedCategory === "notifications" && <BsBellFill size={16} />}
-              {selectedCategory === "theme" && <BsPaletteFill size={16} />}
-              {selectedCategory === "storage" && <BsHddNetworkFill size={16} />}
-              {selectedCategory === "chats" && <BsChatDotsFill size={16} />}
-              {selectedCategory === "account" && <BsShieldCheck size={16} />}
-            </div>
-
-            <h3 className="font-bold text-lg text-base-content">
-              {selectedCategory === "profile"
-                ? "Profile"
-                : selectedCategory
-                  ? settingCategories.find((c) => c.id === selectedCategory)
-                      ?.title || "Settings"
-                  : "Settings"}
-            </h3>
+          <div className="w-8 h-8 rounded-lg bg-primary/20 text-primary flex items-center justify-center flex-shrink-0">
+            {!selectedCategory && <BsGearFill size={17} />}
+            {selectedCategory === "profile" && <BsPersonCircle size={16} />}
+            {selectedCategory === "privacy" && <BsShieldLockFill size={16} />}
+            {selectedCategory === "security" && <BsKeyFill size={16} />}
+            {selectedCategory === "notifications" && <BsBellFill size={16} />}
+            {selectedCategory === "theme" && <BsPaletteFill size={16} />}
+            {selectedCategory === "storage" && <BsHddNetworkFill size={16} />}
+            {selectedCategory === "chats" && <BsChatDotsFill size={16} />}
+            {selectedCategory === "account" && <BsShieldCheck size={16} />}
           </div>
 
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
-            title="Close"
-          >
-            <BsX size={22} />
-          </button>
+          <h3 className="font-bold text-lg text-base-content tracking-wide">
+            {selectedCategory === "profile"
+              ? "Profile"
+              : selectedCategory
+                ? settingCategories.find((c) => c.id === selectedCategory)
+                    ?.title || "Settings"
+                : "Settings"}
+          </h3>
         </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
+          title="Close Settings"
+        >
+          <BsX size={22} />
+        </button>
+      </div>
 
         {/* Settings Body */}
         {selectedCategory === null ? (
@@ -287,16 +285,16 @@ const PrivacySettingsModal = ({
           isDeletingAccount={isDeletingAccount}
         />
 
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-base-300 flex justify-end items-center gap-2 bg-base-200/30">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn btn-sm btn-ghost rounded-xl"
-          >
-            {selectedCategory === "privacy" ? "Cancel" : "Close"}
-          </button>
-          {selectedCategory === "privacy" && (
+        {/* Footer (Only shown in Privacy category where Save Changes is required) */}
+        {selectedCategory === "privacy" && (
+          <div className="px-4 py-2.5 border-t border-base-300 flex justify-end items-center gap-2 bg-base-200/40 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setSelectedCategory(null)}
+              className="btn btn-sm btn-ghost rounded-xl"
+            >
+              Cancel
+            </button>
             <button
               type="button"
               onClick={handleSave}
@@ -309,27 +307,25 @@ const PrivacySettingsModal = ({
                 "Save Changes"
               )}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Profile Picture Cropper Modal Overlay */}
         {cropImageSrc && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-base-100 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-base-300 animate-modal-pop">
-              <ImageCropView
-                imageSrc={cropImageSrc}
-                onCropComplete={(croppedFile) => {
-                  setProfileAvatarFile(croppedFile);
-                  setProfileAvatarPreview(URL.createObjectURL(croppedFile));
-                  setCropImageSrc(null);
-                }}
-                onCancel={() => setCropImageSrc(null)}
-              />
-            </div>
-          </div>
+          <ImageCropView
+            imageSrc={cropImageSrc}
+            title="Crop Profile Photo"
+            cropShape="round"
+            initialAspect="1:1"
+            onCropComplete={(croppedFile) => {
+              setProfileAvatarFile(croppedFile);
+              setProfileAvatarPreview(URL.createObjectURL(croppedFile));
+              setCropImageSrc(null);
+            }}
+            onCancel={() => setCropImageSrc(null)}
+          />
         )}
       </div>
-    </div>
   );
 };
 

@@ -41,14 +41,14 @@ const IconSidebar = ({
   }, []);
 
   return (
-    <div className="hidden md:flex w-16 h-full flex-col items-center py-4 bg-base-200 border-r border-base-300 justify-between flex-shrink-0 z-50">
+    <div className="hidden md:flex w-16 h-full flex-col items-center py-4 bg-base-200 border-r border-r-theme-soothing icon-sidebar-panel justify-between flex-shrink-0 z-50">
       <div className="flex flex-col gap-4 w-full items-center">
         {/* Chats Tab */}
         <button
           onClick={() => setActiveTab("chats")}
           className={`p-3 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 ${
             activeTab === "chats"
-              ? "bg-base-300 text-primary shadow-sm"
+              ? "bg-base-200 text-primary "
               : "text-base-content/60 hover:bg-base-300 hover:text-base-content"
           }`}
           title="Chats"

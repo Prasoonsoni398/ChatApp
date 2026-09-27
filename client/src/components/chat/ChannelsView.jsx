@@ -321,11 +321,11 @@ const ChannelsView = ({ loggedInUser }) => {
     <div className="flex-1 flex flex-col md:flex-row h-full bg-base-100 overflow-hidden">
       {/* Channel List Sidebar */}
       <div
-        className={`w-full md:w-80 lg:w-96 border-r border-base-300 flex flex-col h-full bg-base-100 ${
+        className={`w-full md:w-80 lg:w-96 border-r border-r-theme-soothing chat-sidebar-panel flex flex-col h-full bg-base-100 ${
           selectedChannel ? "hidden md:flex" : "flex"
         }`}
       >
-        <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-base-300 flex-shrink-0">
+        <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-b-theme-soothing flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
               <BsMegaphoneFill size={15} />

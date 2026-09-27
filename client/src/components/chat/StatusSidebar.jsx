@@ -17,6 +17,8 @@ import {
   BsEmojiSmile,
   BsArrowCounterclockwise,
   BsCloudArrowUpFill,
+  BsMagic,
+  BsCheck2,
 } from "react-icons/bs";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
@@ -27,18 +29,13 @@ import StatusPrivacyModal, {
   getStoredPrivacy,
 } from "./status/StatusPrivacyModal.jsx";
 import StatusStudioModal from "./status/StatusStudioModal.jsx";
-
-const BACKGROUND_COLORS = [
-  "#075e54", // Guftgugreen
-  "#128c7e", // Teal
-  "#25d366", // Light green
-  "#3b82f6", // Blue
-  "#8b5cf6", // Purple
-  "#ec4899", // Pink
-  "#ef4444", // Red
-  "#f97316", // Orange
-  "#1f2937", // Dark Gray
-];
+import {
+  SOLID_BACKGROUNDS,
+  GRADIENT_BACKGROUNDS,
+  CREATIVE_PATTERNS,
+  STATUS_TEXT_COLORS,
+  getPatternStyle,
+} from "../../utils/statusBackgrounds.js";
 
 const FONTS = [
   { id: "sans-serif", label: "Sans" },
@@ -65,10 +62,14 @@ const StatusSidebar = ({
 
   // Text Status State (PRD FR-05 & FR-06)
   const [statusText, setStatusText] = useState("");
-  const [selectedBg, setSelectedBg] = useState(BACKGROUND_COLORS[0]);
+  const [selectedBg, setSelectedBg] = useState(GRADIENT_BACKGROUNDS[0].value);
+  const [selectedTextColor, setSelectedTextColor] = useState("#ffffff");
+  const [selectedPattern, setSelectedPattern] = useState("none");
   const [selectedFont, setSelectedFont] = useState(FONTS[0].id);
   const [textAlign, setTextAlign] = useState("center"); // 'center' | 'left' | 'right'
   const [showEmojiPickerText, setShowEmojiPickerText] = useState(false);
+  const [showBgDrawer, setShowBgDrawer] = useState(false);
+  const [bgDrawerTab, setBgDrawerTab] = useState("gradients"); // "gradients" | "solid" | "patterns" | "text_color"
   const [isPublishingText, setIsPublishingText] = useState(false);
 
   // Media Status State (PRD FR-03, FR-04, FR-14)
@@ -326,6 +327,8 @@ const StatusSidebar = ({
       await statusService.uploadTextStatus({
         text: statusText.trim(),
         backgroundColor: selectedBg,
+        textColor: selectedTextColor,
+        bgPattern: selectedPattern,
         fontFamily: selectedFont,
         song: selectedSong
           ? {
@@ -341,6 +344,9 @@ const StatusSidebar = ({
       stopStatusTrack();
       setStatusText("");
       setSelectedSong(null);
+      setSelectedTextColor("#ffffff");
+      setSelectedPattern("none");
+      setShowBgDrawer(false);
       setIsSongPlaying(true);
       setShowTextStatusModal(false);
       setShowEmojiPickerText(false);
@@ -350,6 +356,23 @@ const StatusSidebar = ({
     } finally {
       setIsPublishingText(false);
     }
+  };
+
+  // Magic creativity randomizer
+  const handleMagicShuffle = () => {
+    const useGradient = Math.random() > 0.25;
+    const bgList = useGradient ? GRADIENT_BACKGROUNDS : SOLID_BACKGROUNDS;
+    const randomBg = bgList[Math.floor(Math.random() * bgList.length)].value;
+    const randomPattern =
+      CREATIVE_PATTERNS[Math.floor(Math.random() * CREATIVE_PATTERNS.length)].id;
+    const randomTextColor =
+      STATUS_TEXT_COLORS[
+        Math.floor(Math.random() * (STATUS_TEXT_COLORS.length - 1))
+      ].value;
+    setSelectedBg(randomBg);
+    setSelectedPattern(randomPattern);
+    setSelectedTextColor(randomTextColor);
+    toast.success("Creative background & text applied!", { icon: "✨" });
   };
 
   // Separate my statuses from others
@@ -362,7 +385,7 @@ const StatusSidebar = ({
 
   return (
     <div
-      className="w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-base-300 h-full relative"
+      className="w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-r-theme-soothing chat-sidebar-panel h-full relative"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -383,7 +406,7 @@ const StatusSidebar = ({
       )}
 
       {/* Header */}
-      <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-base-300 flex-shrink-0">
+      <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-b-theme-soothing flex-shrink-0">
         <h2 className="text-xl font-bold">Status</h2>
         <div className="flex items-center gap-1 text-base-content/70">
           {/* Status Privacy Settings (PRD FR-08) */}
@@ -590,11 +613,19 @@ const StatusSidebar = ({
       {showTextStatusModal && (
         <div className="fixed inset-0 z-10000 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div
-            className="w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col transition-colors min-h-95 justify-between text-white relative"
-            style={{ backgroundColor: selectedBg, fontFamily: selectedFont }}
+            className="w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col transition-all min-h-95 justify-between relative overflow-hidden text-white"
+            style={{ background: selectedBg, fontFamily: selectedFont }}
           >
+            {/* Pattern / Texture Overlay */}
+            {selectedPattern && selectedPattern !== "none" && (
+              <div
+                className="absolute inset-0 pointer-events-none rounded-3xl transition-opacity"
+                style={getPatternStyle(selectedPattern)}
+              />
+            )}
+
             {/* Top Toolbar */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between relative z-20">
               <button
                 onClick={() => {
                   stopStatusTrack();
@@ -602,6 +633,7 @@ const StatusSidebar = ({
                   setIsSongPlaying(true);
                   setShowTextStatusModal(false);
                   setShowEmojiPickerText(false);
+                  setShowBgDrawer(false);
                 }}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
                 title="Discard status"
@@ -609,11 +641,24 @@ const StatusSidebar = ({
                 <BsX size={26} />
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                {/* Magic Shuffle Button */}
+                <button
+                  type="button"
+                  onClick={handleMagicShuffle}
+                  className="p-2 bg-white/20 hover:bg-white/30 rounded-full text-white cursor-pointer active:scale-95 transition-transform"
+                  title="Surprise me with magic background creativity!"
+                >
+                  <BsMagic size={15} />
+                </button>
+
                 {/* Emoji Trigger */}
                 <button
                   type="button"
-                  onClick={() => setShowEmojiPickerText((prev) => !prev)}
+                  onClick={() => {
+                    setShowEmojiPickerText((prev) => !prev);
+                    setShowBgDrawer(false);
+                  }}
                   className={`p-2 rounded-full transition-colors cursor-pointer ${
                     showEmojiPickerText
                       ? "bg-white text-primary"
@@ -621,7 +666,7 @@ const StatusSidebar = ({
                   }`}
                   title="Add emoji"
                 >
-                  <BsEmojiSmile size={16} />
+                  <BsEmojiSmile size={15} />
                 </button>
 
                 {/* Text Alignment (PRD FR-05 & FR-06) */}
@@ -640,11 +685,11 @@ const StatusSidebar = ({
                   title={`Align text (${textAlign})`}
                 >
                   {textAlign === "center" ? (
-                    <BsTextCenter size={16} />
+                    <BsTextCenter size={15} />
                   ) : textAlign === "left" ? (
-                    <BsTextLeft size={16} />
+                    <BsTextLeft size={15} />
                   ) : (
-                    <BsTextRight size={16} />
+                    <BsTextRight size={15} />
                   )}
                 </button>
 
@@ -659,7 +704,7 @@ const StatusSidebar = ({
                   }`}
                   title="Add Song"
                 >
-                  <BsMusicNoteBeamed size={16} />
+                  <BsMusicNoteBeamed size={15} />
                 </button>
 
                 {/* Font cycle */}
@@ -671,23 +716,53 @@ const StatusSidebar = ({
                     const nextIdx = (currIdx + 1) % FONTS.length;
                     setSelectedFont(FONTS[nextIdx].id);
                   }}
-                  className="px-3 py-1 bg-white/20 rounded-full text-xs font-semibold hover:bg-white/30 cursor-pointer"
+                  className="px-2.5 py-1 bg-white/20 rounded-full text-[11px] font-semibold hover:bg-white/30 cursor-pointer"
                   title="Change font"
                 >
                   {FONTS.find((f) => f.id === selectedFont)?.label}
                 </button>
 
-                {/* Color cycle */}
+                {/* Text Color Picker Quick Button */}
                 <button
+                  type="button"
                   onClick={() => {
-                    const currIdx = BACKGROUND_COLORS.indexOf(selectedBg);
-                    const nextIdx = (currIdx + 1) % BACKGROUND_COLORS.length;
-                    setSelectedBg(BACKGROUND_COLORS[nextIdx]);
+                    setShowEmojiPickerText(false);
+                    setBgDrawerTab("text_color");
+                    setShowBgDrawer((prev) => !prev || bgDrawerTab !== "text_color");
                   }}
-                  className="p-2 bg-white/20 rounded-full hover:bg-white/30 cursor-pointer"
-                  title="Change background color"
+                  className={`p-1.5 rounded-full transition-all cursor-pointer flex items-center justify-center ${
+                    showBgDrawer && bgDrawerTab === "text_color"
+                      ? "bg-white ring-2 ring-white"
+                      : "bg-white/20 hover:bg-white/30"
+                  }`}
+                  title="Change text color (live preview)"
                 >
-                  <BsPaletteFill size={16} />
+                  <span
+                    className="w-4 h-4 rounded-full border border-white/80 shadow-sm"
+                    style={{ backgroundColor: selectedTextColor }}
+                  />
+                </button>
+
+                {/* Background Creativity Palette Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEmojiPickerText(false);
+                    if (showBgDrawer && bgDrawerTab !== "text_color") {
+                      setShowBgDrawer(false);
+                    } else {
+                      setBgDrawerTab("gradients");
+                      setShowBgDrawer(true);
+                    }
+                  }}
+                  className={`p-2 rounded-full transition-all cursor-pointer ${
+                    showBgDrawer && bgDrawerTab !== "text_color"
+                      ? "bg-white text-primary ring-2 ring-white"
+                      : "bg-white/20 hover:bg-white/30 text-white"
+                  }`}
+                  title="Background Creativity (Gradients, Solid, Patterns)"
+                >
+                  <BsPaletteFill size={15} />
                 </button>
               </div>
             </div>
@@ -708,7 +783,7 @@ const StatusSidebar = ({
 
             {/* Song Pill Indicator if chosen */}
             {selectedSong && (
-              <div className="flex items-center justify-between px-3.5 py-2 bg-black/40 backdrop-blur-md rounded-2xl text-xs text-white max-w-full my-2 border border-white/20 animate-fade-in shadow-md">
+              <div className="flex items-center justify-between px-3.5 py-2 bg-black/40 backdrop-blur-md rounded-2xl text-xs text-white max-w-full my-2 border border-white/20 animate-fade-in shadow-md relative z-10">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <button
                     type="button"
@@ -764,8 +839,8 @@ const StatusSidebar = ({
               </div>
             )}
 
-            {/* Input Textarea */}
-            <div className="flex-1 flex items-center justify-center my-6">
+            {/* Input Textarea (Live Preview in Selected Text Color) */}
+            <div className="flex-1 flex items-center justify-center my-6 relative z-10">
               <textarea
                 ref={textInputRef}
                 autoFocus
@@ -774,13 +849,172 @@ const StatusSidebar = ({
                 placeholder="Type a status…"
                 maxLength={400}
                 rows={4}
-                style={{ textAlign }}
-                className="w-full bg-transparent text-2xl sm:text-3xl font-medium outline-none resize-none placeholder:text-white/40 drop-shadow"
+                style={{ textAlign, color: selectedTextColor }}
+                className="w-full bg-transparent text-2xl sm:text-3xl font-medium outline-none resize-none placeholder:text-white/40 drop-shadow transition-colors"
               />
             </div>
 
+            {/* ── BACKGROUND CREATIVITY & TEXT COLOR DRAWER ── */}
+            {showBgDrawer && (
+              <div className="absolute inset-x-3 bottom-16 z-30 bg-black/85 backdrop-blur-md rounded-2xl p-3 border border-white/20 shadow-2xl animate-slide-up flex flex-col gap-2.5">
+                {/* Tabs */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setBgDrawerTab("gradients")}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                        bgDrawerTab === "gradients"
+                          ? "bg-primary text-white shadow-sm"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      🎨 Gradients
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBgDrawerTab("solid")}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                        bgDrawerTab === "solid"
+                          ? "bg-primary text-white shadow-sm"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      🟦 Solid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBgDrawerTab("patterns")}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                        bgDrawerTab === "patterns"
+                          ? "bg-primary text-white shadow-sm"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      ✨ Patterns
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBgDrawerTab("text_color")}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                        bgDrawerTab === "text_color"
+                          ? "bg-primary text-white shadow-sm"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      🔤 Text Color
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowBgDrawer(false)}
+                    className="text-white/60 hover:text-white p-1 rounded-full hover:bg-white/10 flex-shrink-0"
+                  >
+                    <BsX size={18} />
+                  </button>
+                </div>
+
+                {/* Tab: Gradients */}
+                {bgDrawerTab === "gradients" && (
+                  <div className="flex items-center gap-2 overflow-x-auto py-1 px-1 no-scrollbar">
+                    {GRADIENT_BACKGROUNDS.map((g) => {
+                      const isSelected = selectedBg === g.value;
+                      return (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => setSelectedBg(g.value)}
+                          title={g.label}
+                          className={`w-9 h-9 rounded-xl flex-shrink-0 transition-transform cursor-pointer flex items-center justify-center border border-white/20 ${
+                            isSelected ? "scale-110 ring-2 ring-white shadow-lg" : "hover:scale-105"
+                          }`}
+                          style={{ background: g.value }}
+                        >
+                          {isSelected && <BsCheck2 size={16} className="text-white drop-shadow-md stroke-[1]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Tab: Solid Colors */}
+                {bgDrawerTab === "solid" && (
+                  <div className="flex items-center gap-2 overflow-x-auto py-1 px-1 no-scrollbar">
+                    {SOLID_BACKGROUNDS.map((c) => {
+                      const isSelected = selectedBg === c.value;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setSelectedBg(c.value)}
+                          title={c.label}
+                          className={`w-8 h-8 rounded-full flex-shrink-0 transition-transform cursor-pointer flex items-center justify-center border border-white/20 ${
+                            isSelected ? "scale-115 ring-2 ring-white shadow-lg" : "hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: c.value }}
+                        >
+                          {isSelected && <BsCheck2 size={15} className="text-white drop-shadow-md stroke-[1]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Tab: Patterns */}
+                {bgDrawerTab === "patterns" && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto py-1 px-1 no-scrollbar">
+                    {CREATIVE_PATTERNS.map((p) => {
+                      const isSelected = selectedPattern === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSelectedPattern(p.id)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-[#25D366] text-[#0B141A] font-bold shadow-md"
+                              : "bg-white/10 hover:bg-white/20 text-white/80"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Tab: Text Color */}
+                {bgDrawerTab === "text_color" && (
+                  <div className="flex items-center gap-2 overflow-x-auto py-1 px-1 no-scrollbar">
+                    {STATUS_TEXT_COLORS.map((tc) => {
+                      const isSelected = selectedTextColor === tc.value;
+                      return (
+                        <button
+                          key={tc.id}
+                          type="button"
+                          onClick={() => setSelectedTextColor(tc.value)}
+                          title={tc.label}
+                          className={`w-8 h-8 rounded-full flex-shrink-0 transition-transform cursor-pointer flex items-center justify-center border border-white/20 ${
+                            isSelected ? "scale-115 ring-2 ring-white shadow-lg" : "hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: tc.value }}
+                        >
+                          {isSelected && (
+                            <BsCheck2
+                              size={15}
+                              className={tc.value === "#ffffff" || tc.value === "#ffeb3b" || tc.value === "#00e5ff" ? "text-black stroke-[1]" : "text-white stroke-[1]"}
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Bottom Actions with Privacy Pill */}
-            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+            <div className="flex items-center justify-between pt-2 border-t border-white/10 relative z-20">
               {/* Privacy Pill (PRD FR-08) */}
               <button
                 type="button"

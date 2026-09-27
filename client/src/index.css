@@ -117,3 +117,48 @@ textarea:focus,
 textarea:active {
   z-index: 1;
 }
+
+/* ─── Soothing Theme-Aware Borders for Chat Sidebar & Main Chat Area ─── */
+:root {
+  --theme-border-soothing: color-mix(in srgb, var(--color-primary, #00a884) 18%, transparent);
+  --theme-border-subtle: color-mix(in srgb, var(--color-primary, #00a884) 10%, transparent);
+  --theme-border-divider: color-mix(in srgb, var(--color-primary, #00a884) 14%, transparent);
+}
+
+.border-theme-soothing {
+  border-color: var(--theme-border-soothing) !important;
+}
+
+.border-r-theme-soothing {
+  border-right-color: var(--theme-border-soothing) !important;
+}
+
+.border-b-theme-soothing {
+  border-bottom-color: var(--theme-border-soothing) !important;
+}
+
+.border-t-theme-soothing {
+  border-top-color: var(--theme-border-soothing) !important;
+}
+
+.border-l-theme-soothing {
+  border-left-color: var(--theme-border-soothing) !important;
+}
+
+/* Panel-specific soothing border styles matching theme only */
+.chat-sidebar-panel {
+  border-right: 1px solid var(--theme-border-soothing) !important;
+}
+
+.icon-sidebar-panel {
+  border-right: 1px solid var(--theme-border-soothing) !important;
+}
+
+.chat-header-bar {
+  border-bottom: 1px solid var(--theme-border-soothing) !important;
+}
+
+.chat-input-bar {
+  border-top: 1px solid var(--theme-border-soothing) !important;
+}
+

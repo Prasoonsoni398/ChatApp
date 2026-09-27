@@ -13,6 +13,10 @@ import toast from "react-hot-toast";
 import * as statusService from "../../services/statusService.js";
 import { playStatusTrack, stopStatusTrack } from "../../utils/statusMusic.js";
 import { STATUS_FILTERS } from "./status/StatusStudioModal.jsx";
+import {
+  getPatternStyle,
+  getTextOverlayStyle,
+} from "../../utils/statusBackgrounds.js";
 
 const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
   const [statuses, setStatuses] = useState(group.statuses || []);
@@ -344,13 +348,23 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
 
         {currentStatus.type === "text" ? (
           <div
-            className="w-full h-full flex items-center justify-center p-8 text-center"
+            className="w-full h-full flex items-center justify-center p-8 text-center relative overflow-hidden"
             style={{
-              backgroundColor: currentStatus.backgroundColor || "#075e54",
+              background: currentStatus.backgroundColor || "#075e54",
               fontFamily: currentStatus.fontFamily || "sans-serif",
             }}
           >
-            <p className="text-white text-2xl sm:text-3xl font-medium max-w-md leading-relaxed whitespace-pre-wrap wrap-break-word drop-shadow-md">
+            {/* Pattern Overlay */}
+            {currentStatus.bgPattern && currentStatus.bgPattern !== "none" && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={getPatternStyle(currentStatus.bgPattern)}
+              />
+            )}
+            <p
+              className="text-2xl sm:text-3xl font-medium max-w-md leading-relaxed whitespace-pre-wrap wrap-break-word drop-shadow-md relative z-10"
+              style={{ color: currentStatus.textColor || "#ffffff" }}
+            >
               {currentStatus.text}
             </p>
           </div>
@@ -375,12 +389,16 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
                 style={{ top: `${item.y}%`, left: `${item.x}%`, transform: "translate(-50%, -50%)" }}
               >
                 <div
-                  className={`px-3 py-1.5 rounded-2xl font-semibold ${
+                  className={`relative select-none font-semibold ${
                     item.type === "sticker"
                       ? "text-4xl"
-                      : "text-lg bg-black/50 text-white shadow-lg border border-white/20"
+                      : "text-lg transition-all"
                   }`}
-                  style={{ color: item.color || "#ffffff" }}
+                  style={
+                    item.type === "sticker"
+                      ? {}
+                      : getTextOverlayStyle(item.color, item.bgStyle)
+                  }
                 >
                   {item.content}
                 </div>
@@ -410,12 +428,16 @@ const StatusViewer = ({ group, loggedInUser, onClose, onStatusDeleted }) => {
                 style={{ top: `${item.y}%`, left: `${item.x}%`, transform: "translate(-50%, -50%)" }}
               >
                 <div
-                  className={`px-3 py-1.5 rounded-2xl font-semibold ${
+                  className={`relative select-none font-semibold ${
                     item.type === "sticker"
                       ? "text-4xl"
-                      : "text-lg bg-black/50 text-white shadow-lg border border-white/20"
+                      : "text-lg transition-all"
                   }`}
-                  style={{ color: item.color || "#ffffff" }}
+                  style={
+                    item.type === "sticker"
+                      ? {}
+                      : getTextOverlayStyle(item.color, item.bgStyle)
+                  }
                 >
                   {item.content}
                 </div>

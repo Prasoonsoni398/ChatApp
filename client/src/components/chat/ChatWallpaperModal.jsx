@@ -10,8 +10,10 @@ import {
   BsSliders,
   BsArrowCounterclockwise,
   BsGlobe2,
+  BsCrop,
 } from "react-icons/bs";
 import toast from "react-hot-toast";
+import ImageCropModal from "./ImageCropModal.jsx";
 import {
   getChatCustomization,
   setChatCustomization,
@@ -49,6 +51,7 @@ const ChatWallpaperModal = ({
   });
   const [customImageUrl, setCustomImageUrl] = useState("");
   const [urlInput, setUrlInput] = useState("");
+  const [cropWallpaperSrc, setCropWallpaperSrc] = useState(null);
   const fileInputRef = useRef(null);
 
   // Load current chat customization when opened
@@ -83,13 +86,7 @@ const ChatWallpaperModal = ({
     reader.onload = (event) => {
       const dataUrl = event.target?.result;
       if (typeof dataUrl === "string") {
-        setCustomImageUrl(dataUrl);
-        setCustomization((prev) => ({
-          ...prev,
-          wallpaperType: "custom",
-          wallpaperValue: dataUrl,
-        }));
-        toast.success("Custom wallpaper loaded!");
+        setCropWallpaperSrc(dataUrl);
       }
     };
     reader.readAsDataURL(file);
@@ -366,21 +363,32 @@ const ChatWallpaperModal = ({
                     />
 
                     {customImageUrl && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCustomImageUrl("");
-                          setCustomization((prev) => ({
-                            ...prev,
-                            wallpaperType: "color",
-                            wallpaperValue: "#0B141A",
-                          }));
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 text-xs font-medium transition-colors cursor-pointer"
-                      >
-                        <BsTrash3 size={12} />
-                        <span>Remove Photo</span>
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setCropWallpaperSrc(customImageUrl)}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors cursor-pointer"
+                          title="Crop or rotate this wallpaper"
+                        >
+                          <BsCrop size={12} />
+                          <span>Crop & Rotate</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCustomImageUrl("");
+                            setCustomization((prev) => ({
+                              ...prev,
+                              wallpaperType: "color",
+                              wallpaperValue: "#0B141A",
+                            }));
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 text-xs font-medium transition-colors cursor-pointer"
+                        >
+                          <BsTrash3 size={12} />
+                          <span>Remove Photo</span>
+                        </button>
+                      </>
                     )}
                   </div>
 
@@ -667,6 +675,27 @@ const ChatWallpaperModal = ({
           </div>
         </div>
       </div>
+
+      {/* WhatsApp Crop Modal for Custom Wallpaper */}
+      {cropWallpaperSrc && (
+        <ImageCropModal
+          imageSrc={cropWallpaperSrc}
+          title="Crop Wallpaper"
+          cropShape="rect"
+          initialAspect="9:16"
+          onCropComplete={(_croppedFile, croppedUrl) => {
+            setCustomImageUrl(croppedUrl);
+            setCustomization((prev) => ({
+              ...prev,
+              wallpaperType: "custom",
+              wallpaperValue: croppedUrl,
+            }));
+            setCropWallpaperSrc(null);
+            toast.success("Wallpaper cropped & applied!");
+          }}
+          onCancel={() => setCropWallpaperSrc(null)}
+        />
+      )}
     </div>
   );
 };

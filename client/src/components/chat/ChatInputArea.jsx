@@ -7,6 +7,7 @@ import InputPreviews from "./input/InputPreviews.jsx";
 import VoiceRecordingBar from "./input/VoiceRecordingBar.jsx";
 import AttachmentMenu from "./input/AttachmentMenu.jsx";
 import MentionPopup from "./input/MentionPopup.jsx";
+import ImageCropModal from "./ImageCropModal.jsx";
 
 /**
  * ChatInputArea – WhatsApp-style message composer.
@@ -47,6 +48,7 @@ const ChatInputArea = ({
   const voiceRecorder = useVoiceRecorder();
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isViewOnce, setIsViewOnce] = useState(false);
+  const [showImageCrop, setShowImageCrop] = useState(false);
   const attachMenuRef = useRef(null);
   const docInputRef = useRef(null);
   const videoInputRef = useRef(null);
@@ -195,7 +197,7 @@ const ChatInputArea = ({
   }
 
   return (
-    <div className="bg-base-100 px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 border-t border-base-300 relative">
+    <div className="bg-base-100 px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 border-t border-t-theme-soothing chat-input-bar relative">
       {/* Community Announcement Admin Banner */}
       {selectedChat?.isGroup &&
         selectedChat?.onlyAdminsCanMessage &&
@@ -220,6 +222,7 @@ const ChatInputArea = ({
         setIsViewOnce={setIsViewOnce}
         selectedFile={selectedFile}
         setSelectedFile={setSelectedFile}
+        onOpenCrop={() => setShowImageCrop(true)}
       />
 
       {/* Emoji Picker Dropdown */}
@@ -378,6 +381,23 @@ const ChatInputArea = ({
             )}
           </form>
         </div>
+      )}
+
+      {/* WhatsApp Crop Modal for Chat Image Attachments */}
+      {showImageCrop && imagePreview && (
+        <ImageCropModal
+          imageSrc={imagePreview}
+          title="Crop & Rotate Image"
+          cropShape="rect"
+          initialAspect="free"
+          onCropComplete={(croppedFile, croppedUrl) => {
+            setSelectedImage(croppedFile);
+            setImagePreview(croppedUrl);
+            setShowImageCrop(false);
+            toast.success("Image cropped & rotated!");
+          }}
+          onCancel={() => setShowImageCrop(false)}
+        />
       )}
     </div>
   );
