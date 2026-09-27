@@ -32,26 +32,67 @@ const EditProfileModal = ({
 }) => {
   if (!show) return null;
 
+  if (cropImageSrc && cropTarget === "profile") {
+    return (
+      <ImageCropView
+        imageSrc={cropImageSrc}
+        title="Crop Profile Photo"
+        cropShape="round"
+        initialAspect="1:1"
+        onCropComplete={(croppedFile) => {
+          setEditAvatar(croppedFile);
+          setCropImageSrc(null);
+          setCropTarget(null);
+        }}
+        onCancel={() => {
+          setCropImageSrc(null);
+          setCropTarget(null);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-fade-in">
-      <div className="bg-base-100 w-full max-w-md rounded-2xl p-0 shadow-xl border border-base-300 animate-modal-pop overflow-hidden">
-        {cropImageSrc && cropTarget === "profile" ? (
-          <ImageCropView
-            imageSrc={cropImageSrc}
-            onCropComplete={(croppedFile) => {
-              setEditAvatar(croppedFile);
-              setCropImageSrc(null);
-              setCropTarget(null);
-            }}
-            onCancel={() => {
-              setCropImageSrc(null);
-              setCropTarget(null);
-            }}
-          />
-        ) : (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
-            <form onSubmit={handleUpdateProfile}>
+      <div className="bg-base-100 w-full max-w-md rounded-2xl shadow-xl border border-base-300 animate-modal-pop overflow-hidden p-6">
+        <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
+        <form onSubmit={handleUpdateProfile}>
+          <div className="mb-6 flex flex-col items-center">
+                <div className="relative group cursor-pointer w-24 h-24 rounded-full border-2 border-dashed border-base-300 hover:border-primary flex flex-col items-center justify-center bg-base-200 overflow-hidden transition-all">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, "profile")}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  />
+                  {editAvatar ? (
+                    <img
+                      src={
+                        editAvatar instanceof Blob || editAvatar instanceof File
+                          ? URL.createObjectURL(editAvatar)
+                          : editAvatar
+                      }
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <>
+                      <BsCamera className="text-3xl text-base-content/50 group-hover:text-primary transition-colors" />
+                      <span className="text-xs text-base-content/50 mt-1 font-medium group-hover:text-primary">
+                        Upload
+                      </span>
+                    </>
+                  )}
+                  {editAvatar && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <BsCamera className="text-white text-2xl" />
+                    </div>
+                  )}
+                </div>
+                <label className="block text-sm font-medium text-base-content/70 mt-2">
+                  Profile Image (optional)
+                </label>
+              </div>
               <div className="mb-4">
                 <label className="block text-sm font-semibold text-base-content/80 mb-1.5">
                   Name
@@ -107,38 +148,7 @@ const EditProfileModal = ({
                   </div>
                 </div>
               </div>
-              <div className="mb-6 flex flex-col items-center">
-                <div className="relative group cursor-pointer w-24 h-24 rounded-full border-2 border-dashed border-base-300 hover:border-primary flex flex-col items-center justify-center bg-base-200 overflow-hidden transition-all">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileSelect(e, "profile")}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                  />
-                  {editAvatar ? (
-                    <img
-                      src={URL.createObjectURL(editAvatar)}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <>
-                      <BsCamera className="text-3xl text-base-content/50 group-hover:text-primary transition-colors" />
-                      <span className="text-xs text-base-content/50 mt-1 font-medium group-hover:text-primary">
-                        Upload
-                      </span>
-                    </>
-                  )}
-                  {editAvatar && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <BsCamera className="text-white text-2xl" />
-                    </div>
-                  )}
-                </div>
-                <label className="block text-sm font-medium text-base-content/70 mt-2">
-                  Profile Image (optional)
-                </label>
-              </div>
+              
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
@@ -157,8 +167,6 @@ const EditProfileModal = ({
                 </button>
               </div>
             </form>
-          </div>
-        )}
       </div>
     </div>
   );

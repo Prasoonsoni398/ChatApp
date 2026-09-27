@@ -4,6 +4,7 @@ import {
   BsCameraVideoFill,
   BsMusicNoteBeamed,
   BsFileEarmarkTextFill,
+  BsCrop,
 } from "react-icons/bs";
 import RemoveActionButton from "../../common/RemoveActionButton.jsx";
 
@@ -20,6 +21,7 @@ const InputPreviews = ({
   setIsViewOnce,
   selectedFile,
   setSelectedFile,
+  onOpenCrop,
 }) => {
   return (
     <>
@@ -81,6 +83,16 @@ const InputPreviews = ({
             title="Remove image"
             className="absolute top-1.5 right-1.5 shadow-md !w-6 !h-6"
           />
+          {onOpenCrop && (
+            <button
+              type="button"
+              onClick={onOpenCrop}
+              className="absolute top-1.5 left-1.5 w-6 h-6 rounded-full flex items-center justify-center text-xs bg-base-200/90 hover:bg-base-300 text-base-content/80 shadow-md transition-all cursor-pointer hover:text-primary active:scale-95"
+              title="Crop & rotate image"
+            >
+              <BsCrop size={11} />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setIsViewOnce((v) => !v)}

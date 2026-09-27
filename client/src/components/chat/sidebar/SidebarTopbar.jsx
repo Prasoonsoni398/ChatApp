@@ -30,7 +30,7 @@ const SidebarTopbar = ({
 }) => {
   if (isArchivedViewOpen) {
     return (
-      <div className="h-16 px-4 flex items-center gap-3 bg-base-200/50 border-b border-base-300 relative z-50">
+      <div className="h-16 px-4 flex items-center gap-3 bg-base-200/50 border-b border-b-theme-soothing relative z-50">
         <button
           onClick={() => setIsArchivedViewOpen(false)}
           className="p-2 -ml-2 text-base-content/70 hover:text-primary rounded-full transition-colors"
@@ -49,7 +49,7 @@ const SidebarTopbar = ({
   }
 
   return (
-    <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-base-300 relative z-50">
+    <div className="h-16 px-4 flex items-center justify-between bg-base-200/50 border-b border-b-theme-soothing relative z-50">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-primary/20 p-0.5 overflow-hidden">
           <img

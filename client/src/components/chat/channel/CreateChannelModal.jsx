@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { BsX, BsCameraFill, BsMegaphoneFill } from "react-icons/bs";
 import toast from "react-hot-toast";
+import ImageCropModal from "../ImageCropModal.jsx";
 
 const CreateChannelModal = ({
   show,
@@ -17,6 +18,7 @@ const CreateChannelModal = ({
   const visible = show !== undefined ? show : isOpen;
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
+  const [cropImageSrc, setCropImageSrc] = useState(null);
   const [internalSaving, setInternalSaving] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -45,16 +47,17 @@ const CreateChannelModal = ({
     if (saving) return;
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Avatar image cannot exceed 5MB.");
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Avatar image cannot exceed 10MB.");
         e.target.value = "";
         return;
       }
-      if (avatarPreview) {
-        URL.revokeObjectURL(avatarPreview);
-      }
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCropImageSrc(reader.result);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = "";
     }
   };
 
@@ -212,6 +215,24 @@ const CreateChannelModal = ({
           </div>
         </form>
       </div>
+
+      {cropImageSrc && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          title="Crop Channel Icon"
+          cropShape="round"
+          initialAspect="1:1"
+          onCropComplete={(croppedFile, croppedUrl) => {
+            if (avatarPreview) {
+              URL.revokeObjectURL(avatarPreview);
+            }
+            setAvatarFile(croppedFile);
+            setAvatarPreview(croppedUrl);
+            setCropImageSrc(null);
+          }}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
     </div>
   );
 };

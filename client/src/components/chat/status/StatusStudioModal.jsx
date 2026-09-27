@@ -30,6 +30,11 @@ import {
   stopStatusTrack,
 } from "../../../utils/statusMusic.js";
 import { getContacts } from "../../../services/contactService.js";
+import {
+  STATUS_TEXT_COLORS,
+  TEXT_OVERLAY_BG_STYLES,
+  getTextOverlayStyle,
+} from "../../../utils/statusBackgrounds.js";
 
 export const STATUS_FILTERS = [
   { id: "none", name: "Original", css: "none" },
@@ -129,6 +134,7 @@ const StatusStudioModal = ({
   const [overlays, setOverlays] = useState([]);
   const [newTextContent, setNewTextContent] = useState("");
   const [newTextColor, setNewTextColor] = useState("#ffffff");
+  const [newTextBgStyle, setNewTextBgStyle] = useState("transparent");
 
   // Caption & Mentions
   const [caption, setCaption] = useState("");
@@ -349,11 +355,13 @@ const StatusStudioModal = ({
       type: "text",
       content: newTextContent.trim(),
       color: newTextColor,
+      bgStyle: newTextBgStyle,
       x: 50,
       y: 45,
     };
     setOverlays((prev) => [...prev, newOverlay]);
     setNewTextContent("");
+    setNewTextBgStyle("transparent");
     setActiveTool(null);
   };
 
@@ -751,12 +759,16 @@ const StatusStudioModal = ({
                 style={{ top: `${item.y}%`, left: `${item.x}%`, transform: "translate(-50%, -50%)" }}
               >
                 <div
-                  className={`relative px-3 py-1 rounded-2xl shadow-lg border border-white/20 backdrop-blur-xs font-semibold ${
+                  className={`relative font-semibold cursor-pointer select-none transition-all ${
                     item.type === "sticker"
                       ? "text-5xl bg-transparent border-none"
-                      : "text-xl bg-black/60 text-white"
+                      : "text-xl"
                   }`}
-                  style={{ color: item.color || "#ffffff" }}
+                  style={
+                    item.type === "sticker"
+                      ? {}
+                      : getTextOverlayStyle(item.color, item.bgStyle)
+                  }
                 >
                   {item.content}
                   <button
@@ -794,31 +806,65 @@ const StatusStudioModal = ({
 
           {/* Text Overlay Tool Modal */}
           {activeTool === "text" && (
-            <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 animate-fade-in pointer-events-auto">
-              <input
-                type="text"
-                autoFocus
-                value={newTextContent}
-                onChange={(e) => setNewTextContent(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddTextOverlay();
-                }}
-                placeholder="Type status text…"
-                className="w-full text-center bg-transparent text-2xl sm:text-3xl font-bold text-white outline-none border-b-2 border-primary pb-2 mb-6 placeholder:text-white/40"
-              />
-              <div className="flex items-center gap-2 mb-6">
-                {PEN_COLORS.map((col) => (
-                  <button
-                    key={col}
-                    type="button"
-                    onClick={() => setNewTextColor(col)}
-                    className={`w-6 h-6 rounded-full border border-white/30 ${
-                      newTextColor === col ? "scale-125 ring-2 ring-white" : ""
-                    }`}
-                    style={{ backgroundColor: col }}
-                  />
-                ))}
+            <div className="absolute inset-0 z-40 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-fade-in pointer-events-auto">
+              <div className="w-full max-w-md flex flex-col items-center mb-5">
+                <span className="text-[11px] uppercase tracking-wider text-white/50 mb-2 font-semibold">
+                  Live Text Preview
+                </span>
+                <input
+                  type="text"
+                  autoFocus
+                  value={newTextContent}
+                  onChange={(e) => setNewTextContent(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddTextOverlay();
+                  }}
+                  placeholder="Type status text…"
+                  className="w-full text-center text-2xl sm:text-3xl font-bold outline-none border-b-2 border-white/25 pb-3 mb-2 placeholder:text-white/30 transition-all"
+                  style={getTextOverlayStyle(newTextColor, newTextBgStyle)}
+                />
               </div>
+
+              {/* Text Color Picker Palette */}
+              <div className="flex flex-col items-center gap-1.5 mb-4 w-full max-w-sm">
+                <span className="text-xs text-white/70 font-medium">Text Color</span>
+                <div className="flex items-center gap-2 overflow-x-auto py-1 px-2 no-scrollbar max-w-full">
+                  {STATUS_TEXT_COLORS.map((col) => (
+                    <button
+                      key={col.id}
+                      type="button"
+                      onClick={() => setNewTextColor(col.value)}
+                      title={col.label}
+                      className={`w-7 h-7 rounded-full border border-white/30 transition-transform cursor-pointer flex-shrink-0 ${
+                        newTextColor === col.value ? "scale-125 ring-2 ring-white shadow-lg" : "hover:scale-110"
+                      }`}
+                      style={{ backgroundColor: col.value }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Background Creativity Styles */}
+              <div className="flex flex-col items-center gap-1.5 mb-6 w-full max-w-sm">
+                <span className="text-xs text-white/70 font-medium">Background Creativity</span>
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1 px-1 no-scrollbar max-w-full">
+                  {TEXT_OVERLAY_BG_STYLES.map((style) => (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() => setNewTextBgStyle(style.id)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                        newTextBgStyle === style.id
+                          ? "bg-primary text-white font-bold ring-2 ring-primary ring-offset-2 ring-offset-black shadow-md"
+                          : "bg-white/10 hover:bg-white/20 text-white/80"
+                      }`}
+                    >
+                      {style.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -831,7 +877,7 @@ const StatusStudioModal = ({
                   type="button"
                   onClick={handleAddTextOverlay}
                   disabled={!newTextContent.trim()}
-                  className="btn btn-sm btn-primary rounded-xl px-5"
+                  className="btn btn-sm btn-primary rounded-xl px-6 font-semibold"
                 >
                   Add Text
                 </button>

@@ -41,7 +41,7 @@ const SidebarSearchBar = ({
   return (
     <>
       {/* ── Search Bar ── */}
-      <div className="p-3 border-b border-base-300">
+      <div className="p-3 border-b border-b-theme-soothing">
         <div className="relative flex items-center">
           <BsSearch
             size={14}

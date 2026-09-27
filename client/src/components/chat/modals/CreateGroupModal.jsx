@@ -22,28 +22,33 @@ const CreateGroupModal = ({
 }) => {
   if (!show) return null;
 
+  if (cropImageSrc && cropTarget === "group") {
+    return (
+      <ImageCropView
+        imageSrc={cropImageSrc}
+        title="Crop Group Icon"
+        cropShape="round"
+        initialAspect="1:1"
+        onCropComplete={(croppedFile) => {
+          setGroupAvatarFile(croppedFile);
+          setCropImageSrc(null);
+          setCropTarget(null);
+        }}
+        onCancel={() => {
+          setCropImageSrc(null);
+          setCropTarget(null);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-fade-in">
       <div className={`${modalCardMd} p-0 overflow-hidden`}>
-        {cropImageSrc && cropTarget === "group" ? (
-          <ImageCropView
-            imageSrc={cropImageSrc}
-            onCropComplete={(croppedFile) => {
-              setGroupAvatarFile(croppedFile);
-              setCropImageSrc(null);
-              setCropTarget(null);
-            }}
-            onCancel={() => {
-              setCropImageSrc(null);
-              setCropTarget(null);
-            }}
-          />
-        ) : (
-          <>
-            <div className="px-6 pt-6 pb-3 flex items-center justify-between">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <BsPeopleFill className="text-primary" /> New Group
-              </h3>
+        <div className="px-6 pt-6 pb-3 flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <BsPeopleFill className="text-primary" /> New Group
+          </h3>
               <button
                 onClick={onClose}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
@@ -181,8 +186,6 @@ const CreateGroupModal = ({
                 </button>
               </div>
             </div>
-          </>
-        )}
       </div>
     </div>
   );
