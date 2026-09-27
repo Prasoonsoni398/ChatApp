@@ -12,10 +12,9 @@ import LinkedDevicesModal from "./LinkedDevicesModal.jsx";
 import CreateEventModal from "./CreateEventModal.jsx";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.jsx";
 import AddContactModal from "./AddContactModal.jsx";
-import ContactInfoModal from "./ContactInfoModal.jsx";
-import GroupInfoModal from "./GroupInfoModal.jsx";
 import ContextMenu from "./ContextMenu.jsx";
 import StatusViewer from "./StatusViewer.jsx";
+import ChatWallpaperModal from "./ChatWallpaperModal.jsx";
 
 const ChatModalsContainer = ({
   state,
@@ -219,50 +218,11 @@ const ChatModalsContainer = ({
         }}
       />
 
-      <ContactInfoModal
-        isOpen={modals.showContactInfoModal}
-        onClose={() => modals.setShowContactInfoModal(false)}
-        contact={state.selectedChat}
-        loggedInUser={state.loggedInUser}
-        onUpdateContactName={handleUpdateContactName}
-        isMuted={Boolean(
-          state.selectedChat &&
-          modals.mutedChatIds.includes(state.selectedChat.id),
-        )}
-        onToggleMute={() => handleToggleMuteChat(state.selectedChat?.id)}
-        isLocked={Boolean(
-          state.selectedChat &&
-          modals.lockedChatIds.includes(state.selectedChat.id),
-        )}
-        onToggleLock={() => handleToggleLockChat(state.selectedChat?.id)}
-        isBlocked={Boolean(
-          state.selectedChat &&
-          modals.blockedUserIds.includes(state.selectedChat.id),
-        )}
-        onToggleBlock={() => handleToggleBlockContact(state.selectedChat?.id)}
-        onOpenReport={() => modals.setShowReportModal(true)}
-        onOpenStarred={() => modals.setShowStarredModal(true)}
-        onStartCall={(target, type) => webRTC.startCall(target, type)}
-        onOpenSearch={() => {
-          state.setShowMsgSearch(true);
-          state.setMsgSearchQuery("");
-        }}
-      />
 
-      <GroupInfoModal
-        isOpen={modals.showGroupInfoModal}
-        onClose={() => modals.setShowGroupInfoModal(false)}
-        group={state.selectedChat}
-        loggedInUser={state.loggedInUser}
-        allContacts={state.allUsers}
-        isMuted={Boolean(
-          state.selectedChat &&
-          modals.mutedChatIds.includes(state.selectedChat.id),
-        )}
-        onToggleMute={() => handleToggleMuteChat(state.selectedChat?.id)}
-        onOpenInviteLink={() => modals.setShowGroupInviteModal(true)}
-        onLeaveGroup={() => handleLeaveGroup(state.selectedChat?.id)}
-        onOpenReport={() => modals.setShowReportModal(true)}
+      <ChatWallpaperModal
+        isOpen={modals.showWallpaperModal}
+        onClose={() => modals.setShowWallpaperModal(false)}
+        selectedChat={state.selectedChat}
       />
     </>
   );

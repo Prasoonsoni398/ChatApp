@@ -27,6 +27,8 @@ import ChatModals from "../components/chat/ChatModals.jsx";
 import ChatModalsContainer from "../components/chat/ChatModalsContainer.jsx";
 import CallOverlay from "../components/chat/CallOverlay.jsx";
 import MobileNavAndFAB from "../components/chat/MobileNavAndFAB.jsx";
+import ContactInfoModal from "../components/chat/ContactInfoModal.jsx";
+import GroupInfoModal from "../components/chat/GroupInfoModal.jsx";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -131,8 +133,56 @@ const Chat = () => {
           onOpenShortcuts={() => modals.setShowShortcutsModal(true)}
         />
 
-        {/* Main Sidebar */}
-        {activeTab === "chats" ? (
+        {/* Main Sidebar Slot */}
+        {modals.showContactInfoModal && state.selectedChat && !state.selectedChat.isGroup ? (
+          <ContactInfoModal
+            isOpen={modals.showContactInfoModal}
+            onClose={() => modals.setShowContactInfoModal(false)}
+            contact={state.selectedChat}
+            loggedInUser={state.loggedInUser}
+            onUpdateContactName={handleUpdateContactName}
+            isMuted={Boolean(
+              state.selectedChat &&
+              modals.mutedChatIds.includes(state.selectedChat.id),
+            )}
+            onToggleMute={() => securityActions.handleToggleMuteChat(state.selectedChat?.id)}
+            isLocked={Boolean(
+              state.selectedChat &&
+              modals.lockedChatIds.includes(state.selectedChat.id),
+            )}
+            onToggleLock={() => securityActions.handleToggleLockChat(state.selectedChat?.id)}
+            isBlocked={Boolean(
+              state.selectedChat &&
+              modals.blockedUserIds.includes(state.selectedChat.id),
+            )}
+            onToggleBlock={() => securityActions.handleToggleBlockContact(state.selectedChat?.id)}
+            onOpenReport={() => modals.setShowReportModal(true)}
+            onOpenStarred={() => modals.setShowStarredModal(true)}
+            onOpenWallpaperModal={() => modals.setShowWallpaperModal(true)}
+            onStartCall={(target, type) => webRTC.startCall(target, type)}
+            onOpenSearch={() => {
+              state.setShowMsgSearch(true);
+              state.setMsgSearchQuery("");
+            }}
+          />
+        ) : modals.showGroupInfoModal && state.selectedChat?.isGroup ? (
+          <GroupInfoModal
+            isOpen={modals.showGroupInfoModal}
+            onClose={() => modals.setShowGroupInfoModal(false)}
+            group={state.selectedChat}
+            loggedInUser={state.loggedInUser}
+            allContacts={state.allUsers}
+            isMuted={Boolean(
+              state.selectedChat &&
+              modals.mutedChatIds.includes(state.selectedChat.id),
+            )}
+            onToggleMute={() => securityActions.handleToggleMuteChat(state.selectedChat?.id)}
+            onOpenInviteLink={() => modals.setShowGroupInviteModal(true)}
+            onOpenWallpaperModal={() => modals.setShowWallpaperModal(true)}
+            onLeaveGroup={() => securityActions.handleLeaveGroup(state.selectedChat?.id)}
+            onOpenReport={() => modals.setShowReportModal(true)}
+          />
+        ) : activeTab === "chats" ? (
           <ChatSidebar
             loggedInUser={state.loggedInUser}
             chats={state.chats}
@@ -213,6 +263,7 @@ const Chat = () => {
             setShowReportModal={modals.setShowReportModal}
             setShowGroupInfoModal={modals.setShowGroupInfoModal}
             setShowContactInfoModal={modals.setShowContactInfoModal}
+            onOpenWallpaperModal={() => modals.setShowWallpaperModal(true)}
             currentPinned={currentPinned}
             reactionMapByMsgId={interactionActions.reactionMapByMsgId}
             handleReact={interactionActions.handleReact}

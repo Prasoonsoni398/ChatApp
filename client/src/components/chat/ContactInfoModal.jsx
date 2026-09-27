@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   BsX,
+  BsArrowLeft,
   BsTelephoneFill,
   BsCameraVideoFill,
   BsSearch,
@@ -39,6 +40,7 @@ const ContactInfoModal = ({
   onStartCall,
   onOpenSearch,
   onUpdateContactName,
+  onOpenWallpaperModal,
 }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -91,6 +93,16 @@ const ContactInfoModal = ({
     }
   }, [isOpen, contact?.id]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isOpen && !showPhotoViewer) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, showPhotoViewer, onClose]);
+
   const loadProfile = async () => {
     try {
       setLoading(true);
@@ -112,24 +124,24 @@ const ContactInfoModal = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-110 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-        <div className="bg-base-100 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col border border-base-300">
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-base-300 flex items-center justify-between bg-base-200/50 flex-shrink-0">
-            <h3 className="font-bold text-lg text-base-content">
-              Contact Info
-            </h3>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
-              title="Close"
-            >
-              <BsX size={22} />
-            </button>
-          </div>
+      <div className="fixed inset-0 z-50 md:relative md:inset-auto md:z-auto w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-base-300 h-full overflow-hidden animate-slide-up md:animate-fade-in select-none">
+        {/* Header — WhatsApp style with Back Arrow and Title */}
+        <div className="h-16 px-4 border-b border-base-300 flex items-center gap-3 bg-base-100 flex-shrink-0 z-10">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
+            title="Back to chats"
+          >
+            <BsArrowLeft size={19} />
+          </button>
+          <h3 className="font-bold text-base text-base-content leading-tight">
+            Contact info
+          </h3>
+        </div>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto divide-y divide-base-200">
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto divide-y divide-base-200 pb-16 md:pb-4">
             {/* Contact Banner / Avatar & Name */}
             <div className="p-6 flex flex-col items-center text-center bg-base-100">
               <div
@@ -301,6 +313,7 @@ const ContactInfoModal = ({
               isLocked={isLocked}
               onToggleLock={onToggleLock}
               onOpenStarred={onOpenStarred}
+              onOpenWallpaperModal={onOpenWallpaperModal}
               onClose={onClose}
             />
 
@@ -347,7 +360,6 @@ const ContactInfoModal = ({
             </div>
           </div>
         </div>
-      </div>
 
       {/* Full Screen Photo Viewer */}
       <ProfilePhotoViewerModal

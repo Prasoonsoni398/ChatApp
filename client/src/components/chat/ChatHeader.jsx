@@ -20,6 +20,7 @@ import {
   BsShieldExclamation,
   BsDownload,
   BsPersonFill,
+  BsPaletteFill,
 } from "react-icons/bs";
 import * as messageService from "../../services/messageService.js";
 import { exportChatToTxt } from "../../utils/exportChat.js";
@@ -62,6 +63,7 @@ const ChatHeader = ({
   onToggleBlockContact,
   onOpenReport,
   onOpenInfo,
+  onOpenWallpaperModal,
 }) => {
   return (
     <div className="h-16 px-2 sm:px-4 flex items-center bg-base-100 border-b border-base-300 shadow-sm z-20">
@@ -237,6 +239,17 @@ const ChatHeader = ({
                   className="py-2.5 active:scale-95 transition-transform flex items-center gap-2"
                 >
                   <BsStarFill className="text-warning" /> Starred Messages
+                </a>
+              </li>
+              <li>
+                <a
+                  onClick={() => {
+                    setShowHeaderMenu(false);
+                    if (onOpenWallpaperModal) onOpenWallpaperModal();
+                  }}
+                  className="py-2.5 active:scale-95 transition-transform flex items-center gap-2"
+                >
+                  <BsPaletteFill className="text-primary" /> Wallpaper & Theme
                 </a>
               </li>
               <li>

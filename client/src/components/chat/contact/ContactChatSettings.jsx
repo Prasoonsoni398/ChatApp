@@ -4,6 +4,7 @@ import {
   BsLockFill,
   BsUnlockFill,
   BsStarFill,
+  BsPaletteFill,
 } from "react-icons/bs";
 import toast from "react-hot-toast";
 import Dropdown from "../../common/Dropdown.jsx";
@@ -17,6 +18,7 @@ const ContactChatSettings = ({
   isLocked,
   onToggleLock,
   onOpenStarred,
+  onOpenWallpaperModal,
   onClose,
 }) => {
   return (
@@ -132,6 +134,28 @@ const ContactChatSettings = ({
           <span className="text-sm font-medium text-base-content">
             Starred messages
           </span>
+        </div>
+        <span className="text-xs text-base-content/50">›</span>
+      </div>
+
+      {/* Wallpaper & Theme */}
+      <div
+        className="flex items-center justify-between py-1 cursor-pointer hover:bg-base-200/50 rounded-lg p-1 -mx-1"
+        onClick={() => {
+          onClose();
+          onOpenWallpaperModal?.();
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <BsPaletteFill className="text-primary" size={17} />
+          <div>
+            <span className="text-sm font-medium text-base-content block">
+              Wallpaper & Theme
+            </span>
+            <span className="text-xs text-base-content/50">
+              Customize chat appearance & wallpaper
+            </span>
+          </div>
         </div>
         <span className="text-xs text-base-content/50">›</span>
       </div>

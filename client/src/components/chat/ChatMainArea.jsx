@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BsSearch, BsX, BsPinAngleFill } from "react-icons/bs";
 import { IoReturnUpForwardOutline } from "react-icons/io5";
 import ChatHeader from "./ChatHeader.jsx";
 import MessageList from "./MessageList.jsx";
 import ChatInputArea from "./ChatInputArea.jsx";
 import RemoveActionButton from "../common/RemoveActionButton.jsx";
+import {
+  getChatCustomization,
+  DEFAULT_CUSTOMIZATION,
+} from "../../utils/chatCustomization.js";
 
 const ChatMainArea = ({
   state,
@@ -23,6 +27,7 @@ const ChatMainArea = ({
   setShowReportModal,
   setShowGroupInfoModal,
   setShowContactInfoModal,
+  onOpenWallpaperModal,
   currentPinned,
   reactionMapByMsgId,
   handleReact,
@@ -42,14 +47,87 @@ const ChatMainArea = ({
   setShowLocationModal,
   setShowContactModal,
 }) => {
+  const [chatCustomization, setChatCustomizationState] = useState(() =>
+    getChatCustomization(state.selectedChat?.id),
+  );
+
+  useEffect(() => {
+    setChatCustomizationState(getChatCustomization(state.selectedChat?.id));
+
+    const handleCustomizationChange = (e) => {
+      const detail = e.detail;
+      if (
+        !detail ||
+        detail.isGlobal ||
+        detail.chatId === state.selectedChat?.id
+      ) {
+        setChatCustomizationState(getChatCustomization(state.selectedChat?.id));
+      }
+    };
+
+    window.addEventListener(
+      "chat-customization-changed",
+      handleCustomizationChange,
+    );
+    return () =>
+      window.removeEventListener(
+        "chat-customization-changed",
+        handleCustomizationChange,
+      );
+  }, [state.selectedChat?.id]);
+
+  const hasCustomWallpaper =
+    chatCustomization.wallpaperType !== "default" &&
+    chatCustomization.wallpaperValue;
+
   return (
     <div
+      data-theme={
+        chatCustomization.theme && chatCustomization.theme !== "default"
+          ? chatCustomization.theme
+          : undefined
+      }
       className={`flex-1 flex flex-col relative bg-base-200 overflow-hidden ${
         !state.selectedChat ? "hidden md:flex" : "flex"
       }`}
     >
-      {/* Subtle Chat Wallpaper Pattern adapting to any FlyonUI theme */}
-      <div className="absolute inset-0 bg-[url('https://static.whatsapp.net/rsrc.php/v3/yl/r/r_QxI4xW8H8.png')] bg-repeat bg-center opacity-[0.05] pointer-events-none" />
+      {/* ── Base Wallpaper Layer: Color, Preset, or Custom Uploaded Image ── */}
+      {chatCustomization.wallpaperType === "color" &&
+      chatCustomization.wallpaperValue ? (
+        <div
+          className="absolute inset-0 transition-colors duration-300"
+          style={{ backgroundColor: chatCustomization.wallpaperValue }}
+        />
+      ) : (chatCustomization.wallpaperType === "preset" ||
+          chatCustomization.wallpaperType === "custom") &&
+        chatCustomization.wallpaperValue ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-all duration-300"
+          style={{
+            backgroundImage: `url('${chatCustomization.wallpaperValue}')`,
+            filter:
+              chatCustomization.wallpaperBlur > 0
+                ? `blur(${chatCustomization.wallpaperBlur}px)`
+                : "none",
+            transform:
+              chatCustomization.wallpaperBlur > 0 ? "scale(1.05)" : "none",
+          }}
+        />
+      ) : null}
+
+      {/* ── Optional WhatsApp Doodle Pattern ── */}
+      {chatCustomization.showDoodle && (
+        <div className="absolute inset-0 bg-[url('https://static.whatsapp.net/rsrc.php/v3/yl/r/r_QxI4xW8H8.png')] bg-repeat bg-center opacity-[0.06] pointer-events-none" />
+      )}
+
+      {/* ── Wallpaper Dimming Layer (0% to 80%) ── */}
+      {chatCustomization.wallpaperDim > 0 && (
+        <div
+          className="absolute inset-0 bg-black pointer-events-none transition-opacity"
+          style={{ opacity: chatCustomization.wallpaperDim / 100 }}
+        />
+      )}
+
       <div className="relative z-10 flex flex-col flex-1 h-full overflow-hidden">
         {state.selectedChat ? (
           <>
@@ -76,6 +154,7 @@ const ChatMainArea = ({
               setShowClearUndoBanner={state.setShowClearUndoBanner}
               startCall={webRTC.startCall}
               onOpenStarred={() => setShowStarredModal(true)}
+              onOpenWallpaperModal={onOpenWallpaperModal}
               isChatLocked={Boolean(
                 state.selectedChat &&
                 lockedChatIds.includes(state.selectedChat.id),

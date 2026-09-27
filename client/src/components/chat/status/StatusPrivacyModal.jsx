@@ -9,11 +9,19 @@ import {
   BsSearch,
 } from "react-icons/bs";
 import toast from "react-hot-toast";
-import {
-  getStatusPrivacy,
-  updateStatusPrivacy,
-} from "../../../api/status.api.js";
-import { getContacts } from "../../../api/chat.api.js";
+import { getContacts } from "../../../services/contactService.js";
+
+const STORAGE_KEY = "status_privacy_settings";
+
+export const getStoredPrivacy = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    // fallback
+  }
+  return { type: "contacts", excludedUsers: [], allowedUsers: [] };
+};
 
 const StatusPrivacyModal = ({ isOpen, onClose, onSavePrivacy }) => {
   const [privacyType, setPrivacyType] = useState("contacts");
@@ -27,34 +35,24 @@ const StatusPrivacyModal = ({ isOpen, onClose, onSavePrivacy }) => {
   useEffect(() => {
     if (!isOpen) return;
 
-    const loadData = async () => {
+    const initial = getStoredPrivacy();
+    setPrivacyType(initial.type || "contacts");
+    setExcludedUsers(initial.excludedUsers || []);
+    setAllowedUsers(initial.allowedUsers || []);
+
+    const loadContacts = async () => {
       setLoading(true);
       try {
-        const [privacyData, contactsData] = await Promise.all([
-          getStatusPrivacy().catch(() => null),
-          getContacts().catch(() => []),
-        ]);
-
-        if (privacyData) {
-          setPrivacyType(privacyData.type || "contacts");
-          setExcludedUsers(
-            (privacyData.excludedUsers || []).map((u) => u._id || u),
-          );
-          setAllowedUsers(
-            (privacyData.allowedUsers || []).map((u) => u._id || u),
-          );
-        }
-
-        const validContacts = Array.isArray(contactsData) ? contactsData : [];
-        setContacts(validContacts);
+        const data = await getContacts();
+        setContacts(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("Error loading privacy settings:", err);
+        console.error("Error loading contacts:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadData();
+    loadContacts();
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -75,7 +73,7 @@ const StatusPrivacyModal = ({ isOpen, onClose, onSavePrivacy }) => {
     );
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     try {
       setSaving(true);
       const payload = {
@@ -84,13 +82,18 @@ const StatusPrivacyModal = ({ isOpen, onClose, onSavePrivacy }) => {
         allowedUsers: privacyType === "only_share_with" ? allowedUsers : [],
       };
 
-      await updateStatusPrivacy(payload);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch {
+        // ignore
+      }
+
       if (onSavePrivacy) onSavePrivacy(payload);
       toast.success("Status privacy updated");
       onClose();
     } catch (err) {
       console.error("Error saving privacy:", err);
-      toast.error(err.response?.data?.message || "Failed to update privacy");
+      toast.error("Failed to update privacy");
     } finally {
       setSaving(false);
     }
@@ -146,7 +149,7 @@ const StatusPrivacyModal = ({ isOpen, onClose, onSavePrivacy }) => {
                 value="contacts"
                 checked={privacyType === "contacts"}
                 onChange={() => setPrivacyType("contacts")}
-                className="accent-[#25D366] mt-0.5"
+                className="accent-[#25D366] mt-0.5 cursor-pointer"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 font-semibold text-xs text-white">
@@ -173,7 +176,7 @@ const StatusPrivacyModal = ({ isOpen, onClose, onSavePrivacy }) => {
                 value="contacts_except"
                 checked={privacyType === "contacts_except"}
                 onChange={() => setPrivacyType("contacts_except")}
-                className="accent-[#25D366] mt-0.5"
+                className="accent-[#25D366] mt-0.5 cursor-pointer"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
@@ -207,7 +210,7 @@ const StatusPrivacyModal = ({ isOpen, onClose, onSavePrivacy }) => {
                 value="only_share_with"
                 checked={privacyType === "only_share_with"}
                 onChange={() => setPrivacyType("only_share_with")}
-                className="accent-[#25D366] mt-0.5"
+                className="accent-[#25D366] mt-0.5 cursor-pointer"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
