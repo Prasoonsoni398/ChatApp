@@ -61,6 +61,17 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
     }
   }, [state.loggedInUser, fetchStatuses]);
 
+  // Synchronize status updates across devices in real time (PRD Section 42)
+  useEffect(() => {
+    const handleStatusSync = () => {
+      fetchStatuses();
+    };
+    socketAPI.on("statusUpdated", handleStatusSync);
+    return () => {
+      socketAPI.off("statusUpdated", handleStatusSync);
+    };
+  }, [fetchStatuses]);
+
   const handleUploadStatus = async (input) => {
     try {
       setIsUploadingStatus(true);

@@ -253,6 +253,7 @@ const Chat = () => {
           modals={modals}
           activeStatusGroup={activeStatusGroup}
           setActiveStatusGroup={setActiveStatusGroup}
+          onStatusDeleted={fetchStatuses}
           handleJumpToMessage={interactionActions.handleJumpToMessage}
           handleCreatePoll={senderActions.handleCreatePoll}
           handlePasscodeSuccess={securityActions.handlePasscodeSuccess}
