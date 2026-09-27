@@ -1,23 +1,13 @@
-import { useState } from "react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import {
-  BsRocketTakeoffFill,
   BsChatDotsFill,
-  BsShieldLockFill,
   BsClockHistory,
   BsMusicNoteBeamed,
-  BsBroadcast,
   BsArrowRight,
   BsCheckCircleFill,
   BsArrowUpShort,
   BsCameraVideoFill,
-  BsPaletteFill,
-  BsLightningChargeFill,
-  BsCloudSlashFill,
-  BsDownload,
-  BsFillHeartFill,
-  BsGlobe2,
 } from "react-icons/bs";
 import HeroPhone from "../components/HeroPhone.jsx";
 import homeFeatures from "../mockData/homeFeatures.js";
@@ -25,8 +15,6 @@ import useAuthRedirect from "../hooks/useAuthRedirect.js";
 
 const Home = () => {
   useAuthRedirect();
-
-  const [activeTab, setActiveTab] = useState("all");
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
