@@ -1,7 +1,6 @@
-const BASE = "/api/channels";
+import { API_BASE_URL, authHeader } from "../config/api.js";
 
-const getToken = () => localStorage.getItem("token");
-const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
+const BASE = `${API_BASE_URL}/channels`;
 
 export async function getChannels(search = "") {
   const url = search ? `${BASE}?search=${encodeURIComponent(search)}` : BASE;

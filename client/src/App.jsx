@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -9,8 +10,12 @@ import Chat from "./pages/Chat";
 import ForgotPassword from "./pages/ForgotPassword";
 import JoinGroupPage from "./pages/JoinGroupPage";
 import MediaExpiryNoticeModal from "./components/common/MediaExpiryNoticeModal";
+import { wakeUpBackend } from "./config/api";
 
 const App = () => {
+  useEffect(() => {
+    wakeUpBackend();
+  }, []);
   return (
     <BrowserRouter>
       {/* Global Toaster for notifications */}

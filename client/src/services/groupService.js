@@ -4,11 +4,9 @@
  * Auth token is read from localStorage internally.
  */
 
-const BASE = "/api/groups";
+import { API_BASE_URL, authHeader } from "../config/api.js";
 
-const getToken = () => localStorage.getItem("token");
-
-const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
+const BASE = `${API_BASE_URL}/groups`;
 
 /**
  * Fetch all groups the logged-in user belongs to.

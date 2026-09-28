@@ -1,7 +1,6 @@
-const BASE = "/api/status";
+import { API_BASE_URL, authHeader, getToken } from "../config/api.js";
 
-const getToken = () => localStorage.getItem("token");
-const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
+const BASE = `${API_BASE_URL}/status`;
 
 export const uploadStatus = async (formData) => {
   const res = await fetch(BASE, {

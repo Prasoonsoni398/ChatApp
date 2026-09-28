@@ -27,23 +27,37 @@ connectDB();
 
 const app = express();
 
+const envOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((url) => url.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
 const staticOrigins = [
-  process.env.CLIENT_URL,
+  ...envOrigins,
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://localhost:5175",
   "http://localhost:3000",
   "https://chat-app-two-rosy-94.vercel.app",
-]
-  .filter(Boolean)
-  .map((url) => url.replace(/\/$/, ""));
+];
 
 const isAllowedOrigin = (origin) => {
+  // Allow requests without Origin (same-origin, curl, server-to-server, mobile native)
   if (!origin) return true;
+  // If CLIENT_URL is set to "*", allow all origins
+  if (process.env.CLIENT_URL === "*") return true;
+
   const cleanOrigin = origin.replace(/\/$/, "");
   if (staticOrigins.includes(cleanOrigin)) return true;
-  // Match any Vercel or Render deployment domain
+
+  // Match localhost or 127.0.0.1 on any port
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
+
+  // Match any Vercel, Render, or Netlify deployment domain
   if (/^https:\/\/.*\.vercel\.app$/.test(cleanOrigin)) return true;
   if (/^https:\/\/.*\.onrender\.com$/.test(cleanOrigin)) return true;
+  if (/^https:\/\/.*\.netlify\.app$/.test(cleanOrigin)) return true;
+
   return false;
 };
 
@@ -52,15 +66,34 @@ const corsOptions = {
     if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS blocked origin: ${origin}`));
+      // Return null, false to reject origin without crashing Express
+      callback(null, false);
     }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+  ],
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Health Check Endpoint (useful for Render keep-alive pings and uptime monitors)
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "ChatApp Server API is active",
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
@@ -77,7 +110,7 @@ const clientDistPath = path.resolve(__dirname, "../client/dist");
 app.use(express.static(clientDistPath));
 
 // Fallback for SPA client routing (Express 5 compatible)
-app.use((req, res) => {
+app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ message: "API route not found" });
   }
@@ -86,6 +119,15 @@ app.use((req, res) => {
     if (err) {
       res.send("Welcome to ChatApp Server (API is running)");
     }
+  });
+});
+
+// Express Global Error Handler (guarantees CORS headers and JSON format on any unhandled error)
+app.use((err, req, res, next) => {
+  console.error("[ServerError]:", err.message || err);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({
+    message: err.message || "Internal server error",
   });
 });
 
@@ -104,6 +146,7 @@ WebSocket(io);
 // Start the 48-hour media expiry cron job
 scheduleMediaCleanup();
 
-httpServer.listen(PORT, () => {
+// Listen on 0.0.0.0 for external container routing on Render/Docker/Railway
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });

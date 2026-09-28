@@ -11,7 +11,8 @@ import {
 const client = new OAuth2Client(process.env.VITE_GOOGLE_CLIENT_ID);
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  const secret = process.env.JWT_SECRET || "chatapp_jwt_fallback_secret_key_2026";
+  return jwt.sign({ id }, secret, {
     expiresIn: "30d",
   });
 };

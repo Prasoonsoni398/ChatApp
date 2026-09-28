@@ -3,14 +3,9 @@
  * API calls for reporting users, groups, channels, and messages (PRD Section 68).
  */
 
-const BASE = "/api/reports";
+import { API_BASE_URL, authHeader } from "../config/api.js";
 
-const getToken = () => localStorage.getItem("token");
-
-const authHeader = () => ({
-  Authorization: `Bearer ${getToken()}`,
-  "Content-Type": "application/json",
-});
+const BASE = `${API_BASE_URL}/reports`;
 
 /**
  * Submit a moderation report.

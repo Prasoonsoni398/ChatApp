@@ -1,12 +1,12 @@
 import { io } from "socket.io-client";
+import { BACKEND_URL, DEFAULT_PROD_BACKEND } from "./api.js";
 
-// Use the env variable. Falls back to deployed backend if not set.
-// In production builds VITE_BACKEND_URL must be set to the deployed API URL.
-const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || "https://guftgu-fsrp.onrender.com";
+// In production, fallback to deployed Render backend URL.
+// In dev, use BACKEND_URL if set, or current origin / localhost:5000.
+const socketTarget = BACKEND_URL || DEFAULT_PROD_BACKEND;
 
-const socketAPI = io(BACKEND_URL, {
-  transports: ["websocket", "polling"],
+const socketAPI = io(socketTarget, {
+  transports: ["polling", "websocket"],
   withCredentials: true,
   autoConnect: true,
   reconnection: true,
@@ -17,3 +17,4 @@ const socketAPI = io(BACKEND_URL, {
 });
 
 export default socketAPI;
+

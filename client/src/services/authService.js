@@ -3,7 +3,9 @@
  * All authentication-related API calls.
  */
 
-const BASE = "/api/auth";
+import { API_BASE_URL } from "../config/api.js";
+
+const BASE = `${API_BASE_URL}/auth`;
 
 /**
  * Log in with phone number or email + password.

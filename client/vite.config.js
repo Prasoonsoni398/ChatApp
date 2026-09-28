@@ -10,7 +10,10 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://guftgu-fsrp.onrender.com",
+        target:
+          process.env.VITE_BACKEND_URL ||
+          process.env.VITE_DEV_BACKEND_URL ||
+          "https://guftgu-fsrp.onrender.com",
         changeOrigin: true,
       },
     },

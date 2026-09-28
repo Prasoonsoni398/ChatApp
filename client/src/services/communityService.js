@@ -1,7 +1,6 @@
-const BASE = "/api/communities";
+import { API_BASE_URL, authHeader } from "../config/api.js";
 
-const getToken = () => localStorage.getItem("token");
-const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
+const BASE = `${API_BASE_URL}/communities`;
 
 export async function getCommunities() {
   const res = await fetch(BASE, { headers: authHeader() });

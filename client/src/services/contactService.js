@@ -3,10 +3,9 @@
  * WhatsApp-style contacts: search by phone, add, remove, list.
  */
 
-const BASE = "/api/contacts";
+import { API_BASE_URL, authHeader } from "../config/api.js";
 
-const getToken = () => localStorage.getItem("token");
-const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
+const BASE = `${API_BASE_URL}/contacts`;
 
 /**
  * Search for a user by phone number.
