@@ -41,9 +41,17 @@ export const getUsers = async (req, res) => {
 
     const uniqueIds = [...new Set([...contactIds, ...messageUserIds])];
 
-    const allChatUsers = await User.find({
-      _id: { $in: uniqueIds },
-    }).select("name email phone avatar online about privacySettings");
+    let allChatUsers;
+    if (uniqueIds.length > 0) {
+      allChatUsers = await User.find({
+        _id: { $in: uniqueIds, $ne: myId },
+      }).select("name email phone avatar online about privacySettings");
+    } else {
+      // Fallback: If user has no contacts or message partners yet, return all other registered users
+      allChatUsers = await User.find({
+        _id: { $ne: myId },
+      }).select("name email phone avatar online about privacySettings");
+    }
 
     // Build nickname map
     const nicknameMap = new Map();
@@ -133,8 +141,10 @@ export const getUserProfile = async (req, res) => {
  */
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ isVerified: true }).select(
-      "name email phone avatar",
+    const myId = req.user?._id;
+    const query = myId ? { _id: { $ne: myId } } : {};
+    const users = await User.find(query).select(
+      "name email phone avatar online about privacySettings",
     );
     res.status(200).json(users);
   } catch (error) {

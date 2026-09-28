@@ -255,31 +255,50 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
   const fetchChats = useCallback(async () => {
     const loggedInUserData = JSON.parse(localStorage.getItem("user"));
     try {
-      const [users, groups] = await Promise.all([
-        userService.getAllUsers(),
-        groupService.getGroups(),
+      const [users, groups, allVerifiedUsers] = await Promise.all([
+        userService.getAllUsers().catch((err) => {
+          console.warn("getAllUsers error:", err);
+          return [];
+        }),
+        groupService.getGroups().catch((err) => {
+          console.warn("getGroups error:", err);
+          return [];
+        }),
+        userService.getAllVerifiedUsers().catch((err) => {
+          console.warn("getAllVerifiedUsers error:", err);
+          return [];
+        }),
       ]);
 
-      const validUsers = Array.isArray(users)
-        ? users.filter((u) => u && u._id)
-        : [];
-      const dmChats = validUsers
-        .filter((u) => u._id !== loggedInUserData?._id)
-        .map((u) => ({
-          id: u._id,
-          name: u.name,
-          customName: u.customName,
-          displayName: u.displayName || u.customName || u.name,
-          phone: u.phone,
-          about: u.about,
-          isGroup: false,
-          lastMessage: "Tap to start chatting",
-          time: "",
-          unread: 0,
-          avatar:
-            u.avatar ||
-            `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`,
-        }));
+      const myId = loggedInUserData?._id;
+      const validUsers = (Array.isArray(users) ? users : []).filter(
+        (u) => u && u._id && u._id !== myId,
+      );
+
+      const validAllUsers = (Array.isArray(allVerifiedUsers)
+        ? allVerifiedUsers
+        : []
+      ).filter((u) => u && u._id && u._id !== myId);
+
+      // If existing contacts/chats are empty, display other registered users to start chatting
+      const displayDmUsers =
+        validUsers.length > 0 ? validUsers : validAllUsers;
+
+      const dmChats = displayDmUsers.map((u) => ({
+        id: u._id,
+        name: u.name,
+        customName: u.customName,
+        displayName: u.displayName || u.customName || u.name,
+        phone: u.phone,
+        about: u.about,
+        isGroup: false,
+        lastMessage: "Tap to start chatting",
+        time: "",
+        unread: 0,
+        avatar:
+          u.avatar ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`,
+      }));
 
       const groupChats = (groups || []).map((g) => ({
         id: g._id,
@@ -295,10 +314,18 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
           `https://api.dicebear.com/7.x/avataaars/svg?seed=${g.name}`,
       }));
 
-      const myContacts = validUsers.filter(
-        (u) => u._id !== loggedInUserData?._id,
+      // Merge all users with contacts so NewChatSidebar and CreateGroupModal show all contacts
+      const usersMap = new Map();
+      validAllUsers.forEach((u) => usersMap.set(u._id.toString(), u));
+      validUsers.forEach((u) => {
+        const existing = usersMap.get(u._id.toString()) || {};
+        usersMap.set(u._id.toString(), { ...existing, ...u });
+      });
+      const fullUsersList = Array.from(usersMap.values());
+
+      state.setAllUsers(
+        fullUsersList.length > 0 ? fullUsersList : displayDmUsers,
       );
-      state.setAllUsers(myContacts);
       state.setChats([...groupChats, ...dmChats]);
     } catch (_e) {
       console.error("Error fetching chats:", _e);
