@@ -7,14 +7,33 @@
 // Production fallback deployed backend on Render
 export const DEFAULT_PROD_BACKEND = "https://guftgu-fsrp.onrender.com";
 
-const envUrl =
-  import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
+const getCleanBackendUrl = () => {
+  const envUrl = (
+    import.meta.env.VITE_BACKEND_URL ||
+    import.meta.env.VITE_API_URL ||
+    ""
+  ).trim();
 
-// In production, fallback to Render backend if env is omitted.
-// In dev, use empty string if env is omitted so Vite proxy handles /api
-export const BACKEND_URL = (
-  envUrl || (import.meta.env.PROD ? DEFAULT_PROD_BACKEND : "")
-).replace(/\/$/, "");
+  const isBrowser = typeof window !== "undefined";
+  const isDeployedHost =
+    isBrowser &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1";
+
+  // In production builds or when running on any live deployed domain:
+  // Never allow localhost / 127.0.0.1 because live users cannot connect to localhost!
+  if (import.meta.env.PROD || isDeployedHost) {
+    if (!envUrl || envUrl.includes("localhost") || envUrl.includes("127.0.0.1")) {
+      return DEFAULT_PROD_BACKEND;
+    }
+    return envUrl;
+  }
+
+  // Local development
+  return envUrl;
+};
+
+export const BACKEND_URL = getCleanBackendUrl().replace(/\/$/, "");
 
 // API base URL for REST requests (e.g. "https://guftgu-fsrp.onrender.com/api" or "/api")
 export const API_BASE_URL = BACKEND_URL ? `${BACKEND_URL}/api` : "/api";

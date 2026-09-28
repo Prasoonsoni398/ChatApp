@@ -1,9 +1,17 @@
 import { io } from "socket.io-client";
 import { BACKEND_URL, DEFAULT_PROD_BACKEND } from "./api.js";
 
-// In production, fallback to deployed Render backend URL.
-// In dev, use BACKEND_URL if set, or current origin / localhost:5000.
-const socketTarget = BACKEND_URL || DEFAULT_PROD_BACKEND;
+// Determine the clean socket server target
+const isBrowser = typeof window !== "undefined";
+const isDeployedHost =
+  isBrowser &&
+  window.location.hostname !== "localhost" &&
+  window.location.hostname !== "127.0.0.1";
+
+let socketTarget = BACKEND_URL;
+if (!socketTarget || (isDeployedHost && (socketTarget.includes("localhost") || socketTarget.includes("127.0.0.1")))) {
+  socketTarget = DEFAULT_PROD_BACKEND;
+}
 
 const socketAPI = io(socketTarget, {
   transports: ["polling", "websocket"],
@@ -16,5 +24,12 @@ const socketAPI = io(socketTarget, {
   timeout: 20000,
 });
 
-export default socketAPI;
+socketAPI.on("connect", () => {
+  console.log("🟢 [WebSocket] Connected successfully to:", socketTarget, "ID:", socketAPI.id);
+});
 
+socketAPI.on("connect_error", (err) => {
+  console.warn("🟡 [WebSocket] Connection attempt notice:", err.message);
+});
+
+export default socketAPI;
