@@ -1,10 +1,10 @@
-import React from "react";
-import { BsChevronRight } from "react-icons/bs";
+import { BsChevronRight, BsBoxArrowRight } from "react-icons/bs";
 
 const SettingsMainList = ({
   currentUser,
   settingCategories,
   onSelectCategory,
+  handleLogout,
 }) => {
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-2 flex flex-col justify-between">
@@ -83,6 +83,36 @@ const SettingsMainList = ({
             </button>
           ))}
         </div>
+
+        {/* Log Out Option */}
+        {handleLogout && (
+          <div className="pt-2 pb-4">
+            <div className="divider my-1.5" />
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full flex items-center justify-between py-3 px-2.5 rounded-xl bg-error/5 hover:bg-error/10 active:scale-[0.99] transition-all text-left border border-error/20 group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-error/15 text-error flex items-center justify-center flex-shrink-0 text-sm">
+                  <BsBoxArrowRight size={16} />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-semibold text-xs sm:text-sm text-error block leading-tight">
+                    Log out
+                  </span>
+                  <span className="text-[11px] text-error/70 block truncate leading-tight mt-0.5">
+                    Sign out of ChatApp on this phone
+                  </span>
+                </div>
+              </div>
+              <BsChevronRight
+                size={13}
+                className="text-error/50 group-hover:translate-x-0.5 transition-all flex-shrink-0 ml-1.5"
+              />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

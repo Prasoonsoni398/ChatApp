@@ -37,6 +37,7 @@ const PrivacySettingsModal = ({
   loggedInUser,
   onUserUpdated,
   onAllChatsCleared,
+  handleLogout,
 }) => {
   const {
     currentUser,
@@ -166,6 +167,10 @@ const PrivacySettingsModal = ({
         <SettingsMainList
           currentUser={currentUser}
           settingCategories={settingCategories}
+          handleLogout={() => {
+            onClose?.();
+            handleLogout?.();
+          }}
           onSelectCategory={(catId) => {
             setSelectedCategory(catId);
             setActiveTab(catId);
@@ -243,6 +248,10 @@ const PrivacySettingsModal = ({
               handleToggleSecurityNotifs={handleToggleSecurityNotifs}
               handleExportAccountData={handleExportAccountData}
               isExportingData={isExportingData}
+              handleLogout={() => {
+                onClose?.();
+                handleLogout?.();
+              }}
               onOpenDeleteAccountModal={() => {
                 setDeleteConfirmText("");
                 setShowDeleteAccountModal(true);

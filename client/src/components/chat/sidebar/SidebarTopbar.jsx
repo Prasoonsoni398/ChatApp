@@ -10,6 +10,7 @@ import {
   BsMegaphoneFill,
   BsPersonPlusFill,
   BsArrowClockwise,
+  BsBoxArrowRight,
 } from "react-icons/bs";
 import { hoverPrimary } from "../../../constants/styles.js";
 
@@ -201,6 +202,18 @@ const SidebarTopbar = ({
                   className="flex items-center gap-2 py-2 text-primary font-medium"
                 >
                   <BsMegaphoneFill size={15} /> Channels &amp; Broadcast
+                </a>
+              </li>
+              <div className="divider my-1" />
+              <li>
+                <a
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    handleLogout?.();
+                  }}
+                  className="flex items-center gap-2 py-2 text-error font-medium hover:bg-error/10 cursor-pointer"
+                >
+                  <BsBoxArrowRight size={15} className="text-error" /> Log out
                 </a>
               </li>
             </ul>

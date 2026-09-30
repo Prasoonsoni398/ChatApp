@@ -1,9 +1,9 @@
-import React from "react";
 import {
   BsShieldCheck,
   BsFileEarmarkArrowDownFill,
   BsDownload,
   BsPersonXFill,
+  BsBoxArrowRight,
 } from "react-icons/bs";
 import ToggleSwitch from "../../common/ToggleSwitch.jsx";
 import RemoveActionButton from "../../common/RemoveActionButton.jsx";
@@ -14,6 +14,7 @@ const AccountTabContent = ({
   handleExportAccountData,
   isExportingData,
   onOpenDeleteAccountModal,
+  handleLogout,
 }) => {
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -85,6 +86,37 @@ const AccountTabContent = ({
           </div>
         </div>
       </div>
+
+      {/* Session / Log Out */}
+      {handleLogout && (
+        <div>
+          <h4 className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-2">
+            Active Session
+          </h4>
+          <div className="p-4 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-error/15 text-error flex-shrink-0">
+                <BsBoxArrowRight size={18} />
+              </div>
+              <div>
+                <span className="text-sm font-bold block text-base-content">
+                  Log out of ChatApp
+                </span>
+                <span className="text-xs text-base-content/60 block mt-0.5">
+                  Sign out of this browser device
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="btn btn-sm btn-error btn-outline rounded-xl px-4 cursor-pointer"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Delete Account (PRD Section 104) */}
       <div>

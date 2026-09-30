@@ -259,6 +259,7 @@ const Chat = () => {
             isOpen={modals.showPrivacyModal}
             onClose={() => modals.setShowPrivacyModal(false)}
             loggedInUser={state.loggedInUser}
+            handleLogout={handleLogout}
             onUserUpdated={(updated) => {
               state.setLoggedInUser(updated);
             }}
