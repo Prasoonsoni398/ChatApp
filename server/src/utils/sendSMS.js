@@ -53,6 +53,7 @@ const sendSMS = async ({ phone, otp, message }) => {
             "Content-Type": "application/x-www-form-urlencoded",
           },
           body: bodyParams.toString(),
+          signal: AbortSignal.timeout(4000),
         },
       );
 
@@ -87,6 +88,7 @@ const sendSMS = async ({ phone, otp, message }) => {
           variables_values: otp,
           numbers: cleanDigits,
         }),
+        signal: AbortSignal.timeout(4000),
       });
 
       const f2sData = await f2sRes.json();
@@ -111,6 +113,7 @@ const sendSMS = async ({ phone, otp, message }) => {
       const cleanDigits = phone.replace(/[^0-9]/g, "").slice(-10);
       const tfRes = await fetch(
         `https://2factor.in/v1/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/${cleanDigits}/${otp}/ChatApp+OTP`,
+        { signal: AbortSignal.timeout(4000) },
       );
       const tfData = await tfRes.json();
       if (tfData.Status === "Success") {

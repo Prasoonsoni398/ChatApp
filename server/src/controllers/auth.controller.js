@@ -21,12 +21,44 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Normalise phone: strip spaces/dashes, ensure leading +
+// Normalise phone: strip spaces/dashes, handle Indian 10-digit numbers, ensure leading +
 const normalisePhone = (raw) => {
   if (!raw) return null;
-  let p = raw.replace(/[\s\-().]/g, "");
-  if (!p.startsWith("+")) p = `+${p}`;
+  let p = raw.toString().replace(/[\s\-().]/g, "");
+  if (!p.startsWith("+")) {
+    if (p.startsWith("0") && p.length === 11) {
+      p = `+91${p.slice(1)}`;
+    } else if (p.length === 10) {
+      p = `+91${p}`;
+    } else {
+      p = `+${p}`;
+    }
+  }
   return p;
+};
+
+// Generates phone lookup candidates to match numbers with or without country code (+91, raw, 10-digit)
+const getPhoneSearchCandidates = (rawPhone) => {
+  if (!rawPhone) return [];
+  const rawStr = rawPhone.toString().trim();
+  const norm = normalisePhone(rawStr);
+  const clean = rawStr.replace(/\D/g, "");
+  const candidates = new Set([norm, rawStr]);
+  if (clean.length === 10) {
+    candidates.add(`+91${clean}`);
+    candidates.add(`+${clean}`);
+    candidates.add(clean);
+  } else if (clean.length > 10) {
+    candidates.add(`+${clean}`);
+    candidates.add(clean);
+    if (clean.startsWith("91") && clean.length === 12) {
+      const ten = clean.slice(2);
+      candidates.add(`+91${ten}`);
+      candidates.add(`+${ten}`);
+      candidates.add(ten);
+    }
+  }
+  return Array.from(candidates).filter(Boolean);
 };
 
 /* ─────────────────────────────────────────
@@ -42,14 +74,23 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Name is required" });
     }
 
-    if (!phone || !phone.trim()) {
+    if (!phone || !phone.toString().trim()) {
       return res.status(400).json({ message: "Phone number is required" });
     }
 
-    const normPhone = normalisePhone(phone);
+    if (!password || password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
 
-    // Check duplicate phone
-    const existingPhone = await User.findOne({ phone: normPhone });
+    const normPhone = normalisePhone(phone);
+    const phoneCandidates = getPhoneSearchCandidates(phone);
+
+    // Check duplicate phone across potential candidate formats
+    const existingPhone = await User.findOne({
+      phone: { $in: phoneCandidates },
+    });
     if (existingPhone && existingPhone.isVerified) {
       return res
         .status(400)
@@ -57,15 +98,21 @@ export const registerUser = async (req, res) => {
     }
 
     // Check duplicate email if provided
-    if (email && email.trim()) {
-      const cleanEmail = email.trim().toLowerCase();
+    if (email && email.toString().trim()) {
+      const cleanEmail = email.toString().trim().toLowerCase();
       const existingEmail = await User.findOne({ email: cleanEmail });
       if (
         existingEmail &&
         (!existingPhone ||
           existingEmail._id.toString() !== existingPhone._id.toString())
       ) {
-        return res.status(400).json({ message: "Email already registered" });
+        if (existingEmail.isVerified) {
+          return res.status(400).json({ message: "Email already registered. Please log in." });
+        } else {
+          // If the other user record was never verified, release the email so new registration can proceed
+          existingEmail.email = undefined;
+          await existingEmail.save();
+        }
       }
     }
 
@@ -76,7 +123,12 @@ export const registerUser = async (req, res) => {
     if (user && !user.isVerified) {
       user.name = name.trim();
       user.password = password;
-      if (email && email.trim()) user.email = email.trim().toLowerCase();
+      user.phone = normPhone;
+      if (email && email.toString().trim()) {
+        user.email = email.toString().trim().toLowerCase();
+      } else {
+        user.email = undefined;
+      }
       user.otp = otp;
       user.otpExpires = otpExpires;
       await user.save();
@@ -84,7 +136,10 @@ export const registerUser = async (req, res) => {
       user = await User.create({
         name: name.trim(),
         phone: normPhone,
-        email: email && email.trim() ? email.trim().toLowerCase() : undefined,
+        email:
+          email && email.toString().trim()
+            ? email.toString().trim().toLowerCase()
+            : undefined,
         password,
         otp,
         otpExpires,
@@ -92,7 +147,7 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Forward OTP in real-time via SMS Gateway
+    // Forward OTP in real-time via SMS Gateway (with timeout safety)
     const smsResult = await sendSMS({
       phone: normPhone,
       otp,
@@ -100,30 +155,26 @@ export const registerUser = async (req, res) => {
     });
 
     let emailSent = false;
-    // If an email address is provided, also send verification code to email
-    if (user.email) {
+    // If an email address is provided and credentials exist, attempt safe email delivery without blocking response
+    if (
+      user.email &&
+      process.env.GMAIL_USERNAME &&
+      process.env.GMAIL_PASSCODE
+    ) {
       try {
-        await sendEmail({
+        const emailPromise = sendEmail({
           email: user.email,
           subject: "Your ChatApp Verification Code",
           html: getVerificationEmailTemplate(otp, user.name),
         });
-        emailSent = true;
+        const timeoutPromise = new Promise((resolve) =>
+          setTimeout(() => resolve(null), 3000),
+        );
+        const emailRes = await Promise.race([emailPromise, timeoutPromise]);
+        if (emailRes) emailSent = true;
       } catch (emailErr) {
-        console.warn("Email dispatch notice:", emailErr.message);
+        console.warn("Email dispatch notice (non-fatal):", emailErr.message);
       }
-    }
-
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("newUserRegistered", {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        avatar: user.avatar,
-        about: user.about,
-      });
     }
 
     res.status(201).json({
@@ -157,7 +208,8 @@ export const resendPhoneOTP = async (req, res) => {
     }
 
     const normPhone = normalisePhone(phone);
-    const user = await User.findOne({ phone: normPhone });
+    const phoneCandidates = getPhoneSearchCandidates(phone);
+    const user = await User.findOne({ phone: { $in: phoneCandidates } });
 
     if (!user) {
       return res
@@ -178,16 +230,24 @@ export const resendPhoneOTP = async (req, res) => {
     });
 
     let emailSent = false;
-    if (user.email) {
+    if (
+      user.email &&
+      process.env.GMAIL_USERNAME &&
+      process.env.GMAIL_PASSCODE
+    ) {
       try {
-        await sendEmail({
+        const emailPromise = sendEmail({
           email: user.email,
           subject: "Your New ChatApp Verification Code",
           html: getVerificationEmailTemplate(otp, user.name),
         });
-        emailSent = true;
+        const timeoutPromise = new Promise((resolve) =>
+          setTimeout(() => resolve(null), 3000),
+        );
+        const emailRes = await Promise.race([emailPromise, timeoutPromise]);
+        if (emailRes) emailSent = true;
       } catch (emailErr) {
-        console.warn("Email dispatch notice:", emailErr.message);
+        console.warn("Email dispatch notice (non-fatal):", emailErr.message);
       }
     }
 
@@ -222,10 +282,10 @@ export const verifyOTP = async (req, res) => {
 
     let user;
     if (phone) {
-      const normPhone = normalisePhone(phone);
-      user = await User.findOne({ phone: normPhone });
+      const phoneCandidates = getPhoneSearchCandidates(phone);
+      user = await User.findOne({ phone: { $in: phoneCandidates } });
     } else if (email) {
-      user = await User.findOne({ email: email.trim().toLowerCase() });
+      user = await User.findOne({ email: email.toString().trim().toLowerCase() });
     }
 
     if (!user) {
@@ -251,6 +311,10 @@ export const verifyOTP = async (req, res) => {
     user.isVerified = true;
     user.otp = undefined;
     user.otpExpires = undefined;
+    // Standardize stored phone number to clean E.164 if needed
+    if (user.phone && !user.phone.startsWith("+")) {
+      user.phone = normalisePhone(user.phone);
+    }
     await user.save();
 
     const token = generateToken(user._id);
@@ -297,13 +361,12 @@ export const loginUser = async (req, res) => {
         .json({ message: "Phone number or email and password are required" });
     }
 
-    const normPhone = normalisePhone(loginIdentifier);
+    const phoneCandidates = getPhoneSearchCandidates(loginIdentifier);
 
-    // Search by normalized phone, raw input, or email
+    // Search by any normalized or raw phone format or by email
     const user = await User.findOne({
       $or: [
-        { phone: normPhone },
-        { phone: loginIdentifier },
+        { phone: { $in: phoneCandidates } },
         { email: loginIdentifier.toLowerCase() },
       ],
     });
