@@ -21,6 +21,9 @@ import {
 const StreamCard = ({
   stream,
   isLocal,
+  isScreenShare = false,
+  onStopScreenShare = null,
+  isCompact = false,
   muted = false,
   userName = "User",
   userAvatar = "",
@@ -43,6 +46,60 @@ const StreamCard = ({
     stream.getVideoTracks().length > 0 &&
     stream.getVideoTracks().some((t) => t.enabled);
 
+  // If local user is screen sharing, display the anti-infinite-mirror Presenter Card
+  if (isLocal && isScreenShare) {
+    if (isCompact) {
+      return (
+        <div
+          onClick={onClick}
+          className={`relative w-full h-full overflow-hidden bg-zinc-900 flex flex-col items-center justify-center p-3 text-center select-none ${className}`}
+        >
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-1.5 shadow-md">
+            <BsDisplay size={20} />
+          </div>
+          <span className="text-white text-xs font-semibold">Sharing Screen</span>
+          <span className="text-emerald-400 text-[10px] mt-0.5 font-medium">Live to call</span>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        onClick={onClick}
+        className={`relative w-full h-full overflow-hidden bg-gradient-to-b from-[#111b21] via-[#0c1317] to-[#080d10] flex flex-col items-center justify-center p-6 text-center select-none ${className}`}
+      >
+        <div className="relative mb-5">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-emerald-500/15 border-2 border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-2xl animate-pulse">
+            <BsDisplay size={44} />
+          </div>
+          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500" />
+          </span>
+        </div>
+        <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight">
+          You are sharing your screen
+        </h3>
+        <p className="text-white/60 text-xs sm:text-sm max-w-sm leading-relaxed mb-6">
+          Your screen is being shared live with the call in full quality. Mirror preview is paused here to prevent infinite tunnel copies.
+        </p>
+        {onStopScreenShare && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStopScreenShare();
+            }}
+            className="btn bg-red-600 hover:bg-red-700 active:scale-95 text-white rounded-full px-6 border-none shadow-xl shadow-red-600/30 flex items-center gap-2 cursor-pointer font-medium text-sm transition-all"
+          >
+            <BsTelephoneXFill size={14} />
+            <span>Stop Sharing</span>
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={onClick}
@@ -55,9 +112,9 @@ const StreamCard = ({
           autoPlay
           playsInline
           muted={muted || isLocal}
-          className={`w-full h-full object-cover pointer-events-none ${
-            isLocal ? "scale-x-[-1]" : ""
-          }`}
+          className={`w-full h-full pointer-events-none ${
+            isScreenShare ? "object-contain bg-black" : "object-cover"
+          } ${isLocal && !isScreenShare ? "scale-x-[-1]" : ""}`}
         />
       ) : (
         /* Video Off or Voice-only Avatar Card */
@@ -161,6 +218,13 @@ const CallOverlay = ({
       });
     }
   }, [isVideoOff, localStream]);
+
+  // When screen sharing starts or stops, ensure camera video is enabled
+  useEffect(() => {
+    if (!isScreenSharing && callType === "video") {
+      setIsVideoOff(false);
+    }
+  }, [isScreenSharing, callType]);
 
   if (callState === "idle") return null;
 
@@ -368,6 +432,9 @@ const CallOverlay = ({
             <StreamCard
               stream={mainStream}
               isLocal={isMainLocal}
+              isScreenShare={isScreenSharing}
+              onStopScreenShare={toggleScreenShare}
+              isCompact={false}
               muted={isMainLocal}
               userName={mainUserName}
               userAvatar={mainUserAvatar}
@@ -433,6 +500,9 @@ const CallOverlay = ({
             <StreamCard
               stream={pipStream}
               isLocal={isPipLocal}
+              isScreenShare={isScreenSharing}
+              onStopScreenShare={toggleScreenShare}
+              isCompact={true}
               muted={isPipLocal}
               userName={pipUserName}
               userAvatar={pipUserAvatar}

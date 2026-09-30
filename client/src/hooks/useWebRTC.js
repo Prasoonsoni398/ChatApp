@@ -52,8 +52,9 @@ const useWebRTC = (loggedInUser) => {
   const targetPeerIdRef = useRef(null);
   const activeRoomIdRef = useRef(null);
   const pendingOfferRef = useRef(null);
-  const queuedIceCandidatesRef = useRef([]);
   const screenTrackRef = useRef(null);
+  const camTrackRef = useRef(null);
+  const isScreenSharingRef = useRef(false);
 
   // Maintain reference to current callState so socket callbacks never drop or trigger re-binding
   const callStateRef = useRef(callState);
@@ -371,6 +372,10 @@ const useWebRTC = (loggedInUser) => {
       });
       setLocalStream(stream);
       localStreamRef.current = stream;
+      const camTrack = stream.getVideoTracks()[0];
+      if (camTrack) {
+        camTrackRef.current = camTrack;
+      }
 
       // 2. Ring the target user via WebSocket
       socketAPI.emit("ringUser", {
@@ -443,6 +448,10 @@ const useWebRTC = (loggedInUser) => {
       });
       setLocalStream(stream);
       localStreamRef.current = stream;
+      const camTrack = stream.getVideoTracks()[0];
+      if (camTrack) {
+        camTrackRef.current = camTrack;
+      }
 
       // 2. Initialize PeerConnection
       const pc = createPeerConnection(callerId);
@@ -559,10 +568,21 @@ const useWebRTC = (loggedInUser) => {
     // Stop screen share track if any
     if (screenTrackRef.current) {
       try {
+        screenTrackRef.current.onended = null;
         screenTrackRef.current.stop();
       } catch (_e) {}
       screenTrackRef.current = null;
     }
+
+    // Stop preserved camera track if any
+    if (camTrackRef.current) {
+      try {
+        camTrackRef.current.stop();
+      } catch (_e) {}
+      camTrackRef.current = null;
+    }
+
+    isScreenSharingRef.current = false;
 
     localStreamRef.current = null;
     targetPeerIdRef.current = null;
@@ -583,79 +603,135 @@ const useWebRTC = (loggedInUser) => {
   /**
    * Toggle screen share using native replaceTrack
    */
-  const toggleScreenShare = async () => {
-    if (!pcRef.current || !localStreamRef.current) return;
+  /**
+   * Stop screen sharing and cleanly restore camera video track
+   */
+  const stopScreenShare = async () => {
+    if (!isScreenSharingRef.current) return;
+    isScreenSharingRef.current = false;
+    setIsScreenSharing(false);
 
-    if (isScreenSharing) {
-      // Revert from screen share to webcam
+    // 1. Terminate screen track
+    if (screenTrackRef.current) {
       try {
-        const camStream = await navigator.mediaDevices.getUserMedia({
+        screenTrackRef.current.onended = null;
+        screenTrackRef.current.stop();
+      } catch (_e) {}
+      screenTrackRef.current = null;
+    }
+
+    // 2. Restore or re-acquire camera video track
+    let camTrack = camTrackRef.current;
+    if (!camTrack || camTrack.readyState === "ended") {
+      try {
+        // Request CAMERA ONLY (never request audio, audio is already active and running!)
+        const newCamStream = await navigator.mediaDevices.getUserMedia({
           video: true,
-          audio: true,
-        });
-        const camVideoTrack = camStream.getVideoTracks()[0];
-
-        // Replace video track in peer connection
-        const senders = pcRef.current.getSenders();
-        const videoSender = senders.find(
-          (s) => s.track && s.track.kind === "video",
-        );
-        if (videoSender && camVideoTrack) {
-          await videoSender.replaceTrack(camVideoTrack);
-        }
-
-        if (screenTrackRef.current) {
-          screenTrackRef.current.stop();
-          screenTrackRef.current = null;
-        }
-
-        // Update localStream
-        const updatedStream = new MediaStream([
-          ...localStreamRef.current.getAudioTracks(),
-          camVideoTrack,
-        ]);
-        localStreamRef.current = updatedStream;
-        setLocalStream(updatedStream);
-        setIsScreenSharing(false);
-      } catch (err) {
-        toast.error("Could not switch back to camera");
-        console.error(err);
-      }
-    } else {
-      // Switch from camera to screen share
-      try {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: { cursor: "always" },
           audio: false,
         });
-        const screenVideoTrack = screenStream.getVideoTracks()[0];
-        screenTrackRef.current = screenVideoTrack;
-
-        const senders = pcRef.current.getSenders();
-        const videoSender = senders.find(
-          (s) => s.track && s.track.kind === "video",
-        );
-        if (videoSender && screenVideoTrack) {
-          await videoSender.replaceTrack(screenVideoTrack);
-        }
-
-        // When user stops sharing from browser toolbar
-        screenVideoTrack.onended = () => {
-          toggleScreenShare();
-        };
-
-        const updatedStream = new MediaStream([
-          ...localStreamRef.current.getAudioTracks(),
-          screenVideoTrack,
-        ]);
-        localStreamRef.current = updatedStream;
-        setLocalStream(updatedStream);
-        setIsScreenSharing(true);
+        camTrack = newCamStream.getVideoTracks()[0];
+        camTrackRef.current = camTrack;
       } catch (err) {
-        if (err.name !== "NotAllowedError") {
-          toast.error("Could not start screen sharing");
+        console.error("Could not re-acquire camera after screen share:", err);
+        toast.error("Could not reopen camera. Please check camera permissions.");
+      }
+    } else {
+      camTrack.enabled = true;
+    }
+
+    // 3. Hot-swap back to camera track on RTCPeerConnection sender
+    if (pcRef.current && pcRef.current.signalingState !== "closed") {
+      const senders = pcRef.current.getSenders();
+      const videoSender = senders.find(
+        (s) => s.track && s.track.kind === "video",
+      );
+      if (videoSender) {
+        try {
+          await videoSender.replaceTrack(camTrack || null);
+        } catch (e) {
+          console.error("replaceTrack back to camera failed:", e);
         }
       }
+    }
+
+    // 4. Update localStream state
+    if (localStreamRef.current) {
+      const audioTracks = localStreamRef.current.getAudioTracks();
+      const tracks = [...audioTracks];
+      if (camTrack && camTrack.readyState === "live") {
+        tracks.push(camTrack);
+      }
+      const updatedStream = new MediaStream(tracks);
+      localStreamRef.current = updatedStream;
+      setLocalStream(updatedStream);
+    }
+  };
+
+  /**
+   * Start screen sharing by acquiring display media and hot-swapping peer track
+   */
+  const startScreenShare = async () => {
+    if (!pcRef.current || !localStreamRef.current) return;
+
+    try {
+      // 1. Preserve active camera track before replacing
+      const currentCamTrack = localStreamRef.current.getVideoTracks()[0];
+      if (currentCamTrack && currentCamTrack !== screenTrackRef.current) {
+        camTrackRef.current = currentCamTrack;
+        currentCamTrack.enabled = false;
+      }
+
+      // 2. Request screen capture from browser
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: "always" },
+        audio: false,
+      });
+
+      const screenVideoTrack = screenStream.getVideoTracks()[0];
+      if (!screenVideoTrack) return;
+
+      screenTrackRef.current = screenVideoTrack;
+      isScreenSharingRef.current = true;
+      setIsScreenSharing(true);
+
+      // 3. Hot-swap video track on RTCPeerConnection
+      const senders = pcRef.current.getSenders();
+      const videoSender = senders.find(
+        (s) => s.track && s.track.kind === "video",
+      );
+      if (videoSender) {
+        await videoSender.replaceTrack(screenVideoTrack);
+      }
+
+      // 4. Handle user stopping share via browser's native banner ("Stop sharing")
+      screenVideoTrack.onended = () => {
+        stopScreenShare();
+      };
+
+      // 5. Update localStream so caller's active stream includes the screen track
+      const audioTracks = localStreamRef.current.getAudioTracks();
+      const updatedStream = new MediaStream([
+        ...audioTracks,
+        screenVideoTrack,
+      ]);
+      localStreamRef.current = updatedStream;
+      setLocalStream(updatedStream);
+    } catch (err) {
+      if (err.name !== "NotAllowedError") {
+        console.error("Screen share error:", err);
+        toast.error("Failed to start screen sharing");
+      }
+    }
+  };
+
+  /**
+   * Toggle between screen share and webcam
+   */
+  const toggleScreenShare = async () => {
+    if (isScreenSharingRef.current) {
+      await stopScreenShare();
+    } else {
+      await startScreenShare();
     }
   };
 
