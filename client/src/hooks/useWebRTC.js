@@ -42,6 +42,10 @@ const useWebRTC = (loggedInUser) => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [callType, setCallType] = useState("video"); // 'video' | 'voice'
   const [activeRoomId, setActiveRoomId] = useState(null);
+  const [currentPeerInfo, setCurrentPeerInfo] = useState({
+    name: "Contact",
+    avatar: "",
+  });
 
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -193,6 +197,10 @@ const useWebRTC = (loggedInUser) => {
       setActiveRoomId(data.roomId);
       activeRoomIdRef.current = data.roomId;
       targetPeerIdRef.current = data.from;
+      setCurrentPeerInfo({
+        name: data.name || "Caller",
+        avatar: data.avatar || "",
+      });
     };
 
     // 2. Outgoing Ringing / Calling Status Updates
@@ -336,6 +344,10 @@ const useWebRTC = (loggedInUser) => {
     setCallState("outgoing");
     setOutgoingCallStatus("calling");
     targetPeerIdRef.current = targetId;
+    setCurrentPeerInfo({
+      name: targetName,
+      avatar: targetAvatar,
+    });
 
     recordCallLog({
       id: roomId,
@@ -565,6 +577,7 @@ const useWebRTC = (loggedInUser) => {
     setActiveRoomId(null);
     setIsScreenSharing(false);
     setOutgoingCallStatus("calling");
+    setCurrentPeerInfo({ name: "Contact", avatar: "" });
   };
 
   /**
@@ -654,6 +667,7 @@ const useWebRTC = (loggedInUser) => {
     remoteStreams,
     isScreenSharing,
     callType,
+    currentPeerInfo,
     startCall,
     answerCall,
     rejectCall,
