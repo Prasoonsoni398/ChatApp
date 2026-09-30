@@ -3,36 +3,23 @@ import {
   BACKEND_URL,
   DEFAULT_PROD_BACKEND,
   DEFAULT_LOCAL_BACKEND,
-  DEFAULT_LOCAL_IP_BACKEND,
 } from "./api.js";
 
 // Determine the clean socket server target
 const isBrowser = typeof window !== "undefined";
 const hostname = isBrowser ? window.location.hostname : "";
-const isLocalhost =
-  hostname === "localhost" ||
-  hostname === "127.0.0.1" ||
-  hostname === "0.0.0.0" ||
-  hostname.startsWith("192.168.") ||
-  hostname.startsWith("10.");
+const isLocalhost = hostname === "localhost";
 const isDeployedHost = isBrowser && !isLocalhost;
 
 let socketTarget = BACKEND_URL;
 if (isDeployedHost) {
-  if (
-    !socketTarget ||
-    socketTarget.includes("localhost") ||
-    socketTarget.includes("127.0.0.1")
-  ) {
+  if (!socketTarget || socketTarget.includes("localhost")) {
     socketTarget = DEFAULT_PROD_BACKEND;
   }
 } else {
   // Local development
   if (!socketTarget) {
-    socketTarget =
-      hostname === "127.0.0.1"
-        ? DEFAULT_LOCAL_IP_BACKEND
-        : DEFAULT_LOCAL_BACKEND;
+    socketTarget = DEFAULT_LOCAL_BACKEND;
   }
 }
 
