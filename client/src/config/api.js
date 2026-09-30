@@ -6,6 +6,8 @@
 
 // Production fallback deployed backend on Render
 export const DEFAULT_PROD_BACKEND = "https://guftgu-fsrp.onrender.com";
+export const DEFAULT_LOCAL_BACKEND = "http://localhost:4500";
+export const DEFAULT_LOCAL_IP_BACKEND = "http://127.0.0.1:4500";
 
 const getCleanBackendUrl = () => {
   const envUrl = (
@@ -15,10 +17,14 @@ const getCleanBackendUrl = () => {
   ).trim();
 
   const isBrowser = typeof window !== "undefined";
-  const isDeployedHost =
-    isBrowser &&
-    window.location.hostname !== "localhost" &&
-    window.location.hostname !== "127.0.0.1";
+  const hostname = isBrowser ? window.location.hostname : "";
+  const isLocalhost =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0" ||
+    hostname.startsWith("192.168.") ||
+    hostname.startsWith("10.");
+  const isDeployedHost = isBrowser && !isLocalhost;
 
   // In production builds or when running on any live deployed domain:
   // Never allow localhost / 127.0.0.1 because live users cannot connect to localhost!
@@ -29,8 +35,19 @@ const getCleanBackendUrl = () => {
     return envUrl;
   }
 
-  // Local development
-  return envUrl;
+  // Local development:
+  // If an environment variable is provided, respect it
+  if (envUrl) {
+    return envUrl;
+  }
+
+  // If accessed directly via 127.0.0.1 IP in browser, route to 127.0.0.1:4500
+  if (hostname === "127.0.0.1") {
+    return DEFAULT_LOCAL_IP_BACKEND;
+  }
+
+  // Default to localhost:4500 in local dev
+  return DEFAULT_LOCAL_BACKEND;
 };
 
 export const BACKEND_URL = getCleanBackendUrl().replace(/\/$/, "");

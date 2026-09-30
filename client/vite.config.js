@@ -8,12 +8,13 @@ export default defineConfig({
     global: "window",
   },
   server: {
+    host: true,
     proxy: {
       "/api": {
         target:
           process.env.VITE_BACKEND_URL ||
           process.env.VITE_DEV_BACKEND_URL ||
-          "https://guftgu-fsrp.onrender.com",
+          "http://localhost:4500",
         changeOrigin: true,
       },
     },
