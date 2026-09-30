@@ -3,7 +3,7 @@
  * All authentication-related API calls.
  */
 
-import { API_BASE_URL } from "../config/api.js";
+import { API_BASE_URL, fetchWithRetry } from "../config/api.js";
 
 const BASE = `${API_BASE_URL}/auth`;
 
@@ -11,7 +11,7 @@ const BASE = `${API_BASE_URL}/auth`;
  * Log in with phone number or email + password.
  */
 export async function loginUser(identifier, password) {
-  const res = await fetch(`${BASE}/login`, {
+  const res = await fetchWithRetry(`${BASE}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -37,7 +37,7 @@ export async function loginUser(identifier, password) {
  * Log in via Google OAuth credential.
  */
 export async function googleLogin(credential) {
-  const res = await fetch(`${BASE}/google`, {
+  const res = await fetchWithRetry(`${BASE}/google`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ credential }),
@@ -51,7 +51,7 @@ export async function googleLogin(credential) {
  * Register a new user with phone number and name. Sends SMS OTP.
  */
 export async function registerUser(name, phone, password, email = "") {
-  const res = await fetch(`${BASE}/register`, {
+  const res = await fetchWithRetry(`${BASE}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, phone, password, email }),
@@ -65,7 +65,7 @@ export async function registerUser(name, phone, password, email = "") {
  * Verify phone number via SMS OTP code.
  */
 export async function verifyOtp(phone, otp) {
-  const res = await fetch(`${BASE}/verify-otp`, {
+  const res = await fetchWithRetry(`${BASE}/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, otp }),

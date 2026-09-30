@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   BsPeopleFill,
   BsThreeDotsVertical,
@@ -8,6 +9,7 @@ import {
   BsArrowLeft,
   BsMegaphoneFill,
   BsPersonPlusFill,
+  BsArrowClockwise,
 } from "react-icons/bs";
 import { hoverPrimary } from "../../../constants/styles.js";
 
@@ -28,7 +30,18 @@ const SidebarTopbar = ({
   onOpenLinkedDevices,
   onOpenShortcuts,
   handleLogout,
+  onRefreshChats,
 }) => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      if (onRefreshChats) await onRefreshChats();
+    } catch (_e) {}
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
   if (isArchivedViewOpen) {
     return (
       <div className="h-16 px-4 flex items-center gap-3 bg-base-200/50 border-b border-b-theme-soothing relative z-50">
@@ -75,6 +88,18 @@ const SidebarTopbar = ({
       </div>
 
       <div className="flex items-center gap-2 text-base-content/60">
+        {/* Refresh Chats & Users button */}
+        <button
+          onClick={handleRefresh}
+          className={`${hoverPrimary} p-1.5 rounded-full transition-transform active:scale-90 ${
+            isRefreshing ? "animate-spin text-primary" : ""
+          }`}
+          title="Sync chats and contacts"
+          disabled={isRefreshing}
+        >
+          <BsArrowClockwise size={18} />
+        </button>
+
         {/* New Chat — add-person icon */}
         <button
           onClick={() => onOpenNewChat?.()}

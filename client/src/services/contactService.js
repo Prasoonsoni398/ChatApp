@@ -3,18 +3,18 @@
  * WhatsApp-style contacts: search by phone, add, remove, list.
  */
 
-import { API_BASE_URL, authHeader } from "../config/api.js";
+import { API_BASE_URL, authHeader, fetchWithRetry } from "../config/api.js";
 
 const BASE = `${API_BASE_URL}/contacts`;
 
 /**
- * Search for a user by phone number.
- * @param {string} phone - Phone number to search (e.g. +919876543210)
+ * Search for a user by phone number, email, or name.
+ * @param {string} phone - Search term (phone number, email, or name)
  * @returns {Promise<User>}
  */
 export async function searchContactByPhone(phone) {
-  const params = new URLSearchParams({ phone });
-  const res = await fetch(`${BASE}/search?${params}`, {
+  const params = new URLSearchParams({ phone, query: phone });
+  const res = await fetchWithRetry(`${BASE}/search?${params}`, {
     headers: authHeader(),
   });
   const data = await res.json();

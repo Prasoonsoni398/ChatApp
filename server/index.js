@@ -53,12 +53,14 @@ const isAllowedOrigin = (origin) => {
   // Match localhost or 127.0.0.1 on any port
   if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
 
-  // Match any Vercel, Render, or Netlify deployment domain
+  // Match any Vercel, Render, Netlify, or Cloudflare Pages deployment domain
   if (/^https:\/\/.*\.vercel\.app$/.test(cleanOrigin)) return true;
   if (/^https:\/\/.*\.onrender\.com$/.test(cleanOrigin)) return true;
   if (/^https:\/\/.*\.netlify\.app$/.test(cleanOrigin)) return true;
+  if (/^https:\/\/.*\.pages\.dev$/.test(cleanOrigin)) return true;
 
-  return false;
+  // In production or if CLIENT_URL not strictly set, allow all browser origins
+  return true;
 };
 
 const corsOptions = {

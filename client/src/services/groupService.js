@@ -4,7 +4,7 @@
  * Auth token is read from localStorage internally.
  */
 
-import { API_BASE_URL, authHeader } from "../config/api.js";
+import { API_BASE_URL, authHeader, fetchWithRetry } from "../config/api.js";
 
 const BASE = `${API_BASE_URL}/groups`;
 
@@ -13,7 +13,7 @@ const BASE = `${API_BASE_URL}/groups`;
  * @returns {Promise<Group[]>}
  */
 export async function getGroups() {
-  const res = await fetch(BASE, {
+  const res = await fetchWithRetry(BASE, {
     headers: authHeader(),
   });
   const data = await res.json();

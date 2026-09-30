@@ -310,6 +310,8 @@ const Chat = () => {
             onOpenShortcuts={() => modals.setShowShortcutsModal(true)}
             onAddContact={() => modals.setShowAddContactModal(true)}
             onOpenNewChat={() => modals.setShowNewChatSidebar(true)}
+            allUsers={state.allUsers}
+            onRefreshChats={fetchChats}
             archivedChatIds={modals.archivedChatIds}
             isArchivedViewOpen={modals.isArchivedViewOpen}
             setIsArchivedViewOpen={modals.setIsArchivedViewOpen}

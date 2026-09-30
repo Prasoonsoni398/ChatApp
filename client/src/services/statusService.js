@@ -1,4 +1,4 @@
-import { API_BASE_URL, authHeader, getToken } from "../config/api.js";
+import { API_BASE_URL, authHeader, getToken, fetchWithRetry } from "../config/api.js";
 
 const BASE = `${API_BASE_URL}/status`;
 
@@ -103,7 +103,7 @@ export const markStatusViewed = async (statusId) => {
 };
 
 export const getStatuses = async () => {
-  const res = await fetch(BASE, {
+  const res = await fetchWithRetry(BASE, {
     method: "GET",
     headers: authHeader(),
   });

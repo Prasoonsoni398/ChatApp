@@ -59,6 +59,16 @@ const WebSocket = (io) => {
       io.emit("statusUpdated", data);
     });
 
+    // Broadcast newly registered user to all active clients
+    socket.on("newUserRegistered", (data) => {
+      io.emit("newUserRegistered", data);
+    });
+
+    // Broadcast user profile updates to all active clients
+    socket.on("userUpdated", (data) => {
+      io.emit("userUpdated", data);
+    });
+
     socket.on("send", async (payload) => {
       console.log("Message Pack", payload);
       if (payload.groupId) {

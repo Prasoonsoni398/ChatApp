@@ -114,6 +114,18 @@ export const registerUser = async (req, res) => {
       }
     }
 
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("newUserRegistered", {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        about: user.about,
+      });
+    }
+
     res.status(201).json({
       message: smsResult?.dispatchedRealSms
         ? `Real-time SMS forwarded to ${normPhone}. Enter the 6-digit code to complete registration.`
@@ -243,6 +255,18 @@ export const verifyOTP = async (req, res) => {
 
     const token = generateToken(user._id);
 
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("newUserRegistered", {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        about: user.about,
+      });
+    }
+
     res.json({
       message: "Phone number verified successfully!",
       _id: user._id,
@@ -355,6 +379,18 @@ export const googleLogin = async (req, res) => {
         loginType: "google_user",
         isVerified: true,
         avatar: picture,
+      });
+    }
+
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("newUserRegistered", {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        about: user.about,
       });
     }
 

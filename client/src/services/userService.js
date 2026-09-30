@@ -4,7 +4,7 @@
  * Auth token is read from localStorage internally.
  */
 
-import { API_BASE_URL, authHeader } from "../config/api.js";
+import { API_BASE_URL, authHeader, fetchWithRetry } from "../config/api.js";
 
 const BASE = `${API_BASE_URL}/users`;
 
@@ -14,7 +14,7 @@ const BASE = `${API_BASE_URL}/users`;
  * @returns {Promise<User[]>}
  */
 export async function getAllUsers() {
-  const res = await fetch(`${BASE}`, {
+  const res = await fetchWithRetry(`${BASE}`, {
     headers: authHeader(),
   });
   const data = await res.json();
@@ -24,11 +24,11 @@ export async function getAllUsers() {
 }
 
 /**
- * Fetch all verified users — used for group member selection.
+ * Fetch all verified users — used for group member selection and discovery.
  * @returns {Promise<User[]>}
  */
 export async function getAllVerifiedUsers() {
-  const res = await fetch(`${BASE}/all`, {
+  const res = await fetchWithRetry(`${BASE}/all`, {
     headers: authHeader(),
   });
   const data = await res.json();

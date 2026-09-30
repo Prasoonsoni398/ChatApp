@@ -40,6 +40,8 @@ const ChatSidebar = ({
   isArchivedViewOpen = false,
   setIsArchivedViewOpen,
   mutedChatIds = [],
+  allUsers = [],
+  onRefreshChats,
 }) => {
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchCategory, setSearchCategory] = useState("all");
@@ -178,6 +180,7 @@ const ChatSidebar = ({
         onOpenLinkedDevices={onOpenLinkedDevices}
         onOpenShortcuts={onOpenShortcuts}
         handleLogout={handleLogout}
+        onRefreshChats={onRefreshChats}
       />
 
       {/* ── Search Bar & Filter Chips ── */}
@@ -206,6 +209,7 @@ const ChatSidebar = ({
             isSearchingMessages={isSearchingMessages}
             filteredChats={filteredChats}
             messageResults={messageResults}
+            allUsers={allUsers}
             searchQuery={searchQuery}
             searchCategory={searchCategory}
             selectedChat={selectedChat}

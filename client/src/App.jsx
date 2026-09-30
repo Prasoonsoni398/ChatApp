@@ -10,14 +10,18 @@ import Chat from "./pages/Chat";
 import ForgotPassword from "./pages/ForgotPassword";
 import JoinGroupPage from "./pages/JoinGroupPage";
 import MediaExpiryNoticeModal from "./components/common/MediaExpiryNoticeModal";
-import { wakeUpBackend } from "./config/api";
+import BackendWakingBanner from "./components/common/BackendWakingBanner";
+import { wakeUpBackend, startKeepAlivePing } from "./config/api";
 
 const App = () => {
   useEffect(() => {
     wakeUpBackend();
+    startKeepAlivePing();
   }, []);
   return (
     <BrowserRouter>
+      {/* Global Cloud Server Cold-Start Notice Banner */}
+      <BackendWakingBanner />
       {/* Global Toaster for notifications */}
       <Toaster position="top-right" reverseOrder={false} />
       {/* 48-Hour Media Deletion Informational Notice Modal */}

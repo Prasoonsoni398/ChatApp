@@ -280,24 +280,48 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
         : []
       ).filter((u) => u && u._id && u._id !== myId);
 
-      // If existing contacts/chats are empty, display other registered users to start chatting
-      const displayDmUsers =
-        validUsers.length > 0 ? validUsers : validAllUsers;
+      // Distinguish existing chat/contact partners from other registered users
+      const existingUserIds = new Set(validUsers.map((u) => u._id.toString()));
 
-      const dmChats = displayDmUsers.map((u) => ({
+      const otherRegisteredUsers = validAllUsers.filter(
+        (u) => !existingUserIds.has(u._id.toString()),
+      );
+
+      // Existing conversation chats
+      const dmChats = validUsers.map((u) => ({
         id: u._id,
         name: u.name,
         customName: u.customName,
         displayName: u.displayName || u.customName || u.name,
         phone: u.phone,
+        email: u.email,
         about: u.about,
         isGroup: false,
-        lastMessage: "Tap to start chatting",
-        time: "",
-        unread: 0,
+        lastMessage: u.lastMessage || "Tap to chat",
+        time: u.time || "",
+        unread: u.unread || 0,
         avatar:
           u.avatar ||
-          `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`,
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.name)}`,
+      }));
+
+      // Other registered users that user can start chatting with
+      const newRegisteredDmChats = otherRegisteredUsers.map((u) => ({
+        id: u._id,
+        name: u.name,
+        customName: u.customName,
+        displayName: u.displayName || u.customName || u.name,
+        phone: u.phone,
+        email: u.email,
+        about: u.about,
+        isGroup: false,
+        lastMessage: "New on ChatApp • Tap to chat",
+        time: "",
+        unread: 0,
+        isNewUser: true,
+        avatar:
+          u.avatar ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.name)}`,
       }));
 
       const groupChats = (groups || []).map((g) => ({
@@ -311,7 +335,7 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
         unread: 0,
         avatar:
           g.avatar ||
-          `https://api.dicebear.com/7.x/avataaars/svg?seed=${g.name}`,
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(g.name)}`,
       }));
 
       // Merge all users with contacts so NewChatSidebar and CreateGroupModal show all contacts
@@ -323,13 +347,10 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
       });
       const fullUsersList = Array.from(usersMap.values());
 
-      state.setAllUsers(
-        fullUsersList.length > 0 ? fullUsersList : displayDmUsers,
-      );
-      state.setChats([...groupChats, ...dmChats]);
+      state.setAllUsers(fullUsersList);
+      state.setChats([...groupChats, ...dmChats, ...newRegisteredDmChats]);
     } catch (_e) {
-      console.error("Error fetching chats:", _e);
-      toast.error("Failed to load chats");
+      console.warn("Notice fetching chats:", _e?.message || _e);
     }
   }, []);
 
@@ -352,6 +373,13 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
     registerOnline();
     socketAPI.on("connect", registerOnline);
 
+    // Real-time synchronization when a new user registers or updates profile
+    const handleNewUserSync = () => {
+      fetchChats();
+    };
+    socketAPI.on("newUserRegistered", handleNewUserSync);
+    socketAPI.on("userUpdated", handleNewUserSync);
+
     const handleNewGroup = (group) => {
       state.setChats((prev) => {
         if (prev.some((c) => c.id === group._id)) return prev;
@@ -366,7 +394,7 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
           unread: 0,
           avatar:
             group.avatar ||
-            `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.name}`,
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(group.name)}`,
         };
         return [newGroupChat, ...prev];
       });
@@ -375,6 +403,8 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
 
     return () => {
       socketAPI.off("connect", registerOnline);
+      socketAPI.off("newUserRegistered", handleNewUserSync);
+      socketAPI.off("userUpdated", handleNewUserSync);
       socketAPI.off("newGroup", handleNewGroup);
       if (state.loggedInUser)
         socketAPI.emit("destroyPath", state.loggedInUser?._id);

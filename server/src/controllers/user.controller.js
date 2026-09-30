@@ -143,9 +143,9 @@ export const getAllUsers = async (req, res) => {
   try {
     const myId = req.user?._id;
     const query = myId ? { _id: { $ne: myId } } : {};
-    const users = await User.find(query).select(
-      "name email phone avatar online about privacySettings",
-    );
+    const users = await User.find(query)
+      .select("name email phone avatar online about privacySettings createdAt")
+      .sort({ createdAt: -1 });
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });

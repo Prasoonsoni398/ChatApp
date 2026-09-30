@@ -51,6 +51,101 @@ export const authHeader = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+// --- Backend Connection State & Cold-Start Listeners ---
+let currentBackendStatus = "idle"; // "idle" | "waking" | "connected" | "error"
+let currentStatusDetail = "";
+const statusListeners = new Set();
+
+export const getBackendStatus = () => ({
+  status: currentBackendStatus,
+  detail: currentStatusDetail,
+});
+
+export const setBackendStatus = (status, detail = "") => {
+  if (currentBackendStatus !== status || currentStatusDetail !== detail) {
+    currentBackendStatus = status;
+    currentStatusDetail = detail;
+    statusListeners.forEach((fn) => {
+      try {
+        fn({ status, detail });
+      } catch (_e) {}
+    });
+  }
+};
+
+export const subscribeBackendStatus = (listener) => {
+  statusListeners.add(listener);
+  listener({ status: currentBackendStatus, detail: currentStatusDetail });
+  return () => statusListeners.delete(listener);
+};
+
+/**
+ * Intelligent fetch wrapper with cold-start detection and auto-retry.
+ * Handles Render free tier 502/503/504 errors and temporary network drops.
+ */
+export const fetchWithRetry = async (
+  url,
+  options = {},
+  retries = 3,
+  backoffMs = 2000,
+) => {
+  let attempt = 0;
+  let slowTimer = null;
+
+  while (attempt <= retries) {
+    // If request takes longer than 2.5s, signal that server is booting up
+    slowTimer = setTimeout(() => {
+      if (currentBackendStatus !== "connected") {
+        setBackendStatus(
+          "waking",
+          "Cloud server is waking up (Render Free Tier, ~30s)...",
+        );
+      }
+    }, 2500);
+
+    try {
+      const response = await fetch(url, options);
+      clearTimeout(slowTimer);
+
+      // Render cold start typically returns 502 Bad Gateway or 503 while booting Express
+      if (
+        (response.status === 502 ||
+          response.status === 503 ||
+          response.status === 504) &&
+        attempt < retries
+      ) {
+        attempt++;
+        setBackendStatus(
+          "waking",
+          `Server container starting up (attempt ${attempt}/${retries})...`,
+        );
+        await new Promise((r) => setTimeout(r, backoffMs * attempt));
+        continue;
+      }
+
+      // Success
+      if (currentBackendStatus === "waking") {
+        setBackendStatus("connected", "Connected to server!");
+        setTimeout(() => setBackendStatus("idle"), 3000);
+      }
+      return response;
+    } catch (err) {
+      clearTimeout(slowTimer);
+      attempt++;
+      if (attempt <= retries) {
+        setBackendStatus(
+          "waking",
+          `Connecting to cloud server (attempt ${attempt}/${retries})...`,
+        );
+        await new Promise((r) => setTimeout(r, backoffMs * attempt));
+      } else {
+        setBackendStatus("error", "Unable to connect to cloud server.");
+        throw err;
+      }
+    }
+  }
+};
+
 /**
  * Send a lightweight ping to the Render backend on app start
  * to wake it up in the background if it is sleeping on free tier.
@@ -60,8 +155,27 @@ export const wakeUpBackend = async () => {
     const healthUrl = BACKEND_URL
       ? `${BACKEND_URL}/api/health`
       : "/api/health";
-    await fetch(healthUrl, { method: "GET", mode: "cors" });
+    const res = await fetchWithRetry(healthUrl, { method: "GET", mode: "cors" }, 2, 2000);
+    if (res && res.ok) {
+      setBackendStatus("connected", "Server is active");
+      setTimeout(() => setBackendStatus("idle"), 2500);
+    }
   } catch {
     // Ignore ping failure - this is best-effort background wake-up
   }
+};
+
+/**
+ * Periodically ping /api/health every 10 minutes while user is active
+ * to prevent Render from going to sleep during usage.
+ */
+let keepAliveTimer = null;
+export const startKeepAlivePing = () => {
+  if (keepAliveTimer) return;
+  keepAliveTimer = setInterval(
+    () => {
+      wakeUpBackend();
+    },
+    10 * 60 * 1000,
+  ); // 10 minutes
 };

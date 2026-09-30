@@ -12,31 +12,48 @@ const normalisePhone = (raw) => {
   return p;
 };
 
-/* ─── Search user by phone number ─── */
+/* ─── Search user by phone number or identifier ─── */
 export const searchByPhone = async (req, res) => {
   try {
-    const { phone } = req.query;
-    if (!phone) {
-      return res.status(400).json({ message: "Phone number is required" });
+    const rawSearch = (req.query.phone || req.query.query || "").toString().trim();
+    if (!rawSearch) {
+      return res.status(400).json({ message: "Phone number or search query is required" });
     }
 
-    const normPhone = normalisePhone(phone);
+    const normPhone = normalisePhone(rawSearch);
+    const digits = rawSearch.replace(/\D/g, "");
+
+    const searchConditions = [
+      { phone: rawSearch },
+      { phone: normPhone },
+    ];
+
+    if (digits.length >= 7) {
+      // Matches last 10 digits regardless of leading +91 or other country code
+      const lastDigits = digits.slice(-10);
+      searchConditions.push({ phone: { $regex: `${lastDigits}$` } });
+    }
+
+    if (rawSearch.includes("@")) {
+      searchConditions.push({ email: rawSearch.toLowerCase() });
+    } else {
+      searchConditions.push({
+        name: {
+          $regex: rawSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+          $options: "i",
+        },
+      });
+    }
+
     const user = await User.findOne({
-      phone: normPhone,
-      isVerified: true,
-    }).select("name email phone avatar");
+      $or: searchConditions,
+      _id: { $ne: req.user._id },
+    }).select("name email phone avatar about");
 
     if (!user) {
       return res
         .status(404)
-        .json({ message: "No user found with that phone number" });
-    }
-
-    // Don't return yourself
-    if (user._id.toString() === req.user._id.toString()) {
-      return res
-        .status(400)
-        .json({ message: "You cannot add yourself as a contact" });
+        .json({ message: "No registered user found with that detail" });
     }
 
     res.status(200).json(user);

@@ -6,6 +6,7 @@ import {
   BsBarChartFill,
   BsGeoAltFill,
   BsPersonBadgeFill,
+  BsChatDotsFill,
 } from "react-icons/bs";
 import { sidebarChat } from "../../../constants/styles.js";
 
@@ -13,13 +14,27 @@ const SidebarSearchResults = ({
   isSearchingMessages,
   filteredChats = [],
   messageResults = [],
-  searchQuery,
-  searchCategory,
+  allUsers = [],
+  searchQuery = "",
+  searchCategory = "all",
   selectedChat,
   setSelectedChat,
   handleSelectMessageResult,
   loggedInUser,
 }) => {
+  const matchingRegisteredUsers = (allUsers || []).filter((u) => {
+    const uId = String(u._id || u.id);
+    if (uId === String(loggedInUser?._id)) return false;
+    // Don't duplicate if already in filteredChats
+    if (filteredChats.some((c) => String(c.id || c._id) === uId)) return false;
+    if (!searchQuery.trim()) return false;
+    const q = searchQuery.toLowerCase().trim();
+    const name = (u.name || "").toLowerCase();
+    const phone = (u.phone || "").toLowerCase();
+    const email = (u.email || "").toLowerCase();
+    return name.includes(q) || phone.includes(q) || email.includes(q);
+  });
+
   if (isSearchingMessages) {
     return (
       <div className="flex flex-col items-center justify-center p-8 gap-3 text-base-content/50">
@@ -29,12 +44,16 @@ const SidebarSearchResults = ({
     );
   }
 
-  if (filteredChats.length === 0 && messageResults.length === 0) {
+  if (
+    filteredChats.length === 0 &&
+    messageResults.length === 0 &&
+    matchingRegisteredUsers.length === 0
+  ) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center text-base-content/50 gap-2">
         <p className="text-sm font-medium">No results found</p>
         <p className="text-xs text-base-content/40">
-          No chats or messages matching &ldquo;
+          No chats, contacts, or messages matching &ldquo;
           {searchQuery || searchCategory}&rdquo;
         </p>
       </div>
@@ -192,6 +211,69 @@ const SidebarSearchResults = ({
                       <span>{msg.text}</span>
                     )}
                   </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 3. MATCHING REGISTERED USERS (PEOPLE ON CHATAPP) */}
+      {matchingRegisteredUsers.length > 0 && (
+        <div>
+          <div className="px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-primary bg-primary/10 flex items-center justify-between">
+            <span>People on ChatApp ({matchingRegisteredUsers.length})</span>
+            <span className="text-[10px] font-normal lowercase opacity-75">
+              tap to chat
+            </span>
+          </div>
+          {matchingRegisteredUsers.map((user) => {
+            const userId = user._id || user.id;
+            const isSelected = selectedChat?.id === userId;
+            const avatarUrl =
+              user.avatar ||
+              `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`;
+
+            return (
+              <div
+                key={userId}
+                onClick={() =>
+                  setSelectedChat({
+                    id: userId,
+                    name: user.name,
+                    customName: user.customName,
+                    displayName: user.displayName || user.customName || user.name,
+                    avatar: avatarUrl,
+                    isGroup: false,
+                    phone: user.phone,
+                    email: user.email,
+                    about: user.about,
+                    lastMessage: "New on ChatApp • Tap to chat",
+                    time: "",
+                    unread: 0,
+                  })
+                }
+                className={`${sidebarChat} ${
+                  isSelected
+                    ? "bg-primary/10 border-l-4 border-l-primary"
+                    : "border-l-4 border-l-transparent hover:bg-base-200/80"
+                }`}
+              >
+                <div className="avatar">
+                  <div className="w-12 h-12 rounded-full relative">
+                    <img src={avatarUrl} alt={user.name} />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-sm truncate text-base-content">
+                      {user.displayName || user.customName || user.name}
+                    </h3>
+                    <span className="badge badge-xs badge-primary">New</span>
+                  </div>
+                  <p className="text-xs text-base-content/60 truncate">
+                    {user.phone || user.email || user.about || "Hey there! I am using ChatApp."}
+                  </p>
                 </div>
               </div>
             );
