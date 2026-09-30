@@ -87,7 +87,7 @@ const ChatMainArea = ({
           ? chatCustomization.theme
           : undefined
       }
-      className={`flex-1 flex flex-col relative bg-base-200 overflow-hidden ${
+      className={`flex-1 min-h-0 h-full max-h-full flex flex-col relative bg-base-200 overflow-hidden ${
         !state.selectedChat ? "hidden md:flex" : "flex"
       }`}
     >
@@ -128,7 +128,7 @@ const ChatMainArea = ({
         />
       )}
 
-      <div className="relative z-10 flex flex-col flex-1 h-full overflow-hidden">
+      <div className="relative z-10 flex flex-col flex-1 min-h-0 h-full max-h-full overflow-hidden">
         {state.selectedChat ? (
           <>
             <ChatHeader

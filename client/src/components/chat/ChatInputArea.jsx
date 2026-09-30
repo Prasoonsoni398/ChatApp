@@ -197,7 +197,7 @@ const ChatInputArea = ({
   }
 
   return (
-    <div className="bg-base-100 px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 border-t border-t-theme-soothing chat-input-bar relative">
+    <div className="bg-base-100 px-2 sm:px-4 py-2 sm:py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex flex-col gap-2 border-t border-t-theme-soothing chat-input-bar sticky bottom-0 z-30 shrink-0 w-full shadow-xs">
       {/* Community Announcement Admin Banner */}
       {selectedChat?.isGroup &&
         selectedChat?.onlyAdminsCanMessage &&

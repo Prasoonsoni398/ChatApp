@@ -163,10 +163,10 @@ const Chat = () => {
     state.pinnedMessage || state.messages.find((m) => m.isPinned);
 
   return (
-    <div className="flex flex-col h-screen bg-base-200 overflow-hidden text-base-content">
+    <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] flex flex-col bg-base-200 overflow-hidden text-base-content select-none overscroll-none">
       {/* Offline Status Banner */}
       {!isOnline && (
-        <div className="bg-warning text-warning-content px-4 py-1.5 text-xs font-semibold flex items-center justify-center gap-2 z-50 shadow-md">
+        <div className="bg-warning text-warning-content px-4 py-1.5 text-xs font-semibold flex items-center justify-center gap-2 z-50 shadow-md shrink-0">
           <BsWifiOff size={15} />
           <span>
             Computer not connected. Make sure your computer has an active
@@ -175,7 +175,7 @@ const Chat = () => {
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Thin Icon Sidebar */}
         <IconSidebar
           activeTab={activeTab}
@@ -430,8 +430,6 @@ const Chat = () => {
           handleToggleStar={interactionActions.handleToggleStar}
         />
 
-        <CallOverlay {...webRTC} loggedInUser={state.loggedInUser} />
-
         {/* Mobile Bottom Navigation and Floating Action Button */}
         <MobileNavAndFAB
           activeTab={activeTab}
@@ -445,6 +443,9 @@ const Chat = () => {
           allUsers={state.allUsers}
           startCall={webRTC.startCall}
         />
+
+        {/* Top-Level WhatsApp Call Overlay */}
+        <CallOverlay {...webRTC} loggedInUser={state.loggedInUser} />
       </div>
     </div>
   );

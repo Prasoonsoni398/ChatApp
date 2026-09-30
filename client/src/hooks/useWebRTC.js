@@ -55,6 +55,7 @@ const useWebRTC = (loggedInUser) => {
   const screenTrackRef = useRef(null);
   const camTrackRef = useRef(null);
   const isScreenSharingRef = useRef(false);
+  const endCallRef = useRef(null);
 
   // Maintain reference to current callState so socket callbacks never drop or trigger re-binding
   const callStateRef = useRef(callState);
@@ -135,14 +136,24 @@ const useWebRTC = (loggedInUser) => {
 
     pc.onconnectionstatechange = () => {
       console.log("WebRTC Connection State:", pc.connectionState);
-      // Only tear down on fatal closed state triggered by explicit remote disconnect
-      if (pc.connectionState === "closed") {
-        endCall();
+      if (
+        pc.connectionState === "disconnected" ||
+        pc.connectionState === "failed" ||
+        pc.connectionState === "closed"
+      ) {
+        if (endCallRef.current) endCallRef.current();
       }
     };
 
     pc.oniceconnectionstatechange = () => {
       console.log("ICE Connection State:", pc.iceConnectionState);
+      if (
+        pc.iceConnectionState === "disconnected" ||
+        pc.iceConnectionState === "failed" ||
+        pc.iceConnectionState === "closed"
+      ) {
+        if (endCallRef.current) endCallRef.current();
+      }
     };
 
     // Attach local media stream tracks if already acquired
@@ -288,12 +299,12 @@ const useWebRTC = (loggedInUser) => {
     // 7. Call Ended by other user
     const handleCallEnded = () => {
       toast("Call ended", { icon: "📞" });
-      endCall();
+      if (endCallRef.current) endCallRef.current();
     };
 
     const handleUserLeftCall = () => {
       toast("User left the call", { icon: "👋" });
-      endCall();
+      if (endCallRef.current) endCallRef.current();
     };
 
     socketAPI.on("incomingRing", handleIncomingRing);
@@ -377,7 +388,8 @@ const useWebRTC = (loggedInUser) => {
         camTrackRef.current = camTrack;
       }
 
-      // 2. Ring the target user via WebSocket
+      // 2. Join call room and ring the target user via WebSocket
+      socketAPI.emit("joinCall", { roomId });
       socketAPI.emit("ringUser", {
         userToCall: targetId,
         from: loggedInUser?._id,
@@ -453,7 +465,10 @@ const useWebRTC = (loggedInUser) => {
         camTrackRef.current = camTrack;
       }
 
-      // 2. Initialize PeerConnection
+      // 2. Join call room on callee
+      socketAPI.emit("joinCall", { roomId });
+
+      // 3. Initialize PeerConnection
       const pc = createPeerConnection(callerId);
 
       // 3. Wait for offer if not yet received
@@ -548,9 +563,20 @@ const useWebRTC = (loggedInUser) => {
       pcRef.current = null;
     }
 
+    // Notify both peer and room subscribers
     if (targetId) {
       socketAPI.emit("endCall", {
         to: targetId,
+        roomId,
+        userId: loggedInUser?._id,
+      });
+      socketAPI.emit("leaveCall", {
+        to: targetId,
+        roomId,
+        userId: loggedInUser?._id,
+      });
+    } else if (roomId) {
+      socketAPI.emit("leaveCall", {
         roomId,
         userId: loggedInUser?._id,
       });
@@ -599,6 +625,9 @@ const useWebRTC = (loggedInUser) => {
     setOutgoingCallStatus("calling");
     setCurrentPeerInfo({ name: "Contact", avatar: "" });
   };
+
+  // Keep endCallRef in sync with latest endCall instance
+  endCallRef.current = endCall;
 
   /**
    * Toggle screen share using native replaceTrack

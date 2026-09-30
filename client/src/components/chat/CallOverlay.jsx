@@ -239,7 +239,7 @@ const CallOverlay = ({
   // ──────────────────────────────────────────
   if (callState === "ringing" && incomingCall) {
     return (
-      <div className="fixed inset-0 z-200 bg-gradient-to-b from-[#111b21] via-[#0c1317] to-[#080d10] flex flex-col justify-between items-center text-white p-6 sm:p-10 animate-fade-in select-none">
+      <div className="fixed inset-0 z-[9999] bg-gradient-to-b from-[#111b21] via-[#0c1317] to-[#080d10] flex flex-col justify-between items-center text-white p-6 sm:p-10 animate-fade-in select-none pointer-events-auto">
         {/* Top Header */}
         <div className="flex flex-col items-center text-center mt-8">
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium mb-3 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
@@ -309,7 +309,7 @@ const CallOverlay = ({
   // ──────────────────────────────────────────
   if (callState === "outgoing") {
     return (
-      <div className="fixed inset-0 z-200 bg-gradient-to-b from-[#111b21] via-[#0c1317] to-[#080d10] flex flex-col justify-between items-center text-white p-6 sm:p-10 animate-fade-in select-none">
+      <div className="fixed inset-0 z-[9999] bg-gradient-to-b from-[#111b21] via-[#0c1317] to-[#080d10] flex flex-col justify-between items-center text-white p-6 sm:p-10 animate-fade-in select-none pointer-events-auto">
         {/* Top Header */}
         <div className="flex flex-col items-center text-center mt-8">
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium mb-3 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
@@ -389,7 +389,7 @@ const CallOverlay = ({
     : "w-28 h-40 sm:w-40 sm:h-56";
 
   return (
-    <div className="fixed inset-0 z-200 bg-zinc-950 flex flex-col justify-between overflow-hidden select-none animate-fade-in font-sans">
+    <div className="fixed inset-0 z-[9999] bg-zinc-950 flex flex-col justify-between overflow-hidden select-none animate-fade-in font-sans pointer-events-auto">
       {/* ── TOP HEADER (WhatsApp Call Bar) ── */}
       <div className="absolute top-0 inset-x-0 z-30 flex items-center justify-between p-4 sm:p-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
         <div className="flex items-center gap-3 pointer-events-auto">
@@ -412,16 +412,31 @@ const CallOverlay = ({
           </div>
         </div>
 
-        {/* Change Video Size / Swap Stream Button in Header */}
-        {callType === "video" && (
+        {/* Header Action Buttons (Swap Video + Quick End Call) */}
+        <div className="flex items-center gap-2 pointer-events-auto">
+          {callType === "video" && (
+            <button
+              type="button"
+              onClick={() => setIsSwapped((prev) => !prev)}
+              className="btn btn-sm btn-circle bg-black/40 hover:bg-black/70 text-white border border-white/20 backdrop-blur-md shadow-lg"
+              title="Swap Fullscreen & PiP Video"
+            >
+              <BsArrowRepeat size={16} />
+            </button>
+          )}
           <button
-            onClick={() => setIsSwapped((prev) => !prev)}
-            className="btn btn-sm btn-circle bg-black/40 hover:bg-black/70 text-white border border-white/20 backdrop-blur-md pointer-events-auto shadow-lg"
-            title="Swap Fullscreen & PiP Video"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              endCall();
+            }}
+            className="btn btn-sm btn-circle bg-red-600 hover:bg-red-700 text-white border-none shadow-lg active:scale-95"
+            title="Cut Call (End Call)"
+            aria-label="Cut Call"
           >
-            <BsArrowRepeat size={16} />
+            <BsTelephoneXFill size={14} />
           </button>
-        )}
+        </div>
       </div>
 
       {/* ── MAIN VIDEO / CALL STAGE ── */}
@@ -633,8 +648,12 @@ const CallOverlay = ({
 
           {/* 5. Cut Call / Hang Up (Big Red WhatsApp Button) */}
           <button
-            onClick={endCall}
-            className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-xl shadow-red-600/40 transition-transform cursor-pointer ml-1"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              endCall();
+            }}
+            className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-xl shadow-red-600/40 transition-transform cursor-pointer ml-1 pointer-events-auto"
             title="Cut Call (End Call)"
             aria-label="Cut Call"
           >

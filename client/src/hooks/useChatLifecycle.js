@@ -248,8 +248,18 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
   }, [state.showEmojiPicker]);
 
   useEffect(() => {
-    state.messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [state.messages]);
+    if (state.messagesEndRef.current) {
+      const container = state.messagesEndRef.current.parentElement;
+      if (container && typeof container.scrollTop === "number") {
+        container.scrollTop = container.scrollHeight;
+      } else {
+        state.messagesEndRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }
+  }, [state.messages, state.selectedChat?.id]);
 
   // Fetch chats
   const fetchChats = useCallback(async () => {

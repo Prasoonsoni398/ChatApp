@@ -66,7 +66,7 @@ const ChatHeader = ({
   onOpenWallpaperModal,
 }) => {
   return (
-    <div className="h-16 px-2 sm:px-4 flex items-center bg-base-100 border-b border-b-theme-soothing chat-header-bar shadow-xs z-20">
+    <div className="h-16 px-2 sm:px-4 flex items-center bg-base-100 border-b border-b-theme-soothing chat-header-bar shadow-xs z-20 shrink-0">
       {/* Back button — mobile only */}
       <button
         className="md:hidden w-8 h-8 flex items-center justify-center -ml-1 text-base-content/70 hover:text-primary rounded-full hover:bg-base-200 transition-colors flex-shrink-0 mr-1"

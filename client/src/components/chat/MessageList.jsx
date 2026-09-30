@@ -29,7 +29,7 @@ const MessageList = ({
   onRespondEvent,
 }) => {
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+    <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1 overscroll-contain">
       {messages.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-base-content/50 gap-2">
           <div className="w-20 h-20 bg-base-100 rounded-full flex items-center justify-center shadow-sm border border-base-300">

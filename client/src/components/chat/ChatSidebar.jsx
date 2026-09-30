@@ -158,7 +158,7 @@ const ChatSidebar = ({
 
   return (
     <div
-      className={`w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-r-theme-soothing chat-sidebar-panel h-full ${
+      className={`w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-r-theme-soothing chat-sidebar-panel h-full min-h-0 overflow-hidden ${
         selectedChat ? "hidden md:flex" : "flex"
       }`}
     >
@@ -203,7 +203,7 @@ const ChatSidebar = ({
       />
 
       {/* ── Chat List / Search Results ── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
         {isGlobalSearchMode ? (
           <SidebarSearchResults
             isSearchingMessages={isSearchingMessages}

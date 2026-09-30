@@ -322,8 +322,13 @@ const WebSocket = (io) => {
     });
 
     socket.on("leaveCall", ({ roomId, userId, to }) => {
-      if (to) {
-        const receiverSocketId = OnlineUsers[to];
+      const targetStr = to ? String(to?._id || to) : null;
+      if (targetStr) {
+        const receiverSocketId =
+          OnlineUsers[targetStr] ||
+          Object.entries(OnlineUsers).find(
+            ([uid]) => String(uid) === targetStr,
+          )?.[1];
         if (receiverSocketId) {
           io.to(receiverSocketId).emit("callEnded", { userId });
         }
@@ -331,12 +336,18 @@ const WebSocket = (io) => {
       if (roomId) {
         socket.leave(roomId);
         socket.to(roomId).emit("userLeftCall", userId);
+        socket.to(roomId).emit("callEnded", { userId });
       }
     });
 
     socket.on("endCall", ({ to, roomId, userId }) => {
-      if (to) {
-        const receiverSocketId = OnlineUsers[to];
+      const targetStr = to ? String(to?._id || to) : null;
+      if (targetStr) {
+        const receiverSocketId =
+          OnlineUsers[targetStr] ||
+          Object.entries(OnlineUsers).find(
+            ([uid]) => String(uid) === targetStr,
+          )?.[1];
         if (receiverSocketId) {
           io.to(receiverSocketId).emit("callEnded", { userId });
         }
@@ -344,6 +355,7 @@ const WebSocket = (io) => {
       if (roomId) {
         socket.leave(roomId);
         socket.to(roomId).emit("userLeftCall", userId);
+        socket.to(roomId).emit("callEnded", { userId });
       }
     });
 
