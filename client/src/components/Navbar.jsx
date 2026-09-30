@@ -43,7 +43,7 @@ const Navbar = () => {
   return (
     <div className="flex justify-between px-6 py-2 bg-primary text-primary-content items-center shadow-md">
       <a href="/" className="text-xl font-bold tracking-tight">
-        Guftagu
+        Guftgu
       </a>
       <Dropdown
         value={selectTheme}

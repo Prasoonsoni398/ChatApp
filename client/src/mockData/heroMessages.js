@@ -22,7 +22,7 @@ const heroMessages = [
     from: "them",
     seed: "Sarah",
     delay: 5200,
-    text: "Love the #05A63F green. Feels so native to Guftagu!",
+    text: "Love the #05A63F green. Feels so native to Guftgu!",
   },
 ];
 

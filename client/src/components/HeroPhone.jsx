@@ -415,13 +415,13 @@ const HeroPhone = () => {
               <div className="w-8 h-8 rounded-full overflow-hidden border border-base-300 bg-base-100 shrink-0 shadow-sm">
                 <img
                   src="https://api.dicebear.com/7.x/avataaars/svg?seed=DesignTeam"
-                  alt="Guftagu Team"
+                  alt="Guftgu Team"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div>
                 <div className="font-bold text-[12px] text-base-content leading-tight">
-                  Guftagu Team
+                  Guftgu Team
                 </div>
                 <div className="text-[9px] text-primary font-medium">
                   3 online
