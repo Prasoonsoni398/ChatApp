@@ -6,9 +6,13 @@
 
 // Production fallback deployed backend on Render
 export const DEFAULT_PROD_BACKEND = "https://guftgu-fsrp.onrender.com";
-export const DEFAULT_LOCAL_BACKEND = "http://localhost:4500";
+
+// Local development fallback backend
+export const DEFAULT_DEV_BACKEND = "http://localhost:4500";
 
 const getCleanBackendUrl = () => {
+  const envDevUrl = (import.meta.env.VITE_DEV_BACKEND_URL || "").trim();
+  const envProdUrl = (import.meta.env.VITE_PROD_BACKEND_URL || "").trim();
   const envUrl = (
     import.meta.env.VITE_BACKEND_URL ||
     import.meta.env.VITE_API_URL ||
@@ -16,26 +20,31 @@ const getCleanBackendUrl = () => {
   ).trim();
 
   const isBrowser = typeof window !== "undefined";
-  const hostname = isBrowser ? window.location.hostname : "";
-  const isLocalhost = hostname === "localhost";
-  const isDeployedHost = isBrowser && !isLocalhost;
+  const isDeployedHost =
+    isBrowser &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1";
 
-  // In production builds or when running on any live deployed domain:
-  // Never allow localhost because live users cannot connect to localhost!
-  if (import.meta.env.PROD || isDeployedHost) {
-    if (!envUrl || envUrl.includes("localhost")) {
-      return DEFAULT_PROD_BACKEND;
+  // When running on any deployed domain (e.g. Vercel):
+  // Ensure we connect to the deployed production backend (never localhost)
+  if (isDeployedHost) {
+    if (envProdUrl && !envProdUrl.includes("localhost") && !envProdUrl.includes("127.0.0.1")) {
+      return envProdUrl;
     }
-    return envUrl;
+    if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+      return envUrl;
+    }
+    return DEFAULT_PROD_BACKEND;
   }
 
-  // Local development:
+  // Local development (browser is on localhost / 127.0.0.1):
+  if (envDevUrl) {
+    return envDevUrl;
+  }
   if (envUrl) {
     return envUrl;
   }
-
-  // Default to localhost:4500 in local dev
-  return DEFAULT_LOCAL_BACKEND;
+  return DEFAULT_DEV_BACKEND;
 };
 
 export const BACKEND_URL = getCleanBackendUrl().replace(/\/$/, "");

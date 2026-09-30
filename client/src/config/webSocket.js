@@ -1,26 +1,18 @@
 import { io } from "socket.io-client";
-import {
-  BACKEND_URL,
-  DEFAULT_PROD_BACKEND,
-  DEFAULT_LOCAL_BACKEND,
-} from "./api.js";
+import { BACKEND_URL, DEFAULT_PROD_BACKEND, DEFAULT_DEV_BACKEND } from "./api.js";
 
 // Determine the clean socket server target
 const isBrowser = typeof window !== "undefined";
-const hostname = isBrowser ? window.location.hostname : "";
-const isLocalhost = hostname === "localhost";
-const isDeployedHost = isBrowser && !isLocalhost;
+const isDeployedHost =
+  isBrowser &&
+  window.location.hostname !== "localhost" &&
+  window.location.hostname !== "127.0.0.1";
 
 let socketTarget = BACKEND_URL;
-if (isDeployedHost) {
-  if (!socketTarget || socketTarget.includes("localhost")) {
-    socketTarget = DEFAULT_PROD_BACKEND;
-  }
-} else {
-  // Local development
-  if (!socketTarget) {
-    socketTarget = DEFAULT_LOCAL_BACKEND;
-  }
+if (isDeployedHost && (!socketTarget || socketTarget.includes("localhost") || socketTarget.includes("127.0.0.1"))) {
+  socketTarget = DEFAULT_PROD_BACKEND;
+} else if (!socketTarget) {
+  socketTarget = DEFAULT_DEV_BACKEND;
 }
 
 const socketAPI = io(socketTarget, {

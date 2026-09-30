@@ -35,7 +35,9 @@ const envOrigins = (process.env.CLIENT_URL || "")
 const staticOrigins = [
   ...envOrigins,
   "http://localhost:5173",
-  "http://localhost:4500",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "http://localhost:3000",
   "https://chat-app-two-rosy-94.vercel.app",
 ];
 
@@ -48,8 +50,8 @@ const isAllowedOrigin = (origin) => {
   const cleanOrigin = origin.replace(/\/$/, "");
   if (staticOrigins.includes(cleanOrigin)) return true;
 
-  // Match localhost on any port
-  if (/^http:\/\/localhost(:\d+)?$/.test(cleanOrigin)) return true;
+  // Match localhost or 127.0.0.1 on any port
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
 
   // Match any Vercel, Render, Netlify, or Cloudflare Pages deployment domain
   if (/^https:\/\/.*\.vercel\.app$/.test(cleanOrigin)) return true;
