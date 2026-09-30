@@ -430,7 +430,7 @@ const Chat = () => {
           handleToggleStar={interactionActions.handleToggleStar}
         />
 
-        <CallOverlay {...webRTC} />
+        <CallOverlay {...webRTC} loggedInUser={state.loggedInUser} />
 
         {/* Mobile Bottom Navigation and Floating Action Button */}
         <MobileNavAndFAB

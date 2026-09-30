@@ -102,6 +102,7 @@ const CallOverlay = ({
   isScreenSharing,
   callType,
   currentPeerInfo,
+  loggedInUser = null,
   answerCall,
   rejectCall,
   endCall,
@@ -302,13 +303,13 @@ const CallOverlay = ({
   const mainStream = isSwapped ? localStream : primaryRemoteStream;
   const isMainLocal = isSwapped;
   const mainUserName = isSwapped ? "You" : contactName;
-  const mainUserAvatar = isSwapped ? loggedInUser?.avatar : contactAvatar;
+  const mainUserAvatar = isSwapped ? loggedInUser?.avatar || "" : contactAvatar;
   const isMainVideoOff = isSwapped ? isVideoOff : false;
 
   const pipStream = isSwapped ? primaryRemoteStream : localStream;
   const isPipLocal = !isSwapped;
   const pipUserName = isSwapped ? contactName : "You";
-  const pipUserAvatar = isSwapped ? contactAvatar : loggedInUser?.avatar;
+  const pipUserAvatar = isSwapped ? contactAvatar : loggedInUser?.avatar || "";
   const isPipVideoOff = !isSwapped ? isVideoOff : false;
 
   // Corner classes for floating PiP card
