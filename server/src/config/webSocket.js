@@ -224,13 +224,14 @@ const WebSocket = (io) => {
 
     // --- WebRTC Signaling ---
 
-    socket.on("ringUser", ({ userToCall, from, callType, name, roomId }) => {
+    socket.on("ringUser", ({ userToCall, from, callType, name, avatar, roomId }) => {
       const receiverSocketId = OnlineUsers[userToCall];
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("incomingRing", {
           from,
           callType,
           name,
+          avatar,
           roomId,
           isGroup: false,
         });
@@ -242,7 +243,7 @@ const WebSocket = (io) => {
 
     socket.on(
       "ringGroup",
-      async ({ groupId, from, callType, name, roomId }) => {
+      async ({ groupId, from, callType, name, avatar, roomId }) => {
         const group = await Group.findById(groupId);
         let anyOnline = false;
         if (group) {
@@ -253,6 +254,7 @@ const WebSocket = (io) => {
                 from,
                 callType,
                 name,
+                avatar,
                 roomId,
                 isGroup: true,
                 groupName: group.name,
@@ -286,12 +288,13 @@ const WebSocket = (io) => {
       socket.emit("allCallUsers", otherUsers);
     });
 
-    socket.on("callUser", ({ userToCall, signalData, from }) => {
+    socket.on("callUser", ({ userToCall, signalData, from, roomId }) => {
       const receiverSocketId = OnlineUsers[userToCall];
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("incomingCall", {
           signal: signalData,
           from,
+          roomId,
         });
       }
     });
@@ -302,13 +305,46 @@ const WebSocket = (io) => {
         io.to(callerSocketId).emit("callAccepted", {
           signal: data.signal,
           from: data.from,
+          roomId: data.roomId,
         });
       }
     });
 
-    socket.on("leaveCall", ({ roomId, userId }) => {
-      socket.leave(roomId);
-      socket.to(roomId).emit("userLeftCall", userId);
+    // Relay WebRTC ICE Candidates peer-to-peer
+    socket.on("iceCandidate", ({ to, candidate, from }) => {
+      const receiverSocketId = OnlineUsers[to];
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("iceCandidate", {
+          candidate,
+          from,
+        });
+      }
+    });
+
+    socket.on("leaveCall", ({ roomId, userId, to }) => {
+      if (to) {
+        const receiverSocketId = OnlineUsers[to];
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("callEnded", { userId });
+        }
+      }
+      if (roomId) {
+        socket.leave(roomId);
+        socket.to(roomId).emit("userLeftCall", userId);
+      }
+    });
+
+    socket.on("endCall", ({ to, roomId, userId }) => {
+      if (to) {
+        const receiverSocketId = OnlineUsers[to];
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("callEnded", { userId });
+        }
+      }
+      if (roomId) {
+        socket.leave(roomId);
+        socket.to(roomId).emit("userLeftCall", userId);
+      }
     });
 
     socket.on("rejectCall", ({ to }) => {
