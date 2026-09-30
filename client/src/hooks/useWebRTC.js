@@ -20,7 +20,6 @@ const RTC_CONFIG = {
 const extractTargetId = (target) => {
   if (!target) return null;
   if (typeof target === "string") return target;
-  // Handles all chat/contact variants: _id (MongoDB), id (UI chat item), userId (call log)
   return (target._id || target.id || target.userId || "").toString();
 };
 
@@ -47,9 +46,16 @@ const useWebRTC = (loggedInUser) => {
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
   const targetPeerIdRef = useRef(null);
+  const activeRoomIdRef = useRef(null);
   const pendingOfferRef = useRef(null);
   const queuedIceCandidatesRef = useRef([]);
   const screenTrackRef = useRef(null);
+
+  // Maintain reference to current callState so socket callbacks never drop or trigger re-binding
+  const callStateRef = useRef(callState);
+  useEffect(() => {
+    callStateRef.current = callState;
+  }, [callState]);
 
   // Synchronize audio ringtone with call states
   useEffect(() => {
@@ -79,6 +85,10 @@ const useWebRTC = (loggedInUser) => {
   const createPeerConnection = (targetUserId) => {
     if (pcRef.current) {
       try {
+        pcRef.current.onconnectionstatechange = null;
+        pcRef.current.oniceconnectionstatechange = null;
+        pcRef.current.ontrack = null;
+        pcRef.current.onicecandidate = null;
         pcRef.current.close();
       } catch (_e) {}
     }
@@ -107,24 +117,37 @@ const useWebRTC = (loggedInUser) => {
         }));
         setCallState("active");
         stopRingtone();
+      } else if (event.track) {
+        const stream = new MediaStream([event.track]);
+        setRemoteStreams((prev) => ({
+          ...prev,
+          [targetUserId]: stream,
+        }));
+        setCallState("active");
+        stopRingtone();
       }
     };
 
     pc.onconnectionstatechange = () => {
-      if (
-        pc.connectionState === "disconnected" ||
-        pc.connectionState === "failed" ||
-        pc.connectionState === "closed"
-      ) {
-        // If peer disconnected, clean up
+      console.log("WebRTC Connection State:", pc.connectionState);
+      // Only tear down on fatal closed state triggered by explicit remote disconnect
+      if (pc.connectionState === "closed") {
         endCall();
       }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log("ICE Connection State:", pc.iceConnectionState);
     };
 
     // Attach local media stream tracks if already acquired
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => {
-        pc.addTrack(track, localStreamRef.current);
+        try {
+          pc.addTrack(track, localStreamRef.current);
+        } catch (err) {
+          console.warn("Track addition warning:", err);
+        }
       });
     }
 
@@ -134,8 +157,9 @@ const useWebRTC = (loggedInUser) => {
   // Process any queued ICE candidates once remote description is set
   const processQueuedCandidates = async (pc) => {
     if (!pc || !pc.remoteDescription) return;
-    while (queuedIceCandidatesRef.current.length > 0) {
-      const candidate = queuedIceCandidatesRef.current.shift();
+    const candidates = [...queuedIceCandidatesRef.current];
+    queuedIceCandidatesRef.current = [];
+    for (const candidate of candidates) {
       try {
         await pc.addIceCandidate(new RTCIceCandidate(candidate));
       } catch (err) {
@@ -144,15 +168,22 @@ const useWebRTC = (loggedInUser) => {
     }
   };
 
-  // Main Socket.IO signaling event listeners
+  // Stable Socket.IO signaling event listeners (only bound once per user session)
   useEffect(() => {
     if (!loggedInUser) return;
 
     // 1. Incoming Call Ring Notification
     const handleIncomingRing = (data) => {
       // data: { from, callType, name, avatar, roomId, isGroup, groupName }
-      if (callState !== "idle") {
-        // Line busy - reject automatically
+      if (callStateRef.current !== "idle") {
+        // If it's the exact same call (retry or duplicate packet), ignore gracefully
+        if (
+          data.roomId === activeRoomIdRef.current ||
+          data.from === targetPeerIdRef.current
+        ) {
+          return;
+        }
+        // Truly busy on another call
         socketAPI.emit("rejectCall", { to: data.from });
         return;
       }
@@ -160,6 +191,7 @@ const useWebRTC = (loggedInUser) => {
       setCallState("ringing");
       setCallType(data.callType || "video");
       setActiveRoomId(data.roomId);
+      activeRoomIdRef.current = data.roomId;
       targetPeerIdRef.current = data.from;
     };
 
@@ -173,17 +205,29 @@ const useWebRTC = (loggedInUser) => {
       // payload: { signal, from, roomId }
       pendingOfferRef.current = payload.signal;
       targetPeerIdRef.current = payload.from;
-      if (payload.roomId) setActiveRoomId(payload.roomId);
+      if (payload.roomId) {
+        activeRoomIdRef.current = payload.roomId;
+        setActiveRoomId(payload.roomId);
+      }
 
-      // If call is already answering or active, apply offer immediately
-      if (pcRef.current && pcRef.current.signalingState !== "closed") {
+      const pc = pcRef.current;
+      // If callee already accepted and pc is awaiting remote offer
+      if (pc && pc.signalingState === "stable" && !pc.remoteDescription) {
         try {
-          await pcRef.current.setRemoteDescription(
+          await pc.setRemoteDescription(
             new RTCSessionDescription(payload.signal),
           );
-          await processQueuedCandidates(pcRef.current);
+          await processQueuedCandidates(pc);
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socketAPI.emit("answerCall", {
+            to: payload.from,
+            signal: answer,
+            from: loggedInUser?._id,
+            roomId: payload.roomId,
+          });
         } catch (err) {
-          console.warn("Failed to set remote offer:", err);
+          console.warn("Failed to process offer on answer state:", err);
         }
       }
     };
@@ -193,14 +237,15 @@ const useWebRTC = (loggedInUser) => {
       // payload: { signal, from, roomId }
       stopRingtone();
       setCallState("active");
-      if (pcRef.current) {
+      const pc = pcRef.current;
+      if (pc && pc.signalingState === "have-local-offer") {
         try {
-          await pcRef.current.setRemoteDescription(
+          await pc.setRemoteDescription(
             new RTCSessionDescription(payload.signal),
           );
-          await processQueuedCandidates(pcRef.current);
+          await processQueuedCandidates(pc);
         } catch (err) {
-          console.warn("Failed to set remote answer:", err);
+          console.warn("Failed to set remote answer on caller:", err);
         }
       }
     };
@@ -209,7 +254,12 @@ const useWebRTC = (loggedInUser) => {
     const handleIceCandidate = async ({ candidate }) => {
       if (!candidate) return;
       const pc = pcRef.current;
-      if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+      if (
+        pc &&
+        pc.remoteDescription &&
+        pc.remoteDescription.type &&
+        pc.signalingState !== "closed"
+      ) {
         try {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (err) {
@@ -257,12 +307,19 @@ const useWebRTC = (loggedInUser) => {
       socketAPI.off("userLeftCall", handleUserLeftCall);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loggedInUser, callState]);
+  }, [loggedInUser?._id]);
 
   /**
    * Initiate an outgoing voice or video call
    */
   const startCall = async (target, type = "voice") => {
+    if (target?.isGroup) {
+      toast("Group voice/video calls are coming soon! Please call members individually.", {
+        icon: "ℹ️",
+      });
+      return;
+    }
+
     const targetId = extractTargetId(target);
     const targetName = extractTargetName(target);
     const targetAvatar = extractTargetAvatar(target);
@@ -275,6 +332,7 @@ const useWebRTC = (loggedInUser) => {
     setCallType(type);
     const roomId = `room-${Date.now()}`;
     setActiveRoomId(roomId);
+    activeRoomIdRef.current = roomId;
     setCallState("outgoing");
     setOutgoingCallStatus("calling");
     targetPeerIdRef.current = targetId;
@@ -347,6 +405,7 @@ const useWebRTC = (loggedInUser) => {
     const callerId = incomingCall.from;
     const roomId = incomingCall.roomId;
     targetPeerIdRef.current = callerId;
+    activeRoomIdRef.current = roomId;
 
     recordCallLog({
       id: roomId || Date.now().toString(),
@@ -376,19 +435,36 @@ const useWebRTC = (loggedInUser) => {
       // 2. Initialize PeerConnection
       const pc = createPeerConnection(callerId);
 
-      // 3. Set remote description from caller's offer
-      if (pendingOfferRef.current) {
-        await pc.setRemoteDescription(
-          new RTCSessionDescription(pendingOfferRef.current),
-        );
-        await processQueuedCandidates(pc);
+      // 3. Wait for offer if not yet received
+      let offer = pendingOfferRef.current;
+      if (!offer) {
+        offer = await new Promise((resolve) => {
+          const interval = setInterval(() => {
+            if (pendingOfferRef.current) {
+              clearInterval(interval);
+              resolve(pendingOfferRef.current);
+            }
+          }, 100);
+          setTimeout(() => {
+            clearInterval(interval);
+            resolve(null);
+          }, 3500);
+        });
       }
 
-      // 4. Generate SDP Answer
+      if (!offer) {
+        throw new Error("Call offer was not received from caller in time.");
+      }
+
+      // 4. Set remote description from caller's offer
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      await processQueuedCandidates(pc);
+
+      // 5. Generate SDP Answer
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      // 5. Send SDP Answer back to caller
+      // 6. Send SDP Answer back to caller
       socketAPI.emit("answerCall", {
         to: callerId,
         signal: answer,
@@ -397,8 +473,8 @@ const useWebRTC = (loggedInUser) => {
       });
     } catch (err) {
       console.error("Error answering call:", err);
-      toast.error("Failed to open camera/microphone.");
-      rejectCall();
+      toast.error(err.message || "Failed to establish call connection.");
+      endCall();
     }
   };
 
@@ -426,6 +502,7 @@ const useWebRTC = (loggedInUser) => {
     setIncomingCall(null);
     setCallState("idle");
     targetPeerIdRef.current = null;
+    activeRoomIdRef.current = null;
     pendingOfferRef.current = null;
   };
 
@@ -436,7 +513,19 @@ const useWebRTC = (loggedInUser) => {
     stopRingtone();
 
     const targetId = targetPeerIdRef.current;
-    const roomId = activeRoomId;
+    const roomId = activeRoomIdRef.current;
+
+    // Detach all listeners before closing to prevent recursive teardown
+    if (pcRef.current) {
+      pcRef.current.onconnectionstatechange = null;
+      pcRef.current.oniceconnectionstatechange = null;
+      pcRef.current.ontrack = null;
+      pcRef.current.onicecandidate = null;
+      try {
+        pcRef.current.close();
+      } catch (_e) {}
+      pcRef.current = null;
+    }
 
     if (targetId) {
       socketAPI.emit("endCall", {
@@ -463,16 +552,9 @@ const useWebRTC = (loggedInUser) => {
       screenTrackRef.current = null;
     }
 
-    // Close PeerConnection
-    if (pcRef.current) {
-      try {
-        pcRef.current.close();
-      } catch (_e) {}
-      pcRef.current = null;
-    }
-
     localStreamRef.current = null;
     targetPeerIdRef.current = null;
+    activeRoomIdRef.current = null;
     pendingOfferRef.current = null;
     queuedIceCandidatesRef.current = [];
 
