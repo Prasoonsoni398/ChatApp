@@ -110,7 +110,7 @@ const Login = () => {
                 <input
                   type="text"
                   name="identifier"
-                  placeholder="+91 98765 43210 or name@example.com"
+                  placeholder="Phone number or name@example.com"
                   className={authInput}
                   value={formData.identifier}
                   onChange={handleChange}

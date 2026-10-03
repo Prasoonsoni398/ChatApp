@@ -25,11 +25,29 @@ const MediaExpiryNoticeModal = () => {
   useEffect(() => {
     // Show if the user hasn't permanently dismissed it
     const alreadyAccepted = localStorage.getItem(STORAGE_KEY);
-    if (!alreadyAccepted) {
-      // Gentle delay so the main page loads and renders first
-      const timer = setTimeout(() => setIsVisible(true), 700);
-      return () => clearTimeout(timer);
+    if (alreadyAccepted) return;
+
+    const showModalWithDelay = () => {
+      const timer = setTimeout(() => setIsVisible(true), 800);
+      return timer;
+    };
+
+    // If device permission/cookies hasn't been accepted yet, wait for user consent
+    const deviceConsent = localStorage.getItem("guftgu_device_consent");
+    if (!deviceConsent) {
+      const handleConsentGiven = () => {
+        showModalWithDelay();
+      };
+      window.addEventListener("guftgu-consent-given", handleConsentGiven, {
+        once: true,
+      });
+      return () => {
+        window.removeEventListener("guftgu-consent-given", handleConsentGiven);
+      };
     }
+
+    const timer = showModalWithDelay();
+    return () => clearTimeout(timer);
   }, []);
 
   // Allow reopening the modal on-demand from settings, storage, or help

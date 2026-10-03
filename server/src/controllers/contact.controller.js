@@ -4,11 +4,18 @@
  */
 import User from "../models/user.model.js";
 
-// Normalise phone for consistent lookup
+// Normalise phone for consistent lookup (supports both with & without country codes)
 const normalisePhone = (raw) => {
   if (!raw) return null;
-  let p = raw.replace(/[\s\-().]/g, "");
-  if (!p.startsWith("+")) p = `+${p}`;
+  let p = raw.toString().replace(/[\s\-().]/g, "");
+  if (!p.startsWith("+")) {
+    if (p.startsWith("0") && p.length === 11) {
+      return `+91${p.slice(1)}`;
+    } else if (p.length === 10) {
+      return `+91${p}`;
+    }
+    return `+${p}`;
+  }
   return p;
 };
 
@@ -28,10 +35,18 @@ export const searchByPhone = async (req, res) => {
       { phone: normPhone },
     ];
 
-    if (digits.length >= 7) {
-      // Matches last 10 digits regardless of leading +91 or other country code
-      const lastDigits = digits.slice(-10);
-      searchConditions.push({ phone: { $regex: `${lastDigits}$` } });
+    if (digits) {
+      searchConditions.push({ phone: digits });
+      searchConditions.push({ phone: `+${digits}` });
+      if (digits.length === 10) {
+        searchConditions.push({ phone: `+91${digits}` });
+        searchConditions.push({ phone: `91${digits}` });
+      }
+      if (digits.length >= 7) {
+        // Matches last 10 digits regardless of leading +91 or other country code
+        const lastDigits = digits.slice(-10);
+        searchConditions.push({ phone: { $regex: `${lastDigits}$` } });
+      }
     }
 
     if (rawSearch.includes("@")) {

@@ -576,7 +576,17 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap justify-center sm:justify-end">
+              <button
+                type="button"
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent("open-cookie-consent"))
+                }
+                className="hover:text-primary transition-colors underline decoration-dotted cursor-pointer"
+              >
+                Cookie & Permissions
+              </button>
+
               <button
                 type="button"
                 onClick={openMediaExpiryModal}

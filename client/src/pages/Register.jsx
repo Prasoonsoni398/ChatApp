@@ -230,7 +230,7 @@ const Register = () => {
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="+91 98765 43210"
+                    placeholder="98765 43210 or with country code"
                     className={authInput}
                     value={formData.phone}
                     onChange={handleChange}
@@ -238,8 +238,7 @@ const Register = () => {
                   />
                 </div>
                 <p className="text-xs text-base-content/50 mt-1 pl-1">
-                  Include country code (e.g. +91). A real-time verification code
-                  will be forwarded to this number.
+                  Enter your mobile number .
                 </p>
               </div>
 

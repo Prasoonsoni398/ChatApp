@@ -221,7 +221,7 @@ const AddContactModal = ({ isOpen, onClose, onContactAdded }) => {
 
           {/* Hint */}
           <p className="text-xs text-base-content/40 text-center">
-            💡 Make sure you include the country code (e.g. +91 for India)
+            💡 Search by phone number with or without country code (+91 is optional), email, or name.
           </p>
         </div>
       </div>

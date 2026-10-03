@@ -240,6 +240,32 @@ const PrivacyTabContent = ({
           </div>
         )}
       </div>
+
+      {/* Device Permissions & Cookies */}
+      <div>
+        <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3 px-1">
+          Device & Cookie Permissions
+        </h4>
+        <div className="p-3.5 rounded-2xl bg-base-200/40 border border-base-300 flex items-center justify-between gap-3">
+          <div>
+            <span className="text-sm font-semibold text-base-content block">
+              Cookie & Hardware Consent
+            </span>
+            <span className="text-xs text-base-content/60 block mt-0.5">
+              Review camera, microphone, notifications, and browser storage consent for this device.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("open-cookie-consent"))
+            }
+            className="btn btn-xs btn-outline btn-primary rounded-lg flex-shrink-0"
+          >
+            Manage
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

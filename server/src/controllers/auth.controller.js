@@ -44,14 +44,13 @@ const getPhoneSearchCandidates = (rawPhone) => {
   const norm = normalisePhone(rawStr);
   const clean = rawStr.replace(/\D/g, "");
   const candidates = new Set([norm, rawStr]);
-  if (clean.length === 10) {
-    candidates.add(`+91${clean}`);
-    candidates.add(`+${clean}`);
+  if (clean) {
     candidates.add(clean);
-  } else if (clean.length > 10) {
     candidates.add(`+${clean}`);
-    candidates.add(clean);
-    if (clean.startsWith("91") && clean.length === 12) {
+    if (clean.length === 10) {
+      candidates.add(`+91${clean}`);
+      candidates.add(`91${clean}`);
+    } else if (clean.startsWith("91") && clean.length === 12) {
       const ten = clean.slice(2);
       candidates.add(`+91${ten}`);
       candidates.add(`+${ten}`);

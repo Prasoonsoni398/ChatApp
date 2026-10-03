@@ -10,6 +10,7 @@ import Chat from "./pages/Chat";
 import ForgotPassword from "./pages/ForgotPassword";
 import JoinGroupPage from "./pages/JoinGroupPage";
 import MediaExpiryNoticeModal from "./components/common/MediaExpiryNoticeModal";
+import DevicePermissionModal from "./components/common/DevicePermissionModal";
 import BackendWakingBanner from "./components/common/BackendWakingBanner";
 import { wakeUpBackend, startKeepAlivePing } from "./config/api";
 
@@ -20,6 +21,8 @@ const App = () => {
   }, []);
   return (
     <BrowserRouter>
+      {/* Global Device Permission & Cookie Consent Gate */}
+      <DevicePermissionModal />
       {/* Global Cloud Server Cold-Start Notice Banner */}
       <BackendWakingBanner />
       {/* Global Toaster for notifications */}
