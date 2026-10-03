@@ -13,8 +13,11 @@ const RTC_CONFIG = {
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
     { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
     { urls: "stun:global.stun.twilio.com:3478" },
   ],
+  iceCandidatePoolSize: 10,
 };
 
 const extractTargetId = (target) => {
@@ -64,6 +67,32 @@ const useWebRTC = (loggedInUser) => {
     callStateRef.current = callState;
   }, [callState]);
 
+  // Protect against accidental page refresh during an active or ongoing call
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (callStateRef.current !== "idle") {
+        const targetId = targetPeerIdRef.current;
+        const roomId = activeRoomIdRef.current;
+        if (targetId) {
+          socketAPI.emit("endCall", {
+            to: targetId,
+            roomId,
+            userId: loggedInUser?._id,
+          });
+        }
+        e.preventDefault();
+        e.returnValue =
+          "A call is currently in progress. Refreshing the page will end your call.";
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [loggedInUser?._id]);
+
   // Synchronize audio ringtone with call states
   useEffect(() => {
     if (callState === "ringing") {
@@ -102,10 +131,11 @@ const useWebRTC = (loggedInUser) => {
 
     const pc = new RTCPeerConnection(RTC_CONFIG);
     pcRef.current = pc;
+    let disconnectGraceTimer = null;
 
     // Relay local ICE candidates to the remote peer
     pc.onicecandidate = (event) => {
-      if (event.candidate && targetUserId) {
+      if (event.candidate && event.candidate.candidate && targetUserId) {
         socketAPI.emit("iceCandidate", {
           to: targetUserId,
           candidate: event.candidate,
@@ -116,29 +146,60 @@ const useWebRTC = (loggedInUser) => {
 
     // Receive and mount remote audio/video tracks
     pc.ontrack = (event) => {
-      const [remoteStream] = event.streams;
-      if (remoteStream) {
-        setRemoteStreams((prev) => ({
+      console.log(
+        "[WebRTC] ontrack received:",
+        event.track?.kind,
+        event.track?.id,
+      );
+
+      setRemoteStreams((prev) => {
+        const existingStream = prev[targetUserId];
+        let combinedTracks = [];
+
+        if (event.streams && event.streams[0]) {
+          combinedTracks = event.streams[0].getTracks();
+        } else if (existingStream) {
+          const prevTracks = existingStream.getTracks();
+          const alreadyExists = prevTracks.some((t) => t.id === event.track.id);
+          combinedTracks = alreadyExists
+            ? prevTracks
+            : [...prevTracks, event.track];
+        } else if (event.track) {
+          combinedTracks = [event.track];
+        }
+
+        // Always return a fresh MediaStream instance so React state & child components re-render immediately
+        const freshStream = new MediaStream(combinedTracks);
+        return {
           ...prev,
-          [targetUserId]: remoteStream,
-        }));
-        setCallState("active");
-        stopRingtone();
-      } else if (event.track) {
-        const stream = new MediaStream([event.track]);
-        setRemoteStreams((prev) => ({
-          ...prev,
-          [targetUserId]: stream,
-        }));
-        setCallState("active");
-        stopRingtone();
-      }
+          [targetUserId]: freshStream,
+        };
+      });
+
+      setCallState("active");
+      stopRingtone();
     };
 
     pc.onconnectionstatechange = () => {
-      console.log("WebRTC Connection State:", pc.connectionState);
-      if (
-        pc.connectionState === "disconnected" ||
+      console.log("[WebRTC] Connection State:", pc.connectionState);
+      if (pc.connectionState === "connected") {
+        if (disconnectGraceTimer) {
+          clearTimeout(disconnectGraceTimer);
+          disconnectGraceTimer = null;
+        }
+      } else if (pc.connectionState === "disconnected") {
+        // Network flutter; allow 6 seconds grace period to reconnect before terminating
+        if (!disconnectGraceTimer) {
+          disconnectGraceTimer = setTimeout(() => {
+            if (
+              pc.connectionState === "disconnected" ||
+              pc.connectionState === "failed"
+            ) {
+              if (endCallRef.current) endCallRef.current();
+            }
+          }, 6000);
+        }
+      } else if (
         pc.connectionState === "failed" ||
         pc.connectionState === "closed"
       ) {
@@ -147,12 +208,16 @@ const useWebRTC = (loggedInUser) => {
     };
 
     pc.oniceconnectionstatechange = () => {
-      console.log("ICE Connection State:", pc.iceConnectionState);
+      console.log("[WebRTC] ICE Connection State:", pc.iceConnectionState);
       if (
-        pc.iceConnectionState === "disconnected" ||
-        pc.iceConnectionState === "failed" ||
-        pc.iceConnectionState === "closed"
+        pc.iceConnectionState === "connected" ||
+        pc.iceConnectionState === "completed"
       ) {
+        if (disconnectGraceTimer) {
+          clearTimeout(disconnectGraceTimer);
+          disconnectGraceTimer = null;
+        }
+      } else if (pc.iceConnectionState === "failed") {
         if (endCallRef.current) endCallRef.current();
       }
     };
@@ -177,8 +242,9 @@ const useWebRTC = (loggedInUser) => {
     const candidates = [...queuedIceCandidatesRef.current];
     queuedIceCandidatesRef.current = [];
     for (const candidate of candidates) {
+      if (!candidate) continue;
       try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        await pc.addIceCandidate(candidate);
       } catch (err) {
         console.warn("Error adding queued ICE candidate:", err);
       }
@@ -282,7 +348,7 @@ const useWebRTC = (loggedInUser) => {
         pc.signalingState !== "closed"
       ) {
         try {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          await pc.addIceCandidate(candidate);
         } catch (err) {
           console.warn("Failed to add ICE candidate:", err);
         }
@@ -402,7 +468,10 @@ const useWebRTC = (loggedInUser) => {
 
       // 3. Initialize native PeerConnection and generate SDP Offer
       const pc = createPeerConnection(targetId);
-      const offer = await pc.createOffer();
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: type === "video",
+      });
       await pc.setLocalDescription(offer);
 
       // 4. Send SDP Offer through signaling channel
@@ -498,7 +567,10 @@ const useWebRTC = (loggedInUser) => {
       await processQueuedCandidates(pc);
 
       // 5. Generate SDP Answer
-      const answer = await pc.createAnswer();
+      const answer = await pc.createAnswer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: incomingCall.callType === "video",
+      });
       await pc.setLocalDescription(answer);
 
       // 6. Send SDP Answer back to caller

@@ -32,12 +32,33 @@ const StreamCard = ({
   onClick,
 }) => {
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
+  const [trackCount, setTrackCount] = useState(0);
 
+  // Monitor tracks added or removed dynamically on the MediaStream (e.g. video track arriving after audio)
   useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-    }
+    if (!stream) return;
+    const handleTracksChanged = () => {
+      setTrackCount(stream.getTracks().length);
+    };
+    stream.addEventListener("addtrack", handleTracksChanged);
+    stream.addEventListener("removetrack", handleTracksChanged);
+    return () => {
+      stream.removeEventListener("addtrack", handleTracksChanged);
+      stream.removeEventListener("removetrack", handleTracksChanged);
+    };
   }, [stream]);
+
+  const attachMedia = (el) => {
+    if (el && stream) {
+      if (el.srcObject !== stream) {
+        el.srcObject = stream;
+      }
+      el.play().catch((err) => {
+        console.debug("[StreamCard] media play catch:", err);
+      });
+    }
+  };
 
   const hasVideoTrack =
     !isVideoOff &&
@@ -45,6 +66,15 @@ const StreamCard = ({
     stream.getVideoTracks &&
     stream.getVideoTracks().length > 0 &&
     stream.getVideoTracks().some((t) => t.enabled);
+
+  useEffect(() => {
+    if (hasVideoTrack && videoRef.current && stream) {
+      attachMedia(videoRef.current);
+    }
+    if (!hasVideoTrack && audioRef.current && stream) {
+      attachMedia(audioRef.current);
+    }
+  }, [stream, hasVideoTrack, isVideoOff, trackCount]);
 
   // If local user is screen sharing, display the anti-infinite-mirror Presenter Card
   if (isLocal && isScreenShare) {
@@ -108,7 +138,10 @@ const StreamCard = ({
       {/* Video Element */}
       {hasVideoTrack ? (
         <video
-          ref={videoRef}
+          ref={(el) => {
+            videoRef.current = el;
+            attachMedia(el);
+          }}
           autoPlay
           playsInline
           muted={muted || isLocal}
@@ -142,7 +175,15 @@ const StreamCard = ({
           </span>
           {/* Audio stream tag for remote peers when video is off */}
           {!isLocal && stream && (
-            <audio ref={videoRef} autoPlay playsInline muted={false} />
+            <audio
+              ref={(el) => {
+                audioRef.current = el;
+                attachMedia(el);
+              }}
+              autoPlay
+              playsInline
+              muted={false}
+            />
           )}
         </div>
       )}
@@ -500,7 +541,19 @@ const CallOverlay = ({
 
             {/* Audio tag for remote voice stream */}
             {primaryRemoteStream && (
-              <audio autoPlay playsInline muted={false} />
+              <audio
+                ref={(el) => {
+                  if (el && primaryRemoteStream) {
+                    if (el.srcObject !== primaryRemoteStream) {
+                      el.srcObject = primaryRemoteStream;
+                    }
+                    el.play().catch((e) => console.debug("Voice play error:", e));
+                  }
+                }}
+                autoPlay
+                playsInline
+                muted={false}
+              />
             )}
           </div>
         )}
