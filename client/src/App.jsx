@@ -34,37 +34,43 @@ const App = () => {
         <Route
           path="/"
           element={
-            <>
+            <div className="w-full h-full flex flex-col overflow-hidden">
               <Navbar />
               <Home />
-            </>
+            </div>
           }
         />
         <Route
           path="/login"
           element={
-            <>
+            <div className="w-full h-full flex flex-col overflow-hidden">
               <Navbar />
-              <Login />
-            </>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <Login />
+              </div>
+            </div>
           }
         />
         <Route
           path="/signup"
           element={
-            <>
+            <div className="w-full h-full flex flex-col overflow-hidden">
               <Navbar />
-              <Register />
-            </>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <Register />
+              </div>
+            </div>
           }
         />
         <Route
           path="/forgot-password"
           element={
-            <>
+            <div className="w-full h-full flex flex-col overflow-hidden">
               <Navbar />
-              <ForgotPassword />
-            </>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <ForgotPassword />
+              </div>
+            </div>
           }
         />
         {/* Chat page without the main Navbar to look like an app */}

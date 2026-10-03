@@ -356,12 +356,12 @@ const Register = () => {
                   ) : (
                     <div className="pt-0.5 flex items-center justify-center gap-2">
                       <a
-                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Your ChatApp verification code is ${receivedDevOtp}`)}`}
+                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Your Guftgu verification code is ${receivedDevOtp}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-xs btn-ghost text-primary text-[11px] flex items-center gap-1 hover:bg-primary/10"
                       >
-                        <BsGuftgusize={13} /> Open in Guftgu
+                        <BsWhatsapp size={13} /> Open in WhatsApp
                       </a>
                     </div>
                   )}
