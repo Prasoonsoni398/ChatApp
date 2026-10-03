@@ -8,6 +8,7 @@ import {
   ArchivedRowBanner,
   LockedChatsHeader,
 } from "./sidebar/ArchivedLockedBanners.jsx";
+import { BsPersonPlusFill } from "react-icons/bs";
 
 /**
  * ChatSidebar – WhatsApp-style left panel containing profile info,
@@ -281,13 +282,30 @@ const ChatSidebar = ({
 
                 {/* Regular Chats */}
                 {filteredChats.length === 0 ? (
-                  <div className="p-8 text-center text-base-content/50">
-                    <p className="text-sm font-medium">No chats found</p>
-                    <p className="text-xs text-base-content/40 mt-1">
+                  <div className="p-8 text-center text-base-content/50 flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
+                      <BsPersonPlusFill size={22} />
+                    </div>
+                    <p className="text-sm font-semibold text-base-content/80">
+                      No conversations yet
+                    </p>
+                    <p className="text-xs text-base-content/50 mt-1 max-w-xs leading-relaxed">
                       {searchQuery
                         ? "Try searching with a different keyword"
-                        : "Start a conversation by adding contacts"}
+                        : "You can only access users after adding them to your contacts."}
                     </p>
+                    {!searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onAddContact ? onAddContact() : onOpenNewChat?.()
+                        }
+                        className="btn btn-sm btn-primary mt-4 rounded-full gap-2 shadow-sm font-medium"
+                      >
+                        <BsPersonPlusFill size={15} />
+                        Add Contact
+                      </button>
+                    )}
                   </div>
                 ) : (
                   filteredChats.map((chat) => (

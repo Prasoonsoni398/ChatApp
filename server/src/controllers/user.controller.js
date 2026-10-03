@@ -41,15 +41,10 @@ export const getUsers = async (req, res) => {
 
     const uniqueIds = [...new Set([...contactIds, ...messageUserIds])];
 
-    let allChatUsers;
+    let allChatUsers = [];
     if (uniqueIds.length > 0) {
       allChatUsers = await User.find({
         _id: { $in: uniqueIds, $ne: myId },
-      }).select("name email phone avatar online about privacySettings");
-    } else {
-      // Fallback: If user has no contacts or message partners yet, return all other registered users
-      allChatUsers = await User.find({
-        _id: { $ne: myId },
       }).select("name email phone avatar online about privacySettings");
     }
 

@@ -34,7 +34,7 @@ const AddContactModal = ({ isOpen, onClose, onContactAdded }) => {
       setFoundUser(user);
       setCustomContactName(user.name || "");
     } catch (err) {
-      toast.error(err.message || "No user found with that phone number");
+      toast.error(err.message || "No registered user found with those details");
       setFoundUser(null);
     } finally {
       setSearching(false);
@@ -102,25 +102,24 @@ const AddContactModal = ({ isOpen, onClose, onContactAdded }) => {
         {/* Body */}
         <div className="p-5 space-y-5">
           <p className="text-sm text-base-content/60">
-            Enter the phone number of the person you want to chat with. They
-            must be registered on ChatApp.
+            Enter the phone number, email, or name of the registered user you want to chat with.
           </p>
 
-          {/* Phone search form */}
+          {/* Search form */}
           <form onSubmit={handleSearch} className="flex gap-2">
             <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50 z-20 pointer-events-none transition-colors">
-                <BsTelephoneFill className="text-sm" />
+                <BsSearch className="text-sm" />
               </span>
               <input
-                type="tel"
+                type="text"
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value);
                   setFoundUser(null);
                   setAddedSuccess(false);
                 }}
-                placeholder="+91 98765 43210"
+                placeholder="Phone, email, or name..."
                 className="input input-bordered w-full pl-9 text-sm rounded-xl"
               />
             </div>
@@ -132,7 +131,7 @@ const AddContactModal = ({ isOpen, onClose, onContactAdded }) => {
               {searching ? (
                 <span className="loading loading-spinner loading-xs" />
               ) : (
-                <BsSearch />
+                "Search"
               )}
             </button>
           </form>

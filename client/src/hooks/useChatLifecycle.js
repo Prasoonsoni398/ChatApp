@@ -265,17 +265,13 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
   const fetchChats = useCallback(async () => {
     const loggedInUserData = JSON.parse(localStorage.getItem("user"));
     try {
-      const [users, groups, allVerifiedUsers] = await Promise.all([
+      const [users, groups] = await Promise.all([
         userService.getAllUsers().catch((err) => {
           console.warn("getAllUsers error:", err);
           return [];
         }),
         groupService.getGroups().catch((err) => {
           console.warn("getGroups error:", err);
-          return [];
-        }),
-        userService.getAllVerifiedUsers().catch((err) => {
-          console.warn("getAllVerifiedUsers error:", err);
           return [];
         }),
       ]);
@@ -285,19 +281,7 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
         (u) => u && u._id && u._id !== myId,
       );
 
-      const validAllUsers = (Array.isArray(allVerifiedUsers)
-        ? allVerifiedUsers
-        : []
-      ).filter((u) => u && u._id && u._id !== myId);
-
-      // Distinguish existing chat/contact partners from other registered users
-      const existingUserIds = new Set(validUsers.map((u) => u._id.toString()));
-
-      const otherRegisteredUsers = validAllUsers.filter(
-        (u) => !existingUserIds.has(u._id.toString()),
-      );
-
-      // Existing conversation chats
+      // Existing conversation chats and added contacts
       const dmChats = validUsers.map((u) => ({
         id: u._id,
         name: u.name,
@@ -310,25 +294,6 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
         lastMessage: u.lastMessage || "Tap to chat",
         time: u.time || "",
         unread: u.unread || 0,
-        avatar:
-          u.avatar ||
-          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.name)}`,
-      }));
-
-      // Other registered users that user can start chatting with
-      const newRegisteredDmChats = otherRegisteredUsers.map((u) => ({
-        id: u._id,
-        name: u.name,
-        customName: u.customName,
-        displayName: u.displayName || u.customName || u.name,
-        phone: u.phone,
-        email: u.email,
-        about: u.about,
-        isGroup: false,
-        lastMessage: "New on ChatApp • Tap to chat",
-        time: "",
-        unread: 0,
-        isNewUser: true,
         avatar:
           u.avatar ||
           `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.name)}`,
@@ -348,17 +313,8 @@ export const useChatLifecycle = ({ state, navigate, modals }) => {
           `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(g.name)}`,
       }));
 
-      // Merge all users with contacts so NewChatSidebar and CreateGroupModal show all contacts
-      const usersMap = new Map();
-      validAllUsers.forEach((u) => usersMap.set(u._id.toString(), u));
-      validUsers.forEach((u) => {
-        const existing = usersMap.get(u._id.toString()) || {};
-        usersMap.set(u._id.toString(), { ...existing, ...u });
-      });
-      const fullUsersList = Array.from(usersMap.values());
-
-      state.setAllUsers(fullUsersList);
-      state.setChats([...groupChats, ...dmChats, ...newRegisteredDmChats]);
+      state.setAllUsers(validUsers);
+      state.setChats([...groupChats, ...dmChats]);
     } catch (_e) {
       console.warn("Notice fetching chats:", _e?.message || _e);
     }
