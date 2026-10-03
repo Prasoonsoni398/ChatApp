@@ -389,7 +389,7 @@ export const requestNotificationPermission = async () => {
 export const triggerDesktopNotification = (
   title,
   body,
-  icon = "/favicon.ico",
+  icon = "/favicon.svg",
 ) => {
   try {
     const notifsEnabled =

@@ -52,6 +52,7 @@ const useWebRTC = (loggedInUser) => {
   const targetPeerIdRef = useRef(null);
   const activeRoomIdRef = useRef(null);
   const pendingOfferRef = useRef(null);
+  const queuedIceCandidatesRef = useRef([]);
   const screenTrackRef = useRef(null);
   const camTrackRef = useRef(null);
   const isScreenSharingRef = useRef(false);
