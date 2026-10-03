@@ -36,7 +36,7 @@ const Chat = () => {
   const navigate = useNavigate();
   const state = useChatState();
 
-  const { onlineUsersMap } = useOnlineStatus();
+  const { onlineUsersMap, busyUsersSet } = useOnlineStatus();
   const {
     otherUserTyping,
     setOtherUserTyping,
@@ -357,6 +357,7 @@ const Chat = () => {
           <ChatMainArea
             state={state}
             onlineUsersMap={onlineUsersMap}
+            busyUsersSet={busyUsersSet}
             webRTC={webRTC}
             lockedChatIds={modals.lockedChatIds}
             handleToggleLockChat={securityActions.handleToggleLockChat}

@@ -2,6 +2,7 @@ import Group from "../models/group.model.js";
 import Message from "../models/message.model.js";
 
 const OnlineUsers = {};
+const BusyUsers = new Set();
 
 const WebSocket = (io) => {
   console.log("Socket connection Established");
@@ -11,6 +12,7 @@ const WebSocket = (io) => {
       OnlineUsers[userId] = socket.id;
       console.log("Online User:", OnlineUsers);
       io.emit("onlineUsers", OnlineUsers);
+      io.emit("busyUsers", Array.from(BusyUsers));
 
       // Mark all pending messages as delivered
       try {
@@ -225,7 +227,13 @@ const WebSocket = (io) => {
     // --- WebRTC Signaling ---
 
     socket.on("ringUser", ({ userToCall, from, callType, name, avatar, roomId }) => {
-      const receiverSocketId = OnlineUsers[userToCall];
+      const targetStr = String(userToCall?._id || userToCall || "");
+      if (BusyUsers.has(targetStr)) {
+        socket.emit("userBusy", { userId: targetStr });
+        return;
+      }
+
+      const receiverSocketId = OnlineUsers[targetStr];
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("incomingRing", {
           from,
@@ -300,6 +308,10 @@ const WebSocket = (io) => {
     });
 
     socket.on("answerCall", (data) => {
+      if (data.from) BusyUsers.add(String(data.from));
+      if (data.to) BusyUsers.add(String(data.to));
+      io.emit("busyUsers", Array.from(BusyUsers));
+
       const callerSocketId = OnlineUsers[data.to];
       if (callerSocketId) {
         io.to(callerSocketId).emit("callAccepted", {
@@ -321,8 +333,27 @@ const WebSocket = (io) => {
       }
     });
 
+    socket.on("userBusy", ({ to, userId }) => {
+      if (userId) {
+        BusyUsers.add(String(userId));
+        io.emit("busyUsers", Array.from(BusyUsers));
+      }
+      const callerSocketId = OnlineUsers[to];
+      if (callerSocketId) {
+        io.to(callerSocketId).emit("userBusy", { userId });
+      }
+    });
+
     socket.on("leaveCall", ({ roomId, userId, to }) => {
       const targetStr = to ? String(to?._id || to) : null;
+      const callerUserId =
+        userId ||
+        Object.keys(OnlineUsers).find((key) => OnlineUsers[key] === socket.id);
+
+      if (targetStr) BusyUsers.delete(targetStr);
+      if (callerUserId) BusyUsers.delete(String(callerUserId));
+      io.emit("busyUsers", Array.from(BusyUsers));
+
       if (targetStr) {
         const receiverSocketId =
           OnlineUsers[targetStr] ||
@@ -330,18 +361,27 @@ const WebSocket = (io) => {
             ([uid]) => String(uid) === targetStr,
           )?.[1];
         if (receiverSocketId) {
-          io.to(receiverSocketId).emit("callEnded", { userId });
+          io.to(receiverSocketId).emit("callEnded", { userId: callerUserId });
         }
+      } else if (roomId) {
+        socket.to(roomId).emit("callEnded", { userId: callerUserId });
       }
+
       if (roomId) {
         socket.leave(roomId);
-        socket.to(roomId).emit("userLeftCall", userId);
-        socket.to(roomId).emit("callEnded", { userId });
       }
     });
 
     socket.on("endCall", ({ to, roomId, userId }) => {
       const targetStr = to ? String(to?._id || to) : null;
+      const callerUserId =
+        userId ||
+        Object.keys(OnlineUsers).find((key) => OnlineUsers[key] === socket.id);
+
+      if (targetStr) BusyUsers.delete(targetStr);
+      if (callerUserId) BusyUsers.delete(String(callerUserId));
+      io.emit("busyUsers", Array.from(BusyUsers));
+
       if (targetStr) {
         const receiverSocketId =
           OnlineUsers[targetStr] ||
@@ -349,13 +389,14 @@ const WebSocket = (io) => {
             ([uid]) => String(uid) === targetStr,
           )?.[1];
         if (receiverSocketId) {
-          io.to(receiverSocketId).emit("callEnded", { userId });
+          io.to(receiverSocketId).emit("callEnded", { userId: callerUserId });
         }
+      } else if (roomId) {
+        socket.to(roomId).emit("callEnded", { userId: callerUserId });
       }
+
       if (roomId) {
         socket.leave(roomId);
-        socket.to(roomId).emit("userLeftCall", userId);
-        socket.to(roomId).emit("callEnded", { userId });
       }
     });
 
@@ -375,8 +416,10 @@ const WebSocket = (io) => {
       );
       if (userId) {
         delete OnlineUsers[userId];
+        BusyUsers.delete(String(userId));
         console.log("Online User (after disconnect):", OnlineUsers);
         io.emit("onlineUsers", OnlineUsers);
+        io.emit("busyUsers", Array.from(BusyUsers));
       }
     });
   });

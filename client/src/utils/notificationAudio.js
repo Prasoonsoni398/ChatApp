@@ -360,6 +360,60 @@ export const stopRingtone = () => {
 };
 
 /**
+ * Play authentic telephone busy signal (pulsed dual tone 480Hz + 620Hz, 4 beeps)
+ * indicating the user is engaged on another call.
+ */
+export const playBusyTone = (onComplete = null) => {
+  stopRingtone();
+  try {
+    const soundEnabled =
+      localStorage.getItem("setting_sound_enabled") !== "false";
+    if (!soundEnabled) {
+      if (onComplete) setTimeout(onComplete, 2400);
+      return;
+    }
+
+    const ctx = getAudioContext();
+    if (!ctx) {
+      if (onComplete) setTimeout(onComplete, 2400);
+      return;
+    }
+
+    const now = ctx.currentTime;
+    const beepCount = 4;
+    const beepDuration = 0.35;
+    const silenceDuration = 0.25;
+    const cycleDuration = beepDuration + silenceDuration;
+
+    for (let i = 0; i < beepCount; i++) {
+      const startTime = now + i * cycleDuration;
+      [480, 620].forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.14, startTime);
+        gain.gain.setValueAtTime(0.14, startTime + beepDuration - 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + beepDuration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + beepDuration);
+        activeLoopOscillators.push(osc);
+      });
+    }
+
+    const totalMs = Math.round(beepCount * cycleDuration * 1000);
+    if (onComplete) {
+      setTimeout(onComplete, totalMs + 300);
+    }
+  } catch (err) {
+    console.debug("Failed to play busy tone:", err);
+    if (onComplete) setTimeout(onComplete, 2400);
+  }
+};
+
+/**
  * Preview one cycle of a ringtone (e.g. in settings modal)
  */
 export const previewRingtone = (ringtoneKey) => {

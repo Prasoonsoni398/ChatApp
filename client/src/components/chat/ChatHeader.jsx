@@ -34,6 +34,7 @@ const ChatHeader = ({
   selectedChat,
   setSelectedChat,
   onlineUsersMap,
+  busyUsersSet,
   showMsgSearch,
   setShowMsgSearch,
   setMsgSearchQuery,
@@ -107,6 +108,11 @@ const ChatHeader = ({
             {selectedChat.isGroup ? (
               <span className="text-[11px] sm:text-xs text-base-content/60 truncate block">
                 {selectedChat.members?.length} members · tap for info
+              </span>
+            ) : busyUsersSet?.has(String(selectedChat.id || selectedChat._id)) ? (
+              <span className="flex items-center gap-1 text-[11px] sm:text-xs text-amber-500 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0"></span>
+                On another call
               </span>
             ) : onlineUsersMap[selectedChat.id] ? (
               <span className="flex items-center gap-1 text-[11px] sm:text-xs text-success font-medium">

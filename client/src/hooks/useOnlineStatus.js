@@ -1,23 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import socketAPI from "../config/webSocket.js";
 
 /**
- * Subscribes to the Socket.IO `onlineUsers` event and maintains a map of
- * userId → boolean indicating which users are currently online.
+ * Subscribes to Socket.IO `onlineUsers` and `busyUsers` events
  *
- * @returns {{ onlineUsersMap: Record<string, boolean> }}
+ * @returns {{ onlineUsersMap: Record<string, boolean>, busyUsersSet: Set<string> }}
  */
 function useOnlineStatus() {
   const [onlineUsersMap, setOnlineUsersMap] = useState({});
+  const [busyUsersList, setBusyUsersList] = useState([]);
 
   useEffect(() => {
     socketAPI.on("onlineUsers", setOnlineUsersMap);
+    socketAPI.on("busyUsers", (list) => {
+      setBusyUsersList(Array.isArray(list) ? list : []);
+    });
     return () => {
       socketAPI.off("onlineUsers", setOnlineUsersMap);
+      socketAPI.off("busyUsers");
     };
   }, []);
 
-  return { onlineUsersMap, setOnlineUsersMap };
+  const busyUsersSet = useMemo(
+    () => new Set(busyUsersList.map(String)),
+    [busyUsersList],
+  );
+
+  return { onlineUsersMap, setOnlineUsersMap, busyUsersSet };
 }
 
 export default useOnlineStatus;

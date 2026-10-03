@@ -13,6 +13,7 @@ import {
 const ChatMainArea = ({
   state,
   onlineUsersMap,
+  busyUsersSet,
   webRTC,
   lockedChatIds,
   handleToggleLockChat,
@@ -135,6 +136,7 @@ const ChatMainArea = ({
               selectedChat={state.selectedChat}
               setSelectedChat={state.setSelectedChat}
               onlineUsersMap={onlineUsersMap}
+              busyUsersSet={busyUsersSet}
               showMsgSearch={state.showMsgSearch}
               setShowMsgSearch={state.setShowMsgSearch}
               setMsgSearchQuery={state.setMsgSearchQuery}

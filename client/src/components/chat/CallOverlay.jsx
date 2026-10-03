@@ -360,10 +360,22 @@ const CallOverlay = ({
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-1">
             {contactName}
           </h2>
-          <p className="text-emerald-400 font-medium text-sm sm:text-base capitalize tracking-wide flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-            {outgoingCallStatus === "ringing" ? "Ringing..." : "Calling..."}
-          </p>
+          {outgoingCallStatus === "busy" ? (
+            <div className="flex flex-col items-center gap-1 mt-1">
+              <span className="text-amber-400 font-semibold text-sm sm:text-base tracking-wide flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-4 py-1 rounded-full">
+                <BsTelephoneXFill size={14} className="text-amber-400 animate-pulse" />
+                On another call
+              </span>
+              <span className="text-white/60 text-xs mt-0.5">
+                {contactName} is currently on another call
+              </span>
+            </div>
+          ) : (
+            <p className="text-emerald-400 font-medium text-sm sm:text-base capitalize tracking-wide flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+              {outgoingCallStatus === "ringing" ? "Ringing..." : "Calling..."}
+            </p>
+          )}
         </div>
 
         {/* Pulsing Avatar */}

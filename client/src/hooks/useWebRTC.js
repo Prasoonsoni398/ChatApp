@@ -5,6 +5,7 @@ import {
   startIncomingRingtone,
   startOutgoingCallRingtone,
   stopRingtone,
+  playBusyTone,
 } from "../utils/notificationAudio.js";
 
 // Standard public STUN servers for NAT traversal
@@ -60,6 +61,7 @@ const useWebRTC = (loggedInUser) => {
   const camTrackRef = useRef(null);
   const isScreenSharingRef = useRef(false);
   const endCallRef = useRef(null);
+  const lastToastTimeRef = useRef(0);
 
   // Maintain reference to current callState so socket callbacks never drop or trigger re-binding
   const callStateRef = useRef(callState);
@@ -267,7 +269,10 @@ const useWebRTC = (loggedInUser) => {
           return;
         }
         // Truly busy on another call
-        socketAPI.emit("rejectCall", { to: data.from });
+        socketAPI.emit("userBusy", {
+          to: data.from,
+          userId: loggedInUser?._id,
+        });
         return;
       }
       setIncomingCall(data);
@@ -357,21 +362,56 @@ const useWebRTC = (loggedInUser) => {
       }
     };
 
-    // 6. Call Rejected by Callee
-    const handleCallRejected = () => {
-      toast("Call was declined", { icon: "📵" });
-      endCall();
+    // 6. Callee is busy on another call
+    const handleUserBusy = () => {
+      stopRingtone();
+      setOutgoingCallStatus("busy");
+      const name = currentPeerInfo?.name || "Contact";
+      const now = Date.now();
+      if (now - lastToastTimeRef.current > 2000) {
+        lastToastTimeRef.current = now;
+        toast.error(`${name} is on another call`, {
+          id: "call-status-toast",
+          icon: "📵",
+        });
+      }
+      playBusyTone(() => {
+        if (endCallRef.current) endCallRef.current(false);
+      });
     };
 
-    // 7. Call Ended by other user
+    // 7. Call Rejected by Callee
+    const handleCallRejected = () => {
+      stopRingtone();
+      const now = Date.now();
+      if (now - lastToastTimeRef.current > 2000) {
+        lastToastTimeRef.current = now;
+        toast("Call was declined", { icon: "📵", id: "call-status-toast" });
+      }
+      if (endCallRef.current) endCallRef.current(false);
+    };
+
+    // 8. Call Ended by other user (deduplicated to prevent duplicate toasts)
     const handleCallEnded = () => {
-      toast("Call ended", { icon: "📞" });
-      if (endCallRef.current) endCallRef.current();
+      stopRingtone();
+      if (callStateRef.current === "idle") return;
+      const now = Date.now();
+      if (now - lastToastTimeRef.current > 2000) {
+        lastToastTimeRef.current = now;
+        toast("Call ended", { icon: "📞", id: "call-status-toast" });
+      }
+      if (endCallRef.current) endCallRef.current(false);
     };
 
     const handleUserLeftCall = () => {
-      toast("User left the call", { icon: "👋" });
-      if (endCallRef.current) endCallRef.current();
+      stopRingtone();
+      if (callStateRef.current === "idle") return;
+      const now = Date.now();
+      if (now - lastToastTimeRef.current > 2000) {
+        lastToastTimeRef.current = now;
+        toast("Call ended", { icon: "📞", id: "call-status-toast" });
+      }
+      if (endCallRef.current) endCallRef.current(false);
     };
 
     socketAPI.on("incomingRing", handleIncomingRing);
@@ -379,6 +419,7 @@ const useWebRTC = (loggedInUser) => {
     socketAPI.on("incomingCall", handleIncomingCall);
     socketAPI.on("callAccepted", handleCallAccepted);
     socketAPI.on("iceCandidate", handleIceCandidate);
+    socketAPI.on("userBusy", handleUserBusy);
     socketAPI.on("callRejected", handleCallRejected);
     socketAPI.on("callEnded", handleCallEnded);
     socketAPI.on("userLeftCall", handleUserLeftCall);
@@ -389,6 +430,7 @@ const useWebRTC = (loggedInUser) => {
       socketAPI.off("incomingCall", handleIncomingCall);
       socketAPI.off("callAccepted", handleCallAccepted);
       socketAPI.off("iceCandidate", handleIceCandidate);
+      socketAPI.off("userBusy", handleUserBusy);
       socketAPI.off("callRejected", handleCallRejected);
       socketAPI.off("callEnded", handleCallEnded);
       socketAPI.off("userLeftCall", handleUserLeftCall);
@@ -618,7 +660,7 @@ const useWebRTC = (loggedInUser) => {
   /**
    * Terminate active or outgoing call
    */
-  const endCall = () => {
+  const endCall = (shouldNotify = true) => {
     stopRingtone();
 
     const targetId = targetPeerIdRef.current;
@@ -636,23 +678,20 @@ const useWebRTC = (loggedInUser) => {
       pcRef.current = null;
     }
 
-    // Notify both peer and room subscribers
-    if (targetId) {
-      socketAPI.emit("endCall", {
-        to: targetId,
-        roomId,
-        userId: loggedInUser?._id,
-      });
-      socketAPI.emit("leaveCall", {
-        to: targetId,
-        roomId,
-        userId: loggedInUser?._id,
-      });
-    } else if (roomId) {
-      socketAPI.emit("leaveCall", {
-        roomId,
-        userId: loggedInUser?._id,
-      });
+    // Notify peer if this client initiated the call end
+    if (shouldNotify) {
+      if (targetId) {
+        socketAPI.emit("endCall", {
+          to: targetId,
+          roomId,
+          userId: loggedInUser?._id,
+        });
+      } else if (roomId) {
+        socketAPI.emit("endCall", {
+          roomId,
+          userId: loggedInUser?._id,
+        });
+      }
     }
 
     // Stop local media stream tracks
