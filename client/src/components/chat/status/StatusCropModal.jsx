@@ -10,8 +10,8 @@ const STATUS_ASPECT_OPTIONS = [
 ];
 
 /**
- * WhatsApp Status Crop & Rotate Modal
- * Reuses the high-precision ImageCropModal with WhatsApp Status 9:16 presets.
+ * GuftguStatus Crop & Rotate Modal
+ * Reuses the high-precision ImageCropModal with GuftguStatus 9:16 presets.
  */
 const StatusCropModal = ({ isOpen, imageSrc, onCropDone, onCancel }) => {
   return (

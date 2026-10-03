@@ -1,6 +1,6 @@
 /**
  * statusMusic.js
- * Comprehensive WhatsApp Status Music Engine.
+ * Comprehensive GuftguStatus Music Engine.
  * Features:
  * - Curated preset catalog with genre categorization (Trending, Chill, Acoustic, Electronic, Travel, etc.)
  * - Web Audio API synthesizer for offline harmonic playback
@@ -113,7 +113,7 @@ const getSynthContext = () => {
     if (AudioCtx) synthAudioCtx = new AudioCtx();
   }
   if (synthAudioCtx && synthAudioCtx.state === "suspended") {
-    synthAudioCtx.resume().catch(() => {});
+    synthAudioCtx.resume().catch(() => { });
   }
   return synthAudioCtx;
 };
@@ -180,7 +180,7 @@ const playPresetMelody = (presetId, options = {}) => {
 
       osc.start(now);
       osc.stop(now + stepDuration);
-    } catch (_e) {}
+    } catch (_e) { }
   };
 
   playStep();
@@ -301,7 +301,7 @@ export const stopStatusTrack = () => {
     try {
       activeAudioElement.pause();
       activeAudioElement.currentTime = 0;
-    } catch (_e) {}
+    } catch (_e) { }
     activeAudioElement = null;
   }
   if (activeSynthInterval) {

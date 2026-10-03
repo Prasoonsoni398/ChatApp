@@ -152,7 +152,7 @@ const GroupInfoModal = ({
   return (
     <>
       <div className="fixed inset-0 z-50 md:relative md:inset-auto md:z-auto w-full md:w-88 lg:w-96 flex-shrink-0 flex flex-col bg-base-100 border-r border-r-theme-soothing chat-sidebar-panel h-full overflow-hidden animate-slide-up md:animate-fade-in select-none">
-        {/* Header — WhatsApp style with Back Arrow and Title */}
+        {/* Header — Guftgustyle with Back Arrow and Title */}
         <div className="h-16 px-4 border-b border-b-theme-soothing flex items-center gap-3 bg-base-100 flex-shrink-0 z-10">
           <button
             type="button"

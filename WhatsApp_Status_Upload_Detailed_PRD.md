@@ -1,7 +1,7 @@
-# WhatsApp Status Upload — Detailed PRD & Design Specification
+# GuftguStatus Upload — Detailed PRD & Design Specification
 
 **Product:** WhatsApp-inspired Status  
-**Platforms:** Android, iOS, WhatsApp Web, Desktop  
+**Platforms:** Android, iOS, GuftguWeb, Desktop  
 **Version:** 2.0  
 **Document:** Product Requirements + UX/UI + Functional + Technical Specification
 
@@ -83,12 +83,15 @@ Create → Select Media → Edit → Trim Video → Add Music → Trim Music
 # 4. User Personas
 
 ### Casual User
+
 Needs a fast photo/video sharing flow with minimal editing.
 
 ### Social User
+
 Needs music, trimming, stickers, text, filters, and visual customization.
 
 ### Business User
+
 Needs captions, controlled audiences, announcements, and reliable publishing.
 
 ---
@@ -221,12 +224,12 @@ The Web editor should support desktop file selection and drag-and-drop where ava
 
 # 11. Status Types
 
-| Type | Mobile | Web |
-|---|---|---|
-| Photo | Yes | Yes |
-| Video | Yes | Yes |
-| Text | Yes | Yes |
-| GIF | Where supported | Where supported |
+| Type  | Mobile                   | Web                      |
+| ----- | ------------------------ | ------------------------ |
+| Photo | Yes                      | Yes                      |
+| Video | Yes                      | Yes                      |
+| Text  | Yes                      | Yes                      |
+| GIF   | Where supported          | Where supported          |
 | Music | Where supported/licensed | Where supported/licensed |
 
 ---
@@ -299,8 +302,8 @@ The interface should be inspired by familiar messaging-app patterns without requ
 
 ```css
 :root {
-  --primary: #25D366;
-  --primary-dark: #128C7E;
+  --primary: #25d366;
+  --primary-dark: #128c7e;
   --background: #ffffff;
   --surface: #f7f8fa;
   --text-primary: #111b21;
@@ -955,15 +958,15 @@ instead of simply:
 
 # 39. Web Keyboard Shortcuts
 
-| Shortcut | Action |
-|---|---|
-| Space | Play/Pause |
-| Ctrl/Cmd + Z | Undo |
-| Ctrl/Cmd + Shift + Z | Redo |
-| Esc | Close modal |
-| Delete | Delete selected object |
-| Arrow keys | Move selected object |
-| Enter | Confirm action |
+| Shortcut             | Action                 |
+| -------------------- | ---------------------- |
+| Space                | Play/Pause             |
+| Ctrl/Cmd + Z         | Undo                   |
+| Ctrl/Cmd + Shift + Z | Redo                   |
+| Esc                  | Close modal            |
+| Delete               | Delete selected object |
+| Arrow keys           | Move selected object   |
+| Enter                | Confirm action         |
 
 Shortcuts must not interfere with text input.
 
@@ -1303,16 +1306,16 @@ UpdatesPage
 
 # 48. Error Handling
 
-| Error | Message | Action |
-|---|---|---|
-| No Internet | No internet connection | Retry |
-| Invalid File | This file type is not supported | Choose another |
-| Large File | This file is too large | Choose another |
-| Processing Failed | We couldn't process this media | Try again |
-| Upload Failed | Status upload failed | Retry |
-| Session Expired | Please reconnect | Reconnect |
-| Server Error | Something went wrong | Retry later |
-| Music Unavailable | This song isn't available | Choose another |
+| Error              | Message                                  | Action         |
+| ------------------ | ---------------------------------------- | -------------- |
+| No Internet        | No internet connection                   | Retry          |
+| Invalid File       | This file type is not supported          | Choose another |
+| Large File         | This file is too large                   | Choose another |
+| Processing Failed  | We couldn't process this media           | Try again      |
+| Upload Failed      | Status upload failed                     | Retry          |
+| Session Expired    | Please reconnect                         | Reconnect      |
+| Server Error       | Something went wrong                     | Retry later    |
+| Music Unavailable  | This song isn't available                | Choose another |
 | Region Restriction | This song isn't available in your region | Choose another |
 
 ---

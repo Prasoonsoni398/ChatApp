@@ -12,7 +12,7 @@ export const DEFAULT_CUSTOMIZATION = {
   wallpaperType: "default", // "default" | "color" | "preset" | "custom"
   wallpaperValue: "", // color hex, preset URL, or uploaded base64 data URL
   wallpaperDim: 0, // 0 to 80 (percentage)
-  showDoodle: true, // show WhatsApp doodle overlay
+  showDoodle: true, // show Guftgudoodle overlay
   wallpaperBlur: 0, // 0 to 10 (px)
 };
 
@@ -20,7 +20,7 @@ export const DEFAULT_CUSTOMIZATION = {
 export const WALLPAPER_PRESETS = [
   {
     id: "dark_doodle",
-    name: "Classic WhatsApp Dark",
+    name: "Classic GuftguDark",
     type: "color",
     color: "#0B141A",
     showDoodle: true,
@@ -36,7 +36,7 @@ export const WALLPAPER_PRESETS = [
   },
   {
     id: "teal_doodle",
-    name: "WhatsApp Teal",
+    name: "GuftguTeal",
     type: "color",
     color: "#075E54",
     showDoodle: true,

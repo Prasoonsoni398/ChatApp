@@ -383,7 +383,7 @@ const ChatInputArea = ({
         </div>
       )}
 
-      {/* WhatsApp Crop Modal for Chat Image Attachments */}
+      {/* GuftguCrop Modal for Chat Image Attachments */}
       {showImageCrop && imagePreview && (
         <ImageCropModal
           imageSrc={imagePreview}

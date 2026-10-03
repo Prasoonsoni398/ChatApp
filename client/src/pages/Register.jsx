@@ -220,7 +220,7 @@ const Register = () => {
               <div className={authFormControl}>
                 <label className={authLabel}>
                   <span className={authLabelText}>
-                    Phone Number (WhatsApp Identifier)
+                    Phone Number 
                   </span>
                 </label>
                 <div className={authInputGroup}>
@@ -361,7 +361,7 @@ const Register = () => {
                         rel="noopener noreferrer"
                         className="btn btn-xs btn-ghost text-primary text-[11px] flex items-center gap-1 hover:bg-primary/10"
                       >
-                        <BsWhatsapp size={13} /> Open in Guftgu
+                        <BsGuftgusize={13} /> Open in Guftgu
                       </a>
                     </div>
                   )}

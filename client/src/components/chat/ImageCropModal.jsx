@@ -574,7 +574,7 @@ const ImageCropModal = ({
               }}
             />
 
-            {/* ── WHATSAPP CROP FRAME ── */}
+            {/* ── GuftguCROP FRAME ── */}
             <div
               className="absolute border border-white/80 select-none shadow-sm cursor-move touch-none"
               style={{

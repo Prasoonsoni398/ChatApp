@@ -87,8 +87,12 @@ const StreamCard = ({
           <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-1.5 shadow-md">
             <BsDisplay size={20} />
           </div>
-          <span className="text-white text-xs font-semibold">Sharing Screen</span>
-          <span className="text-emerald-400 text-[10px] mt-0.5 font-medium">Live to call</span>
+          <span className="text-white text-xs font-semibold">
+            Sharing Screen
+          </span>
+          <span className="text-emerald-400 text-[10px] mt-0.5 font-medium">
+            Live to call
+          </span>
         </div>
       );
     }
@@ -111,7 +115,8 @@ const StreamCard = ({
           You are sharing your screen
         </h3>
         <p className="text-white/60 text-xs sm:text-sm max-w-sm leading-relaxed mb-6">
-          Your screen is being shared live with the call in full quality. Mirror preview is paused here to prevent infinite tunnel copies.
+          Your screen is being shared live with the call in full quality. Mirror
+          preview is paused here to prevent infinite tunnel copies.
         </p>
         {onStopScreenShare && (
           <button
@@ -270,13 +275,11 @@ const CallOverlay = ({
   if (callState === "idle") return null;
 
   // Contact details of the person we are on call with
-  const contactName =
-    incomingCall?.name || currentPeerInfo?.name || "Contact";
-  const contactAvatar =
-    incomingCall?.avatar || currentPeerInfo?.avatar || "";
+  const contactName = incomingCall?.name || currentPeerInfo?.name || "Contact";
+  const contactAvatar = incomingCall?.avatar || currentPeerInfo?.avatar || "";
 
   // ──────────────────────────────────────────
-  // 1. INCOMING CALL SCREEN (WhatsApp Ringing)
+  // 1. INCOMING CALL SCREEN (GuftguRinging)
   // ──────────────────────────────────────────
   if (callState === "ringing" && incomingCall) {
     return (
@@ -291,7 +294,7 @@ const CallOverlay = ({
             {incomingCall.name || "Unknown Caller"}
           </h2>
           <p className="text-white/60 text-sm sm:text-base capitalize">
-            Incoming WhatsApp {incomingCall.callType || "voice"} call...
+            Incoming Guftgu {incomingCall.callType || "voice"} call...
             {incomingCall.isGroup && ` • Group: ${incomingCall.groupName}`}
           </p>
         </div>
@@ -363,7 +366,10 @@ const CallOverlay = ({
           {outgoingCallStatus === "busy" ? (
             <div className="flex flex-col items-center gap-1 mt-1">
               <span className="text-amber-400 font-semibold text-sm sm:text-base tracking-wide flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-4 py-1 rounded-full">
-                <BsTelephoneXFill size={14} className="text-amber-400 animate-pulse" />
+                <BsTelephoneXFill
+                  size={14}
+                  className="text-amber-400 animate-pulse"
+                />
                 On another call
               </span>
               <span className="text-white/60 text-xs mt-0.5">
@@ -411,7 +417,7 @@ const CallOverlay = ({
   }
 
   // ──────────────────────────────────────────
-  // 3. ACTIVE PICKED-UP CALL (WhatsApp Fullscreen + PiP Size Swap)
+  // 3. ACTIVE PICKED-UP CALL (GuftguFullscreen + PiP Size Swap)
   // ──────────────────────────────────────────
   const peerEntries = Object.entries(remoteStreams);
   const primaryRemoteStream = peerEntries.length > 0 ? peerEntries[0][1] : null;
@@ -443,7 +449,7 @@ const CallOverlay = ({
 
   return (
     <div className="fixed inset-0 z-[9999] bg-zinc-950 flex flex-col justify-between overflow-hidden select-none animate-fade-in font-sans pointer-events-auto">
-      {/* ── TOP HEADER (WhatsApp Call Bar) ── */}
+      {/* ── TOP HEADER (GuftguCall Bar) ── */}
       <div className="absolute top-0 inset-x-0 z-30 flex items-center justify-between p-4 sm:p-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
         <div className="flex items-center gap-3 pointer-events-auto">
           <div className="flex flex-col">
@@ -521,7 +527,7 @@ const CallOverlay = ({
             )}
           </div>
         ) : (
-          /* Voice Call Stage (WhatsApp Aesthetic) */
+          /* Voice Call Stage (GuftguAesthetic) */
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-b from-[#111b21] via-[#0c1317] to-[#080d10] text-white">
             <div className="relative flex items-center justify-center mb-6">
               <div className="absolute w-44 h-44 sm:w-56 sm:h-56 rounded-full bg-emerald-500/10 animate-pulse pointer-events-none" />
@@ -548,7 +554,7 @@ const CallOverlay = ({
             </p>
             <span className="flex items-center gap-1.5 text-xs text-white/50 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
               <BsShieldLockFill size={11} className="text-emerald-400" />
-              WhatsApp Voice Call
+              GuftguVoice Call
             </span>
 
             {/* Audio tag for remote voice stream */}
@@ -559,7 +565,9 @@ const CallOverlay = ({
                     if (el.srcObject !== primaryRemoteStream) {
                       el.srcObject = primaryRemoteStream;
                     }
-                    el.play().catch((e) => console.debug("Voice play error:", e));
+                    el.play().catch((e) =>
+                      console.debug("Voice play error:", e),
+                    );
                   }
                 }}
                 autoPlay
@@ -646,7 +654,7 @@ const CallOverlay = ({
         )}
       </div>
 
-      {/* ── FLOATING BOTTOM CONTROLS BAR (WhatsApp Call Action Pill) ── */}
+      {/* ── FLOATING BOTTOM CONTROLS BAR (GuftguCall Action Pill) ── */}
       <div className="absolute bottom-6 inset-x-0 z-50 flex items-center justify-center px-4 pointer-events-none">
         <div className="flex items-center gap-3 sm:gap-5 px-6 py-3.5 rounded-full bg-black/75 backdrop-blur-2xl border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.6)] pointer-events-auto transition-transform">
           {/* 1. Mute / Unmute Mic */}
@@ -683,7 +691,7 @@ const CallOverlay = ({
             </button>
           )}
 
-          {/* 3. Swap Stream / Video Sizes Button (WhatsApp Switch View) */}
+          {/* 3. Swap Stream / Video Sizes Button (GuftguSwitch View) */}
           {callType === "video" && (
             <button
               onClick={() => setIsSwapped((prev) => !prev)}
@@ -711,7 +719,7 @@ const CallOverlay = ({
             </button>
           )}
 
-          {/* 5. Cut Call / Hang Up (Big Red WhatsApp Button) */}
+          {/* 5. Cut Call / Hang Up (Big Red GuftguButton) */}
           <button
             type="button"
             onClick={(e) => {

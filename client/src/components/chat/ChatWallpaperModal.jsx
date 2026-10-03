@@ -25,7 +25,7 @@ import {
 } from "../../utils/chatCustomization.js";
 
 const SOLID_COLORS = [
-  { name: "WhatsApp Dark", hex: "#0B141A" },
+  { name: "GuftguDark", hex: "#0B141A" },
   { name: "Dark Slate", hex: "#111B21" },
   { name: "Teal Green", hex: "#075E54" },
   { name: "Midnight Navy", hex: "#0D1B2A" },
@@ -235,7 +235,7 @@ const ChatWallpaperModal = ({
                 style={getPreviewBackgroundStyle()}
               />
 
-              {/* Optional WhatsApp Doodle Pattern */}
+              {/* Optional GuftguDoodle Pattern */}
               {customization.showDoodle && (
                 <div className="absolute inset-0 bg-[url('https://static.whatsapp.net/rsrc.php/v3/yl/r/r_QxI4xW8H8.png')] bg-repeat bg-center opacity-[0.08] pointer-events-none" />
               )}
@@ -539,10 +539,10 @@ const ChatWallpaperModal = ({
 
                 {/* Wallpaper Options: Doodle, Dimming & Blur */}
                 <div className="p-3.5 rounded-2xl bg-[#202C33]/60 border border-white/10 space-y-3">
-                  {/* WhatsApp Doodle Pattern Toggle */}
+                  {/* GuftguDoodle Pattern Toggle */}
                   <label className="flex items-center justify-between cursor-pointer">
                     <span className="text-xs font-semibold text-white">
-                      WhatsApp Doodle Pattern
+                      GuftguDoodle Pattern
                     </span>
                     <input
                       type="checkbox"
@@ -706,7 +706,7 @@ const ChatWallpaperModal = ({
         </div>
       </div>
 
-      {/* WhatsApp Crop Modal for Custom Wallpaper */}
+      {/* GuftguCrop Modal for Custom Wallpaper */}
       {cropWallpaperSrc && (
         <ImageCropModal
           imageSrc={cropWallpaperSrc}

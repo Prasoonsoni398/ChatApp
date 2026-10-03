@@ -98,7 +98,7 @@ const NewChatSidebar = ({
         name: cleanNum,
         phone: cleanNum,
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanNum}`,
-        about: "WhatsApp user",
+        about: "Guftguuser",
       };
       onSelectUser?.(syntheticUser);
       setShowDialpad(false);

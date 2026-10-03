@@ -5,7 +5,7 @@
  */
 
 export const SOLID_BACKGROUNDS = [
-  { id: "teal", label: "WhatsApp Teal", value: "#075e54" },
+  { id: "teal", label: "GuftguTeal", value: "#075e54" },
   { id: "dark_slate", label: "Dark Slate", value: "#121b22" },
   { id: "emerald", label: "Emerald Green", value: "#128c7e" },
   { id: "bright_green", label: "Vibrant Green", value: "#25d366" },

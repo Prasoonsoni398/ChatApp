@@ -143,7 +143,7 @@ const ProfileTabContent = ({
                 {currentUser?.phone || "No phone linked"}
               </span>
               <p className="text-[10px] text-base-content/50 mt-0.5">
-                Linked WhatsApp Identifier (cannot be changed)
+                Linked GuftguIdentifier (cannot be changed)
               </p>
             </div>
           </div>

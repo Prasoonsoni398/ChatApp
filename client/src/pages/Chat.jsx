@@ -445,7 +445,7 @@ const Chat = () => {
           startCall={webRTC.startCall}
         />
 
-        {/* Top-Level WhatsApp Call Overlay */}
+        {/* Top-Level GuftguCall Overlay */}
         <CallOverlay {...webRTC} loggedInUser={state.loggedInUser} />
       </div>
     </div>

@@ -116,7 +116,7 @@ const ChatMainArea = ({
         />
       ) : null}
 
-      {/* ── Optional WhatsApp Doodle Pattern ── */}
+      {/* ── Optional GuftguDoodle Pattern ── */}
       {chatCustomization.showDoodle && (
         <div className="absolute inset-0 bg-[url('https://static.whatsapp.net/rsrc.php/v3/yl/r/r_QxI4xW8H8.png')] bg-repeat bg-center opacity-[0.06] pointer-events-none" />
       )}

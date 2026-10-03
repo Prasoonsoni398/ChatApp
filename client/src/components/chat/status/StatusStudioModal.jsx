@@ -507,7 +507,7 @@ const StatusStudioModal = ({
     <div className="fixed inset-0 z-10000 bg-black flex items-center justify-center select-none overflow-hidden animate-fade-in text-white">
       {/* Studio Viewport Wrapper: full screen on mobile, phone-aspect stage on desktop */}
       <div className="w-full h-full max-w-full md:max-w-md lg:max-w-lg md:max-h-[96vh] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col justify-between bg-black border-0 md:border md:border-white/10">
-        {/* ── TOP FLOATING TOOLBAR (AUTHENTIC WHATSAPP STYLE) ── */}
+        {/* ── TOP FLOATING TOOLBAR (AUTHENTIC GuftguSTYLE) ── */}
         <header className="absolute top-0 inset-x-0 z-40 bg-gradient-to-b from-black/85 via-black/40 to-transparent pt-3 pb-6 px-4 flex items-center justify-between pointer-events-auto">
           {/* Close button */}
           <button
@@ -527,7 +527,7 @@ const StatusStudioModal = ({
             )}
           </button>
 
-          {/* WhatsApp Action Icons on Right */}
+          {/* GuftguAction Icons on Right */}
           <div className="flex items-center gap-2 sm:gap-2.5">
             {activeTool === "draw" ? (
               <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
@@ -681,7 +681,7 @@ const StatusStudioModal = ({
           </div>
         </header>
 
-        {/* ── VIDEO FILMSTRIP / TRIMMER (WHATSAPP STYLE AT TOP) ── */}
+        {/* ── VIDEO FILMSTRIP / TRIMMER (GuftguSTYLE AT TOP) ── */}
         {isVideo && !activeTool && (
           <div className="absolute top-14 inset-x-4 z-30 max-w-sm mx-auto bg-black/60 backdrop-blur-md rounded-2xl px-3 py-2 border border-white/15 flex flex-col gap-1 pointer-events-auto">
             <div className="flex items-center justify-between text-[11px] text-white/80 font-mono">
@@ -838,7 +838,7 @@ const StatusStudioModal = ({
             ))}
           </div>
 
-          {/* WhatsApp Drawing Color Palette (Vertical on right edge when drawing) */}
+          {/* GuftguDrawing Color Palette (Vertical on right edge when drawing) */}
           {activeTool === "draw" && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 z-35 bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/20 flex flex-col items-center gap-2 animate-fade-in pointer-events-auto">
               {PEN_COLORS.map((col) => (
@@ -1123,7 +1123,7 @@ const StatusStudioModal = ({
           )}
         </div>
 
-        {/* ── BOTTOM FLOATING BAR (WHATSAPP CAPTION & SEND) ── */}
+        {/* ── BOTTOM FLOATING BAR (GuftguCAPTION & SEND) ── */}
         <footer className="absolute bottom-0 inset-x-0 z-40 bg-gradient-to-t from-black/95 via-black/60 to-transparent pt-8 pb-5 px-4 flex flex-col gap-2 pointer-events-auto">
           {/* Upload Progress Bar if uploading */}
           {uploadState === "uploading" && (
@@ -1151,7 +1151,7 @@ const StatusStudioModal = ({
 
           {/* Row 1: Attached Song Pill & Status Privacy Pill */}
           <div className="flex items-center justify-between gap-2">
-            {/* WhatsApp Status Privacy Pill */}
+            {/* GuftguStatus Privacy Pill */}
             <button
               type="button"
               onClick={() => setShowPrivacyModal(true)}
@@ -1192,7 +1192,7 @@ const StatusStudioModal = ({
             )}
           </div>
 
-          {/* Row 2: WhatsApp Caption Capsule Input + Green Send Circle FAB */}
+          {/* Row 2: GuftguCaption Capsule Input + Green Send Circle FAB */}
           <div className="flex items-center gap-2 relative">
             {/* Mention Suggestions Popover */}
             {mentionSuggestions.length > 0 && (
@@ -1243,7 +1243,7 @@ const StatusStudioModal = ({
               />
             </div>
 
-            {/* WhatsApp Circular Green Send FAB */}
+            {/* GuftguCircular Green Send FAB */}
             <button
               type="button"
               onClick={handlePublishClick}
@@ -1330,7 +1330,7 @@ const StatusStudioModal = ({
         }}
       />
 
-      {/* ── INTERACTIVE WHATSAPP CROP & ROTATE MODAL (react-easy-crop) ── */}
+      {/* ── INTERACTIVE GuftguCROP & ROTATE MODAL (react-easy-crop) ── */}
       <StatusCropModal
         isOpen={showCropModal}
         imageSrc={workingMediaUrl || mediaPreviewUrl}
