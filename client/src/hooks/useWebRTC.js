@@ -56,7 +56,6 @@ const useWebRTC = (loggedInUser) => {
   const camTrackRef = useRef(null);
   const isScreenSharingRef = useRef(false);
   const endCallRef = useRef(null);
-  const activeCallSessionRef = useRef(0);
 
   // Maintain reference to current callState so socket callbacks never drop or trigger re-binding
   const callStateRef = useRef(callState);
@@ -350,12 +349,8 @@ const useWebRTC = (loggedInUser) => {
       return;
     }
 
-    const sessionId = Date.now();
-    activeCallSessionRef.current = sessionId;
-    callStateRef.current = "outgoing";
-
     setCallType(type);
-    const roomId = `room-${sessionId}`;
+    const roomId = `room-${Date.now()}`;
     setActiveRoomId(roomId);
     activeRoomIdRef.current = roomId;
     setCallState("outgoing");
@@ -386,18 +381,6 @@ const useWebRTC = (loggedInUser) => {
         video: type === "video",
         audio: true,
       });
-
-      // Abort check: if user clicked Cancel while awaiting devices, discard stream immediately
-      if (activeCallSessionRef.current !== sessionId || callStateRef.current !== "outgoing") {
-        console.log("[useWebRTC] Call was cancelled while acquiring media device. Discarding stream.");
-        stream.getTracks().forEach((track) => {
-          try {
-            track.stop();
-          } catch (_e) {}
-        });
-        return;
-      }
-
       setLocalStream(stream);
       localStreamRef.current = stream;
       const camTrack = stream.getVideoTracks()[0];
@@ -416,25 +399,9 @@ const useWebRTC = (loggedInUser) => {
         roomId,
       });
 
-      // Abort check before creating RTCPeerConnection
-      if (activeCallSessionRef.current !== sessionId || callStateRef.current !== "outgoing") {
-        console.log("[useWebRTC] Call was cancelled before creating peer connection.");
-        return;
-      }
-
       // 3. Initialize native PeerConnection and generate SDP Offer
       const pc = createPeerConnection(targetId);
       const offer = await pc.createOffer();
-
-      // Abort check before setting local description and signaling
-      if (activeCallSessionRef.current !== sessionId || callStateRef.current !== "outgoing") {
-        console.log("[useWebRTC] Call was cancelled before signaling offer.");
-        try {
-          pc.close();
-        } catch (_e) {}
-        return;
-      }
-
       await pc.setLocalDescription(offer);
 
       // 4. Send SDP Offer through signaling channel
@@ -551,124 +518,112 @@ const useWebRTC = (loggedInUser) => {
    * Callee declines the incoming call
    */
   const rejectCall = () => {
-    try {
-      stopRingtone();
-      if (incomingCall) {
-        recordCallLog({
-          id: incomingCall.roomId || Date.now().toString(),
-          userId: incomingCall.from,
-          name: incomingCall.name || "Caller",
-          avatar: incomingCall.avatar || "",
-          type: incomingCall.callType || "voice",
-          direction: "incoming",
-          status: "missed",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        });
-        socketAPI.emit("rejectCall", { to: incomingCall.from });
-      }
-    } catch (err) {
-      console.warn("rejectCall error:", err);
-    } finally {
-      activeCallSessionRef.current = 0;
-      callStateRef.current = "idle";
-      setIncomingCall(null);
-      setCallState("idle");
-      targetPeerIdRef.current = null;
-      activeRoomIdRef.current = null;
-      pendingOfferRef.current = null;
+    stopRingtone();
+    if (incomingCall) {
+      recordCallLog({
+        id: incomingCall.roomId || Date.now().toString(),
+        userId: incomingCall.from,
+        name: incomingCall.name || "Caller",
+        avatar: incomingCall.avatar || "",
+        type: incomingCall.callType || "voice",
+        direction: "incoming",
+        status: "missed",
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      });
+      socketAPI.emit("rejectCall", { to: incomingCall.from });
     }
+    setIncomingCall(null);
+    setCallState("idle");
+    targetPeerIdRef.current = null;
+    activeRoomIdRef.current = null;
+    pendingOfferRef.current = null;
   };
 
   /**
    * Terminate active or outgoing call
    */
   const endCall = () => {
-    try {
-      stopRingtone();
+    stopRingtone();
 
-      const targetId = targetPeerIdRef.current;
-      const roomId = activeRoomIdRef.current;
+    const targetId = targetPeerIdRef.current;
+    const roomId = activeRoomIdRef.current;
 
-      // Detach all listeners before closing to prevent recursive teardown
-      if (pcRef.current) {
-        try {
-          pcRef.current.onconnectionstatechange = null;
-          pcRef.current.oniceconnectionstatechange = null;
-          pcRef.current.ontrack = null;
-          pcRef.current.onicecandidate = null;
-          pcRef.current.close();
-        } catch (_e) {}
-        pcRef.current = null;
-      }
-
-      // Notify both peer and room subscribers
-      if (targetId) {
-        socketAPI.emit("endCall", {
-          to: targetId,
-          roomId,
-          userId: loggedInUser?._id,
-        });
-        socketAPI.emit("leaveCall", {
-          to: targetId,
-          roomId,
-          userId: loggedInUser?._id,
-        });
-      } else if (roomId) {
-        socketAPI.emit("leaveCall", {
-          roomId,
-          userId: loggedInUser?._id,
-        });
-      }
-
-      // Stop local media stream tracks
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((track) => {
-          try {
-            track.stop();
-          } catch (_e) {}
-        });
-      }
-
-      // Stop screen share track if any
-      if (screenTrackRef.current) {
-        try {
-          screenTrackRef.current.onended = null;
-          screenTrackRef.current.stop();
-        } catch (_e) {}
-        screenTrackRef.current = null;
-      }
-
-      // Stop preserved camera track if any
-      if (camTrackRef.current) {
-        try {
-          camTrackRef.current.stop();
-        } catch (_e) {}
-        camTrackRef.current = null;
-      }
-    } catch (err) {
-      console.error("Error during endCall teardown:", err);
-    } finally {
-      activeCallSessionRef.current = 0;
-      callStateRef.current = "idle";
-      isScreenSharingRef.current = false;
-      localStreamRef.current = null;
-      targetPeerIdRef.current = null;
-      activeRoomIdRef.current = null;
-      pendingOfferRef.current = null;
-      queuedIceCandidatesRef.current = [];
-
-      setLocalStream(null);
-      setRemoteStreams({});
-      setCallState("idle");
-      setIncomingCall(null);
-      setActiveRoomId(null);
-      setIsScreenSharing(false);
-      setOutgoingCallStatus("calling");
-      setCurrentPeerInfo({ name: "Contact", avatar: "" });
+    // Detach all listeners before closing to prevent recursive teardown
+    if (pcRef.current) {
+      pcRef.current.onconnectionstatechange = null;
+      pcRef.current.oniceconnectionstatechange = null;
+      pcRef.current.ontrack = null;
+      pcRef.current.onicecandidate = null;
+      try {
+        pcRef.current.close();
+      } catch (_e) {}
+      pcRef.current = null;
     }
+
+    // Notify both peer and room subscribers
+    if (targetId) {
+      socketAPI.emit("endCall", {
+        to: targetId,
+        roomId,
+        userId: loggedInUser?._id,
+      });
+      socketAPI.emit("leaveCall", {
+        to: targetId,
+        roomId,
+        userId: loggedInUser?._id,
+      });
+    } else if (roomId) {
+      socketAPI.emit("leaveCall", {
+        roomId,
+        userId: loggedInUser?._id,
+      });
+    }
+
+    // Stop local media stream tracks
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch (_e) {}
+      });
+    }
+
+    // Stop screen share track if any
+    if (screenTrackRef.current) {
+      try {
+        screenTrackRef.current.onended = null;
+        screenTrackRef.current.stop();
+      } catch (_e) {}
+      screenTrackRef.current = null;
+    }
+
+    // Stop preserved camera track if any
+    if (camTrackRef.current) {
+      try {
+        camTrackRef.current.stop();
+      } catch (_e) {}
+      camTrackRef.current = null;
+    }
+
+    isScreenSharingRef.current = false;
+
+    localStreamRef.current = null;
+    targetPeerIdRef.current = null;
+    activeRoomIdRef.current = null;
+    pendingOfferRef.current = null;
+    queuedIceCandidatesRef.current = [];
+
+    setLocalStream(null);
+    setRemoteStreams({});
+    setCallState("idle");
+    setIncomingCall(null);
+    setActiveRoomId(null);
+    setIsScreenSharing(false);
+    setOutgoingCallStatus("calling");
+    setCurrentPeerInfo({ name: "Contact", avatar: "" });
   };
 
   // Keep endCallRef in sync with latest endCall instance

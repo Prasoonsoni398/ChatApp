@@ -171,45 +171,6 @@ const CallOverlay = ({
   const [pipPosition, setPipPosition] = useState("top-right"); // 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left'
   const [isPipExpanded, setIsPipExpanded] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
-  const [isDismissed, setIsDismissed] = useState(false);
-  const remoteAudioRef = useRef(null);
-
-  // Reset local dismissal state when call cleanly ends
-  useEffect(() => {
-    if (callState === "idle") {
-      setIsDismissed(false);
-    }
-  }, [callState]);
-
-  // Safe action handlers to guarantee click & touch response on both mobile and desktop
-  const handleEndCall = (e) => {
-    if (e) {
-      if (typeof e.preventDefault === "function") e.preventDefault();
-      if (typeof e.stopPropagation === "function") e.stopPropagation();
-    }
-    console.log("[CallOverlay] End call triggered - dismissing overlay immediately");
-    setIsDismissed(true);
-    endCall();
-  };
-
-  const handleRejectCall = (e) => {
-    if (e) {
-      if (typeof e.preventDefault === "function") e.preventDefault();
-      if (typeof e.stopPropagation === "function") e.stopPropagation();
-    }
-    console.log("[CallOverlay] Reject call triggered - dismissing overlay immediately");
-    setIsDismissed(true);
-    rejectCall();
-  };
-
-  const handleAnswerCall = (e) => {
-    if (e) {
-      if (typeof e.preventDefault === "function") e.preventDefault();
-      if (typeof e.stopPropagation === "function") e.stopPropagation();
-    }
-    console.log("[CallOverlay] Answer call triggered");
-    answerCall();
-  };
 
   // Active call duration timer
   useEffect(() => {
@@ -265,7 +226,7 @@ const CallOverlay = ({
     }
   }, [isScreenSharing, callType]);
 
-  if (callState === "idle" || isDismissed) return null;
+  if (callState === "idle") return null;
 
   // Contact details of the person we are on call with
   const contactName =
@@ -314,16 +275,13 @@ const CallOverlay = ({
         </div>
 
         {/* Action Buttons: Cut (Decline) vs Pick up (Answer) */}
-        <div className="w-full max-w-sm flex items-center justify-around mb-8 pointer-events-auto">
+        <div className="w-full max-w-sm flex items-center justify-around mb-8">
           {/* Decline / Reject Call */}
           <div className="flex flex-col items-center gap-2">
             <button
-              type="button"
-              onClick={handleRejectCall}
-              onTouchEnd={handleRejectCall}
-              className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-red-600 hover:bg-red-700 active:scale-90 text-white flex items-center justify-center shadow-xl shadow-red-600/30 transition-transform cursor-pointer pointer-events-auto touch-manipulation"
+              onClick={rejectCall}
+              className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-red-600 hover:bg-red-700 active:scale-90 text-white flex items-center justify-center shadow-xl shadow-red-600/30 transition-transform cursor-pointer"
               title="Decline Call"
-              aria-label="Decline Call"
             >
               <BsTelephoneXFill size={26} />
             </button>
@@ -333,12 +291,9 @@ const CallOverlay = ({
           {/* Answer / Pick Up Call */}
           <div className="flex flex-col items-center gap-2">
             <button
-              type="button"
-              onClick={handleAnswerCall}
-              onTouchEnd={handleAnswerCall}
-              className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-90 text-white flex items-center justify-center shadow-xl shadow-emerald-600/30 transition-transform animate-bounce cursor-pointer pointer-events-auto touch-manipulation"
+              onClick={answerCall}
+              className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-90 text-white flex items-center justify-center shadow-xl shadow-emerald-600/30 transition-transform animate-bounce cursor-pointer"
               title="Answer Call"
-              aria-label="Answer Call"
             >
               <BsTelephoneFill size={26} />
             </button>
@@ -355,18 +310,6 @@ const CallOverlay = ({
   if (callState === "outgoing") {
     return (
       <div className="fixed inset-0 z-[9999] bg-gradient-to-b from-[#111b21] via-[#0c1317] to-[#080d10] flex flex-col justify-between items-center text-white p-6 sm:p-10 animate-fade-in select-none pointer-events-auto">
-        {/* Quick Close / Cancel button at top right */}
-        <button
-          type="button"
-          onClick={handleEndCall}
-          onTouchEnd={handleEndCall}
-          className="absolute top-5 right-5 sm:top-7 sm:right-7 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center backdrop-blur-md border border-white/10 cursor-pointer pointer-events-auto touch-manipulation z-50 shadow-md"
-          title="Cancel Call"
-          aria-label="Cancel Call"
-        >
-          <BsTelephoneXFill size={15} className="text-red-400 pointer-events-none" />
-        </button>
-
         {/* Top Header */}
         <div className="flex flex-col items-center text-center mt-8">
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium mb-3 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
@@ -399,26 +342,16 @@ const CallOverlay = ({
           </div>
         </div>
 
-        {/* Cut / Cancel Outgoing Call Button Zone (Entire Area Clickable!) */}
-        <div
-          onClick={handleEndCall}
-          onTouchEnd={handleEndCall}
-          className="flex flex-col items-center gap-2 mb-8 cursor-pointer pointer-events-auto touch-manipulation group p-2 select-none"
-          role="button"
-          tabIndex={0}
-          aria-label="Cancel Call"
-        >
+        {/* Cut / Cancel Outgoing Call Button */}
+        <div className="flex flex-col items-center gap-2 mb-8">
           <button
-            type="button"
-            onClick={handleEndCall}
-            onTouchEnd={handleEndCall}
-            className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-red-600 group-hover:bg-red-700 active:scale-90 text-white flex items-center justify-center shadow-xl shadow-red-600/40 transition-transform cursor-pointer pointer-events-auto touch-manipulation"
+            onClick={endCall}
+            className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-red-600 hover:bg-red-700 active:scale-90 text-white flex items-center justify-center shadow-xl shadow-red-600/30 transition-transform cursor-pointer"
             title="End Call"
-            aria-label="End Call"
           >
-            <BsTelephoneXFill size={26} className="pointer-events-none" />
+            <BsTelephoneXFill size={26} />
           </button>
-          <span className="text-xs text-white/80 group-hover:text-white font-medium select-none pointer-events-none">Cancel</span>
+          <span className="text-xs text-white/70 font-medium">Cancel</span>
         </div>
       </div>
     );
@@ -493,9 +426,11 @@ const CallOverlay = ({
           )}
           <button
             type="button"
-            onClick={handleEndCall}
-            onTouchEnd={handleEndCall}
-            className="btn btn-sm btn-circle bg-red-600 hover:bg-red-700 active:scale-90 text-white border-none shadow-lg cursor-pointer pointer-events-auto touch-manipulation"
+            onClick={(e) => {
+              e.stopPropagation();
+              endCall();
+            }}
+            className="btn btn-sm btn-circle bg-red-600 hover:bg-red-700 text-white border-none shadow-lg active:scale-95"
             title="Cut Call (End Call)"
             aria-label="Cut Call"
           >
@@ -558,29 +493,14 @@ const CallOverlay = ({
             <p className="font-mono text-base text-emerald-400 font-semibold mb-2">
               {formatDuration(callDuration)}
             </p>
-            <span className="flex items-center gap-1.5 text-xs text-white/50 bg-white/5 border border-white/10 px-3 py-1 rounded-full mb-6">
+            <span className="flex items-center gap-1.5 text-xs text-white/50 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
               <BsShieldLockFill size={11} className="text-emerald-400" />
               WhatsApp Voice Call
             </span>
 
-            {/* Direct End Call button on Voice Call screen */}
-            <div className="flex flex-col items-center gap-2 mb-10 pointer-events-auto">
-              <button
-                type="button"
-                onClick={handleEndCall}
-                onTouchEnd={handleEndCall}
-                className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-red-600 hover:bg-red-700 active:scale-90 text-white flex items-center justify-center shadow-2xl shadow-red-600/50 transition-all cursor-pointer pointer-events-auto touch-manipulation border-2 border-red-400/30"
-                title="End Call"
-                aria-label="End Call"
-              >
-                <BsTelephoneXFill size={26} />
-              </button>
-              <span className="text-xs text-white/70 font-medium">End Call</span>
-            </div>
-
             {/* Audio tag for remote voice stream */}
             {primaryRemoteStream && (
-              <audio ref={remoteAudioRef} autoPlay playsInline muted={false} />
+              <audio autoPlay playsInline muted={false} />
             )}
           </div>
         )}
@@ -662,11 +582,10 @@ const CallOverlay = ({
       </div>
 
       {/* ── FLOATING BOTTOM CONTROLS BAR (WhatsApp Call Action Pill) ── */}
-      <div className="fixed bottom-[max(1.75rem,calc(env(safe-area-inset-bottom)+1.25rem))] left-1/2 -translate-x-1/2 z-[10002] flex items-center justify-center pointer-events-auto touch-manipulation select-none">
-        <div className="flex items-center gap-3 sm:gap-5 px-5 sm:px-6 py-3.5 rounded-full bg-black/85 backdrop-blur-2xl border border-white/20 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pointer-events-auto transition-transform">
+      <div className="absolute bottom-6 inset-x-0 z-50 flex items-center justify-center px-4 pointer-events-none">
+        <div className="flex items-center gap-3 sm:gap-5 px-6 py-3.5 rounded-full bg-black/75 backdrop-blur-2xl border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.6)] pointer-events-auto transition-transform">
           {/* 1. Mute / Unmute Mic */}
           <button
-            type="button"
             onClick={() => setIsMuted(!isMuted)}
             className={`w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center transition-all ${
               isMuted
@@ -682,7 +601,6 @@ const CallOverlay = ({
           {/* 2. Camera On / Off (Video Calls) */}
           {callType === "video" && (
             <button
-              type="button"
               onClick={() => setIsVideoOff(!isVideoOff)}
               className={`w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center transition-all ${
                 isVideoOff
@@ -703,7 +621,6 @@ const CallOverlay = ({
           {/* 3. Swap Stream / Video Sizes Button (WhatsApp Switch View) */}
           {callType === "video" && (
             <button
-              type="button"
               onClick={() => setIsSwapped((prev) => !prev)}
               className="w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 cursor-pointer shadow-md transition-all"
               title="Change Video Sizes (Swap Caller & Callee)"
@@ -716,7 +633,6 @@ const CallOverlay = ({
           {/* 4. Screen Sharing */}
           {callType === "video" && (
             <button
-              type="button"
               onClick={toggleScreenShare}
               className={`w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center transition-all ${
                 isScreenSharing
@@ -733,9 +649,11 @@ const CallOverlay = ({
           {/* 5. Cut Call / Hang Up (Big Red WhatsApp Button) */}
           <button
             type="button"
-            onClick={handleEndCall}
-            onTouchEnd={handleEndCall}
-            className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-xl shadow-red-600/40 transition-transform cursor-pointer ml-1 pointer-events-auto touch-manipulation"
+            onClick={(e) => {
+              e.stopPropagation();
+              endCall();
+            }}
+            className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center bg-red-600 hover:bg-red-700 active:scale-90 text-white shadow-xl shadow-red-600/40 transition-transform cursor-pointer ml-1 pointer-events-auto"
             title="Cut Call (End Call)"
             aria-label="Cut Call"
           >
